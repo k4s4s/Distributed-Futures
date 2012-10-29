@@ -26,43 +26,44 @@ extern "C" {
 
 class Future_Registry {
 	private:
+		void *data_ptr;
+		unsigned int data_size;
+		//MPI_Datatype datatype;
 		unsigned int offset;
 	public:
-		friend class boost::serialization::access;
 		Future_Registry() {};		
-		Future_Registry(unsigned int _offset): offset(_offset) {};
+		Future_Registry(void *_data_ptr, unsigned int _data_size, unsigned int _offset): 
+		data_ptr(_data_ptr), data_size(_data_size), offset(_offset) {};
 		~Future_Registry() {};	
-		template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */){
-        ar & offset;
-		};
+		void *get_dataPtr() { return data_ptr; };
+		unsigned int get_dataSize() { return data_size; };
 		unsigned int get_offset() { return offset; }; 
 };
+
+
 
 //FIXME: need to find a way to have multiple futures(done), as well as of different types...
 /* maybe we can have multiple enviroments in order to support different instantiation types(Not possible in
 	current implementation though, since enviroment is a singleton) */
 
-template <class T>
 class Futures_Enviroment { //singleton class
 	private:
 		MPI_Comm comm;
 		MPI_Group group;
-		T **data;
-		unsigned int data_elements_num;
+		void ***data;
 		int **status;
-		//std::map<std::string, MPI_Datatype> MPI_Datatypes;
 		std::map<unsigned int, Future_Registry> futuresMap; /* hold information about different futures. Attention: it is possible that
 		enviroment are different accross processes */
+		unsigned int max_futures;
 		unsigned int future_count;
 		static Futures_Enviroment* pinstance; 
 	protected:
-		Futures_Enviroment(int &argc, char**& argv, unsigned int size);
+		Futures_Enviroment(int &argc, char**& argv, unsigned int futures_number);
 	public:
 		~Futures_Enviroment();
-		static Futures_Enviroment* Instance(int &argc, char**& argv, unsigned int size);
+		static Futures_Enviroment* Instance(int &argc, char**& argv, unsigned int futures_number);
 		static Futures_Enviroment* Instance();
-		T *get_dataPtr(int rank) { return data[rank]; };
+		void *get_dataPtr(int rank) { return data[rank]; };
 		int *get_statusPtr(int rank) { return status[rank]; };
 		MPI_Comm get_communicator() { return comm; };
 		// this function returns the id used to register the future in the map
@@ -71,21 +72,25 @@ class Futures_Enviroment { //singleton class
 		Future_Registry get_Future_Registry(unsigned int id);
 };
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::pinstance = NULL;// initialize pointer
+Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::Instance (int &argc, char**& argv, unsigned int size) {
+Futures_Enviroment* Futures_Enviroment::Instance(int &argc, char**& argv, 
+	unsigned int futures_number) {
+
 	if (!pinstance) {
-		pinstance = new Futures_Enviroment(argc, argv, size); // create sole instance
+		pinstance = new Futures_Enviroment(argc, argv, futures_number); // create sole instance
 	}
 	return pinstance; // address of sole instance
 };
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::Instance () {
+Futures_Enviroment* Futures_Enviroment::Instance () {
 
 	return pinstance; // address of sole instance
 };
 	
-template <class T> Futures_Enviroment<T>::Futures_Enviroment(int &argc, char**& argv, unsigned int size) {
+Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv, 
+	unsigned int futures_number) {
+
 	int mpi_status;
 	MPI_Initialized(&mpi_status);
 	if(!mpi_status) {
@@ -94,17 +99,17 @@ template <class T> Futures_Enviroment<T>::Futures_Enviroment(int &argc, char**& 
 	ARMCI_Init(); //perhaps check if it is already initialized
 	MPI_Comm_group(MPI_COMM_WORLD, &group);
   MPI_Comm_create(MPI_COMM_WORLD, group, &comm);
-	data_elements_num = size;
+	max_futures = futures_number;
 	//Allocate shared memory
 	int nprocs;
 	MPI_Comm_size(comm, &nprocs);
-	data = (T**)malloc(nprocs*sizeof(T*));
-	ARMCI_Malloc((void **)data, size*sizeof(T));
-	status = (int**)malloc(nprocs*sizeof(T*));
-	ARMCI_Malloc((void **)status, size*sizeof(int));
+	data = (void***)malloc(nprocs*sizeof(void**));
+	ARMCI_Malloc((void **)data, futures_number*sizeof(void*));
+	status = (int**)malloc(nprocs*sizeof(int*));
+	ARMCI_Malloc((void **)status, futures_number*sizeof(int));
 };
 
-template <class T> Futures_Enviroment<T>::~Futures_Enviroment() {
+Futures_Enviroment::~Futures_Enviroment() {
 	int mpi_status;	
 	MPI_Comm_free(&comm);
 	int rank;
@@ -121,19 +126,22 @@ template <class T> Futures_Enviroment<T>::~Futures_Enviroment() {
 	pinstance = NULL;
 };
 
-template <class T> unsigned int Futures_Enviroment<T>::registerFuture() {
+unsigned int Futures_Enviroment::registerFuture() {
 	unsigned int id = future_count;
-	future_count++;	
-	Future_Registry reg(id);
+	future_count++;
+	assert(future_count <= max_futures);
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	Future_Registry reg(data[rank][id], 1, id);
 	futuresMap[id] = reg;
 	return id;
 }
 
-template <class T> void Futures_Enviroment<T>::removeFuture(unsigned int id) {
+void Futures_Enviroment::removeFuture(unsigned int id) {
 	futuresMap.erase(id);
 }
 
-template <class T> Future_Registry Futures_Enviroment<T>::get_Future_Registry(unsigned int id) {
+Future_Registry Futures_Enviroment::get_Future_Registry(unsigned int id) {
 	return futuresMap[id];
 }
 
