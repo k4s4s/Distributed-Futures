@@ -16,8 +16,6 @@ extern "C" {
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 
-#define DEBUG 1
-
 #ifdef DEBUG
 #define DEBUG_MSG(str) std::cout << str << std::endl
 #else

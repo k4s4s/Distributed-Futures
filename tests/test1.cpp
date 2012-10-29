@@ -29,6 +29,10 @@ int main(int argc, char* argv[]) {
 		cout << "Master creates promise and future" << endl;
 		vector<Promise<double> > promises(NUMBER_OF_FUTURES);
 		vector<Future<double> > answers(NUMBER_OF_FUTURES);
+		Promise<char> sayP(id);
+		Future<char> sayF = sayP.get_future();
+		comm.send(1, 0, sayP);
+		cout << sayF.get(MPI_CHAR) << "imitris" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 			promises[i] = Promise<double>(id);
 			answers[i] = promises[i].get_future();
@@ -49,7 +53,10 @@ int main(int argc, char* argv[]) {
 		for(int i=0; i < SIZE_X; i++) {
 			A[i] = i+42;
 		}	
-		vector<Promise<double*> > promises(NUMBER_OF_FUTURES);
+		Promise<char> sayP;
+		comm.recv(0, 0, sayP);
+		vector<Promise<double> > promises(NUMBER_OF_FUTURES);
+		sayP.set_value('D', MPI_CHAR);		
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
     	comm.recv(0, 0, promises[i]);
 		}
@@ -57,7 +64,7 @@ int main(int argc, char* argv[]) {
 #ifdef ARMCI_V
     	promises[i].set_value(A, SIZE_X*sizeof(double));
 #else
-    	promises[i].set_value(i, MPI_DOUBLE);
+    	promises[i].set_value(i+42, MPI_DOUBLE);
 #endif
 		}
 	}

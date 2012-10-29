@@ -22,17 +22,17 @@ private:
 		friend class boost::serialization::access;
 		Future<T> future; //maybe it sould not hold a copy of the object, there is no need for it, I think...
 		int rank; //rank of the proc that holds the future
-		Future_Registry reg; //registry of the future in the enviroment
+		unsigned int offset; //registry of the future in the enviroment
 		//MPI_Datatype mpi_type; //openmpi's MPI_Datatype is rather complicated, I can not serialize it
 		//Maybe we could get similar wrappers as boost's for one-sided comm
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* file_version */){
-        ar & future & rank & reg;
+        ar & rank & offset;
 		};
 public:
 		Promise() {};
     Promise(int _rank);
-		Promise(Future<T> &_future, int _rank, Future_Registry _reg);
+		Promise(int _rank, unsigned int _offset);
     ~Promise();
     void set_value(T val, MPI_Datatype mpi_type);
 		Future<T> get_future();
@@ -47,8 +47,8 @@ template <class T> Promise<T>::Promise(int _rank):
 */
 };
 
-template <class T> Promise<T>::Promise(Future<T> &_future, int _rank, Future_Registry _reg):
-    future(_future), rank(_rank), reg(_reg)
+template <class T> Promise<T>::Promise(int _rank, unsigned int _offset):
+    rank(_rank), offset(_offset)
 {
 /*
 		std::string type_name(typeid(T).name());
@@ -60,10 +60,10 @@ template <class T> Promise<T>::~Promise() {};
 
 template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
 		/* We set remotely the future's value and then we set its flag to ready status*/
-		Futures_Enviroment<T> *env = Futures_Enviroment<T>::Instance();
+		Futures_Enviroment *env = Futures_Enviroment::Instance();
 		MPI_Win data_win = env->get_data_window();
-		int offset = reg.get_offset();
 		//set future data
+		void *value = &val;
 		MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, data_win);
 		MPI_Put(&val, 1, mpi_type, rank, offset, 1, mpi_type, data_win);
 		MPI_Win_unlock(rank, data_win);
@@ -76,10 +76,10 @@ template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
 };
 
 template <class T> Future<T> Promise<T>::get_future() {
-		Futures_Enviroment<T>* env = Futures_Enviroment<T>::Instance();
+		Futures_Enviroment* env = Futures_Enviroment::Instance();
 		unsigned int id = env->registerFuture();
 		future.set_id(id);
-		reg = env->get_Future_Registry(id);
+		offset = id;
 		return future;		
 };
 

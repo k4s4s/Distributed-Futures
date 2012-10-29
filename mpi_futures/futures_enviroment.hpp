@@ -11,18 +11,25 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 
+#ifdef DEBUG
+#define DEBUG_MSG(str) std::cout << str << std::endl
+#else
+#define DEBUG_MSG(str) ;
+#endif
+
 class Future_Registry {
 	private:
+		void *data_ptr;
+		unsigned int data_size;
+		//MPI_Datatype datatype;
 		unsigned int offset;
 	public:
-		friend class boost::serialization::access;
 		Future_Registry() {};		
-		Future_Registry(unsigned int _offset): offset(_offset) {};
+		Future_Registry(void *_data_ptr, unsigned int _data_size, unsigned int _offset): 
+		data_ptr(_data_ptr), data_size(_data_size), offset(_offset) {};
 		~Future_Registry() {};	
-		template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */){
-        ar & offset;
-		};
+		void *get_dataPtr() { return data_ptr; };
+		unsigned int get_dataSize() { return data_size; };
 		unsigned int get_offset() { return offset; }; 
 };
 
@@ -34,32 +41,31 @@ class Future_Registry {
 
 /*TODO: perhaps we could have the enviroment maintain another window, that will be used to contain futures, promises, 
 				 thus using RMA puts/gets to emulate shared memory model more closely. An issue here can be serialization */
-template <class T>
 class Futures_Enviroment { //singleton class
 	private:
 		MPI_Comm comm;
 		MPI_Win data_win;
 		MPI_Win status_win;
 		MPI_Group group;
-		T* data;
-		unsigned int data_elements_num;
+		void** data;
 		int* status;
 		//std::map<std::string, MPI_Datatype> MPI_Datatypes;
 		std::map<unsigned int, Future_Registry> futuresMap; /* hold information about different futures. Attention: it is possible that
 		enviroment are different accross processes */
+		unsigned int max_futures; //try to get this done dynamically
 		unsigned int future_count;
 		static Futures_Enviroment* pinstance; 
 	protected:
 		Futures_Enviroment(int &argc, char**& argv, unsigned int size);
 	public:
 		~Futures_Enviroment();
-		static Futures_Enviroment* Instance(int &argc, char**& argv, unsigned int size);
+		static Futures_Enviroment* Instance(int &argc, char**& argv, unsigned int total_futures);
 		static Futures_Enviroment* Instance();
 		MPI_Comm get_communicator();
 	  MPI_Win get_data_window();
 		MPI_Win get_status_window();
 		MPI_Group get_group();
-		T get_data();
+		void* get_data();
 		int get_status();
 		// this function returns the id used to register the future in the map
 		unsigned int registerFuture();
@@ -68,21 +74,21 @@ class Futures_Enviroment { //singleton class
 		//MPI_Datatype get_mpi_datatype(std::string &type_name);
 };
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::pinstance = NULL;// initialize pointer
+Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::Instance (int &argc, char**& argv, unsigned int size) {
+Futures_Enviroment* Futures_Enviroment::Instance (int &argc, char**& argv, unsigned int total_futures) {
 	if (!pinstance) {
-		pinstance = new Futures_Enviroment(argc, argv, size); // create sole instance
+		pinstance = new Futures_Enviroment(argc, argv, total_futures); // create sole instance
 	}
 	return pinstance; // address of sole instance
 };
 
-template <class T> Futures_Enviroment<T>* Futures_Enviroment<T>::Instance () {
+Futures_Enviroment* Futures_Enviroment::Instance () {
 
 	return pinstance; // address of sole instance
 };
 	
-template <class T> Futures_Enviroment<T>::Futures_Enviroment(int &argc, char**& argv, unsigned int size) {
+Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv, unsigned int total_futures) {
 	int mpi_status;
 	MPI_Initialized(&mpi_status);
 	if(!mpi_status) {
@@ -90,37 +96,18 @@ template <class T> Futures_Enviroment<T>::Futures_Enviroment(int &argc, char**& 
 	}
 	MPI_Comm_group(MPI_COMM_WORLD, &group);
   MPI_Comm_create(MPI_COMM_WORLD, group, &comm);
-	data_elements_num = size;
-	MPI_Alloc_mem(size, MPI_INFO_NULL, &data);
-	MPI_Alloc_mem(size, MPI_INFO_NULL, &status);
-	MPI_Win_create(data, size*sizeof(T), sizeof(T), MPI_INFO_NULL, comm, &data_win);
-	MPI_Win_create(status, size*sizeof(int), sizeof(int), MPI_INFO_NULL, comm, &status_win);
-	//initialize mpi datatypes map, the fools way...
-	/*
-	MPI_Datatypes["char"] = MPI_CHAR;
-	MPI_Datatypes["unsigned char"] = MPI_UNSIGNED_CHAR;
-	MPI_Datatypes["byte"] = MPI_BYTE;
-	MPI_Datatypes["short"] = MPI_SHORT;
-	MPI_Datatypes["unsigned short"] = MPI_UNSIGNED_SHORT;
-	MPI_Datatypes["int"] = MPI_INT;
-	MPI_Datatypes["unsigned"] = MPI_UNSIGNED;
-	MPI_Datatypes["long"] = MPI_LONG;
-	MPI_Datatypes["unsigned long"] = MPI_UNSIGNED_LONG;
-	MPI_Datatypes["float"] = MPI_FLOAT;
-	MPI_Datatypes["double"] = MPI_DOUBLE;
-	MPI_Datatypes["long double"] = MPI_LONG_DOUBLE;
-	MPI_Datatypes["long long int"] = MPI_LONG_LONG_INT;
-	MPI_Datatypes["float int"] = MPI_FLOAT_INT;
-	MPI_Datatypes["double int"] = MPI_DOUBLE_INT;
-	MPI_Datatypes["long int"] = MPI_LONG_INT;
-	MPI_Datatypes["short int"] = MPI_SHORT_INT;
-	MPI_Datatypes["long double int"] = MPI_LONG_DOUBLE_INT;
-	//FIXME: only some types are supported, perhaps it's better to find out how boost deals with this
-	*/
+	max_futures = total_futures;
+	MPI_Alloc_mem(total_futures, MPI_INFO_NULL, &data);
+	MPI_Alloc_mem(total_futures, MPI_INFO_NULL, &status);
+	MPI_Alloc_mem(1, MPI_INFO_NULL, data); //FIXME:
+	MPI_Win_create(data, total_futures*sizeof(void *), sizeof(void *), MPI_INFO_NULL, comm, &data_win);
+	MPI_Win_create(status, total_futures*sizeof(int), sizeof(int), MPI_INFO_NULL, comm, &status_win);
 };
 
-template <class T> Futures_Enviroment<T>::~Futures_Enviroment() {
+Futures_Enviroment::~Futures_Enviroment() {
 	int mpi_status;	
+	//MPI_Free(status);
+	//wMPI_Free();
 	MPI_Win_free(&status_win);
 	MPI_Win_free(&data_win);
 	MPI_Comm_free(&comm);
@@ -131,49 +118,43 @@ template <class T> Futures_Enviroment<T>::~Futures_Enviroment() {
 	pinstance = NULL;
 };
 
-template <class T> MPI_Comm Futures_Enviroment<T>::get_communicator() {
+MPI_Comm Futures_Enviroment::get_communicator() {
 	return comm;
 }
 
-template <class T> MPI_Win Futures_Enviroment<T>::get_data_window() {
+MPI_Win Futures_Enviroment::get_data_window() {
 	return data_win;
 }
 
-template <class T> MPI_Win Futures_Enviroment<T>::get_status_window() {
+MPI_Win Futures_Enviroment::get_status_window() {
 	return status_win;
 }
 
-template <class T> MPI_Group Futures_Enviroment<T>::get_group() {
+MPI_Group Futures_Enviroment::get_group() {
 	return group;
 }
 
-template <class T> T Futures_Enviroment<T>::get_data() {
-	return data;
+void* Futures_Enviroment::get_data() {
+	return *data;
 }
 
-template <class T> int Futures_Enviroment<T>::get_status() {
-	return status;
+int Futures_Enviroment::get_status() {
+	return *status;
 }
 
-/*
-template <class T> MPI_Datatype Futures_Enviroment<T>::get_mpi_datatype(std::string &type_name) {	
-	return MPI_Datatypes[type_name];
-}
-*/
-
-template <class T> unsigned int Futures_Enviroment<T>::registerFuture() {
+unsigned int Futures_Enviroment::registerFuture() {
 	unsigned int id = future_count;
 	future_count++;	
-	Future_Registry reg(id);
+	Future_Registry reg(*data, 1, id);
 	futuresMap[id] = reg;
 	return id;
 }
 
-template <class T> void Futures_Enviroment<T>::removeFuture(unsigned int id) {
+void Futures_Enviroment::removeFuture(unsigned int id) {
 	futuresMap.erase(id);
 }
 
-template <class T> Future_Registry Futures_Enviroment<T>::get_Future_Registry(unsigned int id) {
+Future_Registry Futures_Enviroment::get_Future_Registry(unsigned int id) {
 	return futuresMap[id];
 }
 
