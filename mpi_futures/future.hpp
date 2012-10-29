@@ -24,19 +24,21 @@ class Future {
 private:
 		bool ready_status;
 		unsigned int id; //id in the enviroment
+		unsigned int data_size;
 public:
     Future();
-		Future(bool _ready_status, unsigned int _id);
+		Future(bool _ready_status, unsigned int _id, unsigned int _data_size);
     ~Future();
     bool is_ready();
     T get(MPI_Datatype mpi_type);
 		void set_id(unsigned int _id) { id = _id; };
+		void set_data_size(unsigned int _data_size) { data_size = _data_size; };
 };
 
 template <class T> Future<T>::Future(): ready_status(false) {};
 
-template <class T> Future<T>::Future(bool _ready_status, unsigned int _id): 
-ready_status(_ready_status), id(_id) {};
+template <class T> Future<T>::Future(bool _ready_status, unsigned int _id, unsigned int _data_size): 
+ready_status(_ready_status), id(_id), data_size(_data_size) {};
 
 template <class T> Future<T>::~Future() {};
 
@@ -69,10 +71,22 @@ template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
 	}	
 	//MPI specification says to lock even local accesses, I think in our case we can remove this...
 	T value;
-	MPI_Win data_win = env->get_data_window();
-	MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, data_win);		
-	MPI_Get(&value, 1, mpi_type, rank, offset, 1, mpi_type, data_win);
-	MPI_Win_unlock(rank, data_win);
+	if(is_pointer<T>::value) {
+		value = (T)malloc(sizeof(*value)*data_size); //FIXME:
+		MPI_Win data_win = env->get_data_window();
+		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, data_win);		
+		MPI_Get(value, data_size, mpi_type, rank, offset, data_size, mpi_type, data_win);
+		MPI_Win_unlock(rank, data_win);
+		return value;
+	}
+	else {
+		MPI_Win data_win = env->get_data_window();
+		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, data_win);
+		//no need for data_size here, we only get 1 element since scalar
+		MPI_Get(&value, data_size, mpi_type, rank, offset, data_size, mpi_type, data_win);
+		MPI_Win_unlock(rank, data_win);
+		return value;
+	}
 	return value;
 };
 

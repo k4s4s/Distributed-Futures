@@ -23,38 +23,32 @@ private:
 		Future<T> future; //maybe it sould not hold a copy of the object, there is no need for it, I think...
 		int rank; //rank of the proc that holds the future
 		unsigned int offset; //registry of the future in the enviroment
+		unsigned int data_size;
 		//MPI_Datatype mpi_type; //openmpi's MPI_Datatype is rather complicated, I can not serialize it
 		//Maybe we could get similar wrappers as boost's for one-sided comm
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* file_version */){
-        ar & rank & offset;
+        ar & rank & offset & data_size;
 		};
 public:
 		Promise() {};
     Promise(int _rank);
-		Promise(int _rank, unsigned int _offset);
+		Promise(int _rank, unsigned int _data_size);
+		Promise(int _rank, unsigned int _offset, unsigned int _data_size);
     ~Promise();
     void set_value(T val, MPI_Datatype mpi_type);
 		Future<T> get_future();
 };
 
 template <class T> Promise<T>::Promise(int _rank):
-    future(), rank(_rank)
-{
-/*		
-		std::string type_name(typeid(T).name());
-		mpi_type = Futures_Enviroment::Instance()->get_mpi_datatype(type_name);
-*/
-};
+    future(), rank(_rank), data_size(1) {};
 
-template <class T> Promise<T>::Promise(int _rank, unsigned int _offset):
-    rank(_rank), offset(_offset)
-{
-/*
-		std::string type_name(typeid(T).name());
-		mpi_type = Futures_Enviroment::Instance()->get_mpi_datatype(type_name);
-*/
-};
+
+template <class T> Promise<T>::Promise(int _rank, unsigned int _data_size):
+    future(), rank(_rank), data_size(_data_size) {};
+
+template <class T> Promise<T>::Promise(int _rank, unsigned int _offset, unsigned int _data_size):
+    rank(_rank), offset(_offset), data_size(_data_size) {};
 
 template <class T> Promise<T>::~Promise() {};
 
@@ -63,10 +57,16 @@ template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
 		Futures_Enviroment *env = Futures_Enviroment::Instance();
 		MPI_Win data_win = env->get_data_window();
 		//set future data
-		void *value = &val;
-		MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, data_win);
-		MPI_Put(&val, 1, mpi_type, rank, offset, 1, mpi_type, data_win);
-		MPI_Win_unlock(rank, data_win);
+		if(is_pointer<T>::value) {
+			MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, data_win);
+			MPI_Put(val, data_size, mpi_type, rank, offset, data_size, mpi_type, data_win);
+			MPI_Win_unlock(rank, data_win);
+		}
+		else {
+			MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, data_win);
+			MPI_Put(&val, data_size, mpi_type, rank, offset, data_size, mpi_type, data_win);
+			MPI_Win_unlock(rank, data_win);
+		}
 		//set future to ready status
 		MPI_Win status_win = env->get_status_window();
 		int ready_flag = 1;
@@ -77,8 +77,9 @@ template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
 
 template <class T> Future<T> Promise<T>::get_future() {
 		Futures_Enviroment* env = Futures_Enviroment::Instance();
-		unsigned int id = env->registerFuture();
+		unsigned int id = env->registerFuture(); //FIXME: revise this section, data_size exists in multiple sides
 		future.set_id(id);
+		future.set_data_size(data_size);
 		offset = id;
 		return future;		
 };

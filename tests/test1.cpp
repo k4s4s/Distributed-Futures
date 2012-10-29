@@ -26,15 +26,23 @@ int main(int argc, char* argv[]) {
 	id = comm.rank();	
 	double A[SIZE_X];
 	if(id == MASTER) {
+/*{
+    int i = 0;
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+    printf("PID %d on %s ready for attach\n", getpid(), hostname);
+    fflush(stdout);
+    sleep(20);
+}*/
 		cout << "Master creates promise and future" << endl;
-		vector<Promise<double> > promises(NUMBER_OF_FUTURES);
-		vector<Future<double> > answers(NUMBER_OF_FUTURES);
-		Promise<char> sayP(id);
-		Future<char> sayF = sayP.get_future();
-		comm.send(1, 0, sayP);
-		cout << sayF.get(MPI_CHAR) << "imitris" << endl;
+		vector<Promise<double*> > promises(NUMBER_OF_FUTURES);
+		vector<Future<double*> > answers(NUMBER_OF_FUTURES);
+		//Promise<char> sayP(id);
+		//Future<char> sayF = sayP.get_future();
+		//comm.send(1, 0, sayP);
+		//cout << sayF.get(MPI_CHAR) << "imitris" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-			promises[i] = Promise<double>(id);
+			promises[i] = Promise<double*>(id, 100);
 			answers[i] = promises[i].get_future();
 			comm.send(1, 0, promises[i]);
 		}		
@@ -45,7 +53,7 @@ int main(int argc, char* argv[]) {
 			double answ = answers[i].get();
 			cout << "The Answer to Life is " << answ << endl;
 #else
-			cout << "The Answer to Life is " << answers[i].get(MPI_DOUBLE) << endl;
+			cout << "The Answer to Life is " << *(answers[i].get(MPI_DOUBLE)+10) << endl;
 #endif
 		}
 	}
@@ -53,10 +61,10 @@ int main(int argc, char* argv[]) {
 		for(int i=0; i < SIZE_X; i++) {
 			A[i] = i+42;
 		}	
-		Promise<char> sayP;
-		comm.recv(0, 0, sayP);
-		vector<Promise<double> > promises(NUMBER_OF_FUTURES);
-		sayP.set_value('D', MPI_CHAR);		
+		//Promise<char> sayP;
+		//comm.recv(0, 0, sayP);
+		vector<Promise<double*> > promises(NUMBER_OF_FUTURES);
+		//sayP.set_value('D', MPI_CHAR);		
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
     	comm.recv(0, 0, promises[i]);
 		}
@@ -64,7 +72,7 @@ int main(int argc, char* argv[]) {
 #ifdef ARMCI_V
     	promises[i].set_value(A, SIZE_X*sizeof(double));
 #else
-    	promises[i].set_value(i+42, MPI_DOUBLE);
+    	promises[i].set_value(A, MPI_DOUBLE);
 #endif
 		}
 	}

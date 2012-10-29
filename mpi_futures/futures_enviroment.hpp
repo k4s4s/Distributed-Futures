@@ -17,6 +17,12 @@
 #define DEBUG_MSG(str) ;
 #endif
 
+template<typename T>
+struct is_pointer { static const bool value = false; };
+
+template<typename T>
+struct is_pointer<T*> { static const bool value = true; };
+
 class Future_Registry {
 	private:
 		void *data_ptr;
