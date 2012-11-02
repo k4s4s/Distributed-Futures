@@ -73,10 +73,10 @@ class Futures_Enviroment { //singleton class
 Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
 Futures_Enviroment* Futures_Enviroment::Instance(int &argc, char**& argv, 
-	unsigned int futures_number) {
+	unsigned int total_futures) {
 
 	if (!pinstance) {
-		pinstance = new Futures_Enviroment(argc, argv, futures_number); // create sole instance
+		pinstance = new Futures_Enviroment(argc, argv, total_futures); // create sole instance
 	}
 	return pinstance; // address of sole instance
 };
@@ -87,7 +87,7 @@ Futures_Enviroment* Futures_Enviroment::Instance () {
 };
 	
 Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv, 
-	unsigned int futures_number) {
+	unsigned int total_futures) {
 
 	int mpi_status;
 	MPI_Initialized(&mpi_status);

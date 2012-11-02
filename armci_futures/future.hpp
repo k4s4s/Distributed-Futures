@@ -17,6 +17,14 @@ extern "C" {
 
 #include "futures_enviroment.hpp"
 
+#ifdef ARMCI-MPI_V
+	#define ARMCI_Access_begin(x) ARMCI_Access_begin(x) 
+	#define ARMCI_Access_end(x) ARMCI_Access_end(x) 
+#else
+	#define ARMCI_Access_begin(x)
+	#define ARMCI_Access_end(x)
+#endif
+
 using namespace std;
 
 //TODO: implement async 
