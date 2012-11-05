@@ -18,6 +18,13 @@
 using namespace std;
 //using namespace boost::mpi;
 
+class Foo {
+	public:
+		int operator()() {
+			return 42;
+		};
+};
+
 int main(int argc, char* argv[]) {
 	int id;
 	Futures_Enviroment* env = Futures_Enviroment::Instance(argc, argv);
@@ -30,6 +37,9 @@ int main(int argc, char* argv[]) {
 	vector<Future<double*>* > answers(NUMBER_OF_FUTURES);
 	Promise<int> int_promise(0, 1, 1, sizeof(int));
 	Future<int> *int_future = int_promise.get_future();
+	Foo foo;
+	Future<int> *foo_fut = async<int>(foo, 0, 1 , 1, sizeof(int), MPI_INT);
+	cout << "Moving along #" << id << endl;
 
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 		promises[i] = new Promise<double*>(0, 1, SIZE_X, sizeof(double));
@@ -45,6 +55,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		cout << "Int value is " << int_future->get(MPI_INT) << endl;
+		cout << "foo returns " << foo_fut->get(MPI_INT) << endl;
 	}
 	else {
 		cout << "Worker computes answer" << endl;
@@ -64,6 +75,7 @@ int main(int argc, char* argv[]) {
 		delete answers[i];
 	}
 	delete int_future;
+	delete foo_fut;
 	delete env;
 }
 

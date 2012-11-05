@@ -17,6 +17,7 @@
 #define DEBUG_MSG(str) ;
 #endif
 
+//TODO: have only the master proc each time share its data, workers should use NULL when creating windows
 class Future_Registry {
 	private:
 		MPI_Win data_win;
