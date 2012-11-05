@@ -12,7 +12,7 @@
 #define MASTER 0
 #define MAX_FUTURES 1000
 #define NUMBER_OF_FUTURES 1
-#define SIZE_X 100
+#define SIZE_X 10
 #define SIZE_Y 100
 
 using namespace std;
@@ -28,65 +28,41 @@ int main(int argc, char* argv[]) {
 
 	vector<Promise<double*>* > promises(NUMBER_OF_FUTURES);
 	vector<Future<double*>* > answers(NUMBER_OF_FUTURES);
-	//Promise<char> sayP(id);
-	//Future<char> sayF = sayP.get_future();
-	//comm.send(1, 0, sayP);
-	//cout << sayF.get(MPI_CHAR) << "imitris" << endl;
+	Promise<int> int_promise(0, 1, 1, sizeof(int));
+	Future<int> *int_future = int_promise.get_future();
+
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 		promises[i] = new Promise<double*>(0, 1, SIZE_X, sizeof(double));
 		answers[i] = promises[i]->get_future();
-		//comm.send(1, 0, promises[i]);
 	}	
+
 	if(id == MASTER) {
 		cout << "Master waits for answer" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-#ifdef ARMCI_V
-			double answ = answers[i]->get();
-			cout << "The Answer to Life is " << answ << endl;
-#else
-			cout << "The Answer to Life is " << *(answers[i]->get(MPI_DOUBLE)) << endl;
-#endif
+			double *B = answers[i]->get(MPI_DOUBLE);
+			for(int j = 0; j < SIZE_X; j++) {
+				cout << "The Answer to Life is " << B[j] << endl;
+			}
 		}
+		cout << "Int value is " << int_future->get(MPI_INT) << endl;
 	}
 	else {
 		cout << "Worker computes answer" << endl;
 		for(int i=0; i < SIZE_X; i++) {
-			A[i] = i+42;
+			A[i] = i;
 		}	
 
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-#ifdef ARMCI_V
-    	promises[i].set_value(A, SIZE_X*sizeof(double));
-#else
 			//cout << "A:" << A[0] << endl;
     	promises[i]->set_value(&(A[0]), MPI_DOUBLE);
-#endif
 		}
+		int_promise.set_value(42, MPI_INT);
 	}
 	
-	/* array testing */
-	/*
-	double A[SIZE_X][SIZE_Y];
-	for(int i=0; i < SIZE_X; i++) {
-		for(int j=0; j < SIZE_Y; j++) {
-			A[i][j] = i*SIZE_X+j;
-		}
-	} 
-
-	for(int i=0; i < SIZE_X; i++) {
-		for(int j=0; j < SIZE_Y; j++) {
-			cout << "A["<<i<<"]["<<j<<"]=" << A[i][j] << endl;
-		}
-	}
-	int i=0, j=1;
-	cout << "A["<<i<<"]["<<j<<"]=" << A[i][j] << endl;
-	cout << "A["<<i<<"*SIZE_Y+"<<j<<"]=" << A[i*SIZE_X+j] << endl;
-	*/
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 		delete promises[i];
 		delete answers[i];
-		//comm.send(1, 0, promises[i]);
-	}	
+	}
 	delete env;
 }
 

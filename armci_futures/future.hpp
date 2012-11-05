@@ -17,7 +17,7 @@ extern "C" {
 
 #include "futures_enviroment.hpp"
 
-#ifdef ARMCI-MPI_V
+#ifdef ARMCI_MPI_V
 	#define ARMCI_Access_begin(x) ARMCI_Access_begin(x) 
 	#define ARMCI_Access_end(x) ARMCI_Access_end(x) 
 #else
@@ -25,69 +25,70 @@ extern "C" {
 	#define ARMCI_Access_end(x)
 #endif
 
-using namespace std;
-
-//TODO: implement async 
 template <class T>
 class Future {
 private:
-//		friend class boost::serialization::access;  
-		int ready_status;
-		T data; //note: value must be serializable
+		bool ready_status;
 		unsigned int id; //id in the enviroment
-   // template<class Archive>
-    //void serialize(Archive & ar, const unsigned int /* file_version */){
-    //    ar & ready_status & id;
-		//};
+		unsigned int data_size;
 public:
-    Future();
-		Future(int _ready_status, T _data, unsigned int _id);
+    Future(unsigned int _data_size, unsigned int _type_size);
     ~Future();
+		unsigned int get_Id();
     bool is_ready();
-    T get();
-		void set_id(unsigned int _id) { id = _id; };
+    T get(MPI_Datatype mpi_type);
 };
 
-template <class T> Future<T>::Future(): ready_status(false) {};
+template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
+	Futures_Enviroment *env = Futures_Enviroment::Instance();
+	data_size = _data_size;
+	ready_status = 0;
+	id = env->registerFuture(_data_size, _type_size);
+};
 
-template <class T> Future<T>::Future(int _ready_status, T _data, unsigned int _id): 
-ready_status(_ready_status), data(_data), id(_id) {};
+template <class T> Future<T>::~Future() {
+	Futures_Enviroment *env = Futures_Enviroment::Instance();
+	env->removeFuture(id);
+};
 
-template <class T> Future<T>::~Future() {};
+template <class T> unsigned int Future<T>::get_Id() {
+	return id;
+}
+
 
 template <class T> bool Future<T>::is_ready() {
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	unsigned int offset = env->get_Future_Registry(id).get_offset();
-	int *ready_status = env->get_statusPtr(rank);
-	bool status;
-	ARMCI_Access_begin(ready_status);
-	status = ready_status[offset];
-	ARMCI_Access_end(ready_status);
-	return status;	
+	int *ready_status_buff = env->get_statusBuff(id);
+	bool ready_status;
+	ARMCI_Access_begin(ready_status_buff);
+	ready_status = ready_status_buff[rank];
+	ARMCI_Access_end(ready_status_buff);
+	return ready_status;	
 };
 
-template <class T> T Future<T>::get() {
+template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
 	/*try to get the value, if it is set, otherwise wait 'till it's set */
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
 	int rank;
 	MPI_Comm_rank(env->get_communicator(), &rank);
-	unsigned int offset = env->get_Future_Registry(id).get_offset();
-	int *ready_status = env->get_statusPtr(rank);
-	int status;
+	int **ready_status_buff = env->get_statusBuff(id);
+	int *ready_status;
 	while(1) { //spins until value is ready	
-		ARMCI_Access_begin(ready_status);
-		status = ready_status[offset];
-		ARMCI_Access_end(ready_status);
-		if(status) break;
+		ARMCI_Access_begin(ready_status_buff);
+		ready_status = ready_status_buff[rank];
+		ARMCI_Access_end(ready_status_buff);
+		if(*ready_status) break;
 	}	
-	T *data = (T*)env->get_dataPtr(rank);
+	T *data = (T*)env->get_dataBuff(id);
 	T value;
-	ARMCI_Access_begin(data);
-	value = data[offset];
-	cout << "data[offset]: " << data[offset] << endl;
-	ARMCI_Access_end(data);
+	ARMCI_Access_begin(data_buff);
+	if(is_pointer<T>::value)
+		value = data[rank];
+	else
+		value = *((T *)data[rank]);
+	ARMCI_Access_end(data_buff);
 	return value;
 };
 
