@@ -23,23 +23,18 @@ private:
 		unsigned int id; //id in the enviroment
 		unsigned int data_size;
 public:
-    Future(unsigned int data_size);
+    Future(unsigned int _data_size, unsigned int _type_size);
     ~Future();
 		unsigned int get_Id();
     bool is_ready();
     T get(MPI_Datatype mpi_type);
 };
 
-template <class T> Future<T>::Future(unsigned int _data_size) {
+template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	unsigned int type_size;
 	data_size = _data_size;
-	if(is_pointer<T>::value)
-		type_size = sizeof(void *); //all pointers are of the same type (??)
-	else
-		type_size = sizeof(T); 
 	ready_status = 0;
-	id = env->registerFuture(data_size, type_size);
+	id = env->registerFuture(_data_size, _type_size);
 };
 
 template <class T> Future<T>::~Future() {
@@ -65,7 +60,6 @@ template <class T> bool Future<T>::is_ready() {
 };
 
 template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
-	DEBUG_MSG("trying to get message");
 	/*try to get the value, if it is set, otherwise wait 'till it's set */
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
 	MPI_Win status_win = env->get_statusWindow(id);
@@ -73,7 +67,7 @@ template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
 	MPI_Comm_rank(env->get_communicator(), &rank);
 	while(1) { //spins until value is ready	
 		//if we don't lock here, mpi stays in an infinite loop and cannot unlock on promise's side
-		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, status_win);
+		MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, status_win);
 		MPI_Get(&ready_status, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win);
 		MPI_Win_unlock(rank, status_win);
 		if(ready_status) break;
@@ -93,7 +87,6 @@ template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
 		MPI_Get(&value, data_size, mpi_type, rank, 0, data_size, mpi_type, data_win);
 		MPI_Win_unlock(rank, data_win);
 	}
-	DEBUG_MSG("Got Message");
 	return value;
 };
 

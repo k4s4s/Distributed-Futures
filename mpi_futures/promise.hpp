@@ -31,18 +31,18 @@ private:
         ar & rank & future_id << data_size;
 		};
 public:
-		Promise(int _rank, unsigned int _data_size, int _myrank);
+		Promise(int _rank, int _myrank, unsigned int _data_size, unsigned int _type_size);
     ~Promise();
     void set_value(T val, MPI_Datatype mpi_type);
 		Future<T> *get_future();
 };
 
-template <class T> Promise<T>::Promise(int _rank, unsigned int _data_size, int _myrank) {
-	future = new Future<T>(_data_size);
+template <class T> Promise<T>::Promise(int _rank, int _myrank, unsigned int _data_size, unsigned int _type_size) {
+	future = new Future<T>(_data_size, _type_size);
 	//these should only be executed only by the thread that will set future's value
 	int myrank;
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	MPI_Comm_rank(env->get_communicator(), &rank);
+	MPI_Comm_rank(env->get_communicator(), &myrank);
 	if(myrank == _myrank) {	
 		future_id = future->get_Id();
 		data_size = _data_size;
@@ -71,9 +71,9 @@ template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
 		//set future to ready status
 		MPI_Win status_win = env->get_statusWindow(future_id);
 		int ready_flag = 1;
-		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, status_win);		
+		MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, status_win);		
 		MPI_Put(&ready_flag, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win);
-		MPI_Win_unlock(rank, status_win);
+		MPI_Win_unlock(rank, status_win);	
 };
 
 template <class T> Future<T> *Promise<T>::get_future() {

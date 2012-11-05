@@ -26,7 +26,6 @@ int main(int argc, char* argv[]) {
 	id = comm.rank();	
 	double A[SIZE_X];
 
-	cout << "Creating promise and future" << endl;
 	vector<Promise<double*>* > promises(NUMBER_OF_FUTURES);
 	vector<Future<double*>* > answers(NUMBER_OF_FUTURES);
 	//Promise<char> sayP(id);
@@ -34,12 +33,11 @@ int main(int argc, char* argv[]) {
 	//comm.send(1, 0, sayP);
 	//cout << sayF.get(MPI_CHAR) << "imitris" << endl;
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-		promises[i] = new Promise<double*>(1, SIZE_X, 0);
+		promises[i] = new Promise<double*>(0, 1, SIZE_X, sizeof(double));
 		answers[i] = promises[i]->get_future();
 		//comm.send(1, 0, promises[i]);
 	}	
-	cout << "Done with initialization" << endl;
-	if(id != MASTER) {
+	if(id == MASTER) {
 		cout << "Master waits for answer" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 #ifdef ARMCI_V
