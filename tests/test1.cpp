@@ -63,6 +63,7 @@ int main(int argc, char* argv[]) {
 		delete promises[i];
 		delete answers[i];
 	}
+	delete int_future;
 	delete env;
 }
 

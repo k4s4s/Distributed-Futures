@@ -37,6 +37,52 @@ public:
 		unsigned int get_Id();
     bool is_ready();
     T get(MPI_Datatype mpi_type);
+protected:
+protected:
+	template<typename TX> 
+		struct _get { 
+			TX operator()(MPI_Datatype mpi_type, bool ready_status, unsigned int id, unsigned int data_size) {
+				/*try to get the value, if it is set, otherwise wait 'till it's set */
+				Futures_Enviroment *env = Futures_Enviroment::Instance();
+				int rank;
+				MPI_Comm_rank(env->get_communicator(), &rank);
+				int **ready_status_buff = env->get_statusBuff(id);
+				while(1) { //spins until value is ready	
+					ARMCI_Access_begin(ready_status_buff);
+					ready_status = *(ready_status_buff[rank]);
+					ARMCI_Access_end(ready_status_buff);
+					if(ready_status) break;
+				}	
+				TX **data = (TX**)env->get_dataBuff(id);
+				TX value;
+				ARMCI_Access_begin(data_buff);
+				value = *(data[rank]);
+				ARMCI_Access_end(data_buff);
+				return value;
+			}
+		}; 
+	template<typename TX> 
+		struct _get<TX*> { //FIXME: maybe remove ready_status, Also at some point decide who will know of data_size and type_size
+			TX* operator()(MPI_Datatype mpi_type, bool ready_status, unsigned int id, unsigned int data_size) {
+				/*try to get the value, if it is set, otherwise wait 'till it's set */
+				Futures_Enviroment *env = Futures_Enviroment::Instance();
+				int rank;
+				MPI_Comm_rank(env->get_communicator(), &rank);
+				int **ready_status_buff = env->get_statusBuff(id);
+				while(1) { //spins until value is ready	
+					ARMCI_Access_begin(ready_status_buff);
+					ready_status = *(ready_status_buff[rank]);
+					ARMCI_Access_end(ready_status_buff);
+					if(ready_status) break;
+				}	
+				TX **data = (TX**)env->get_dataBuff(id);
+				TX *value;
+				ARMCI_Access_begin(data_buff);
+				value = data[rank];
+				ARMCI_Access_end(data_buff);
+				return value;
+			}
+		};
 };
 
 template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
@@ -60,36 +106,15 @@ template <class T> bool Future<T>::is_ready() {
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	int *ready_status_buff = env->get_statusBuff(id);
-	bool ready_status;
+	int **ready_status_buff = env->get_statusBuff(id);
 	ARMCI_Access_begin(ready_status_buff);
-	ready_status = ready_status_buff[rank];
+	ready_status = *(ready_status_buff[rank]);
 	ARMCI_Access_end(ready_status_buff);
 	return ready_status;	
 };
 
 template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
-	/*try to get the value, if it is set, otherwise wait 'till it's set */
-	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	int rank;
-	MPI_Comm_rank(env->get_communicator(), &rank);
-	int **ready_status_buff = env->get_statusBuff(id);
-	int *ready_status;
-	while(1) { //spins until value is ready	
-		ARMCI_Access_begin(ready_status_buff);
-		ready_status = ready_status_buff[rank];
-		ARMCI_Access_end(ready_status_buff);
-		if(*ready_status) break;
-	}	
-	T *data = (T*)env->get_dataBuff(id);
-	T value;
-	ARMCI_Access_begin(data_buff);
-	if(is_pointer<T>::value)
-		value = data[rank];
-	else
-		value = *((T *)data[rank]);
-	ARMCI_Access_end(data_buff);
-	return value;
+	return _get<T>()(mpi_type, ready_status, id, data_size);
 };
 
 #endif

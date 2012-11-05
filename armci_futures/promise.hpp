@@ -38,6 +38,36 @@ public:
     ~Promise();
     void set_value(T val, MPI_Datatype mpi_type);
 		Future<T> *get_future();
+protected:
+	template<typename TX> 
+		struct _set_value { 
+			void operator()(TX val, MPI_Datatype mpi_type, int rank, unsigned int future_id, 
+											unsigned int data_size, unsigned int type_size) {
+				/* We set remotely the future's value and then we set its flag to ready status*/
+				Futures_Enviroment *env = Futures_Enviroment::Instance();
+				void **data = env->get_dataBuff(future_id);
+				ARMCI_Put(&val, data[rank], data_size*type_size, rank);
+				//set future to ready status
+				int ready_flag = 1;
+				int **ready_status_buff = env->get_statusBuff(future_id);
+				ARMCI_Put(&ready_flag, ready_status_buff[rank], sizeof(int), rank);							
+			}
+		};
+
+	template<typename TX> 
+		struct _set_value<TX*> { 
+			void operator()(TX* val, MPI_Datatype mpi_type, int rank, unsigned int future_id, 
+											unsigned int data_size, unsigned int type_size) {
+				/* We set remotely the future's value and then we set its flag to ready status*/
+				Futures_Enviroment *env = Futures_Enviroment::Instance();
+				void **data = env->get_dataBuff(future_id);
+				ARMCI_Put(val, data[rank], data_size*type_size, rank);
+				//set future to ready status
+				int ready_flag = 1;
+				int **ready_status_buff = env->get_statusBuff(future_id);
+				ARMCI_Put(&ready_flag, ready_status_buff[rank], sizeof(int), rank);								
+			}
+		};
 };
 
 template <class T> Promise<T>::Promise(int _rank, int _myrank, unsigned int _data_size, unsigned int _type_size) {
@@ -57,17 +87,7 @@ template <class T> Promise<T>::Promise(int _rank, int _myrank, unsigned int _dat
 template <class T> Promise<T>::~Promise() {};
 
 template <class T> void Promise<T>::set_value(T val, 	MPI_Datatype mpi_type) { // mpi_type is dummy, it is only used in mpi version
-		/* We set remotely the future's value and then we set its flag to ready status*/
-		Futures_Enviroment *env = Futures_Enviroment::Instance();
-		void **data = env->get_dataBuff(future_id);
-		if(is_pointer<T>::value) 
-			ARMCI_Put((void *)val, data[rank], data_size*type_size, rank);
-		else 
-			ARMCI_Put(&val, data[rank], data_size*type_size, rank);
-		//set future to ready status
-		int ready_flag = 1;
-		int **ready_status_buff = env->get_statusBuff(future_id);
-		ARMCI_Put(&ready_flag, ready_status_buff[rank], sizeof(int), rank);	
+	_set_value<T>()(val, mpi_type, rank, future_id, data_size, type_size);
 };
 
 template <class T> Future<T> *Promise<T>::get_future() {
