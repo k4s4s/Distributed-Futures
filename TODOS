@@ -1,0 +1,7 @@
+* Implement std mutex interface for distributed enviroment (mpi, armci)
+* Revise code in order to be more modular
+* Use namespace details to hide utility functions
+* Implement scheduler (let's start with a round robin first)
+* See how boost and/or armci mpi implementation infer mpi types
+* Handle more complex c++ objects (serialization of one sided comm interface)
+* Use variadic template for async
