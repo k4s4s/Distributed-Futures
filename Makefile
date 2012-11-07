@@ -1,6 +1,6 @@
 
 CC=mpic++
-CFLAGS=-gstabs+ -DDEBUG
+CFLAGS=-gstabs+ -DDEBUG -std=c++11
 LDFLAGS=-lboost_serialization -lboost_mpi
 MPI_IFLAGS=-I./mpi_futures/
 ARMCI_IFLAGS=-I/home/kasas/libs/armci/include -I./armci_futures

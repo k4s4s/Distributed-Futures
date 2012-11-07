@@ -81,6 +81,44 @@ protected:
 		};
 };
 
+template<typename TX> 
+	struct _set_value { 
+		void operator()(TX val, MPI_Datatype mpi_type, int rank, unsigned int future_id, unsigned int data_size) {
+			/* We set remotely the future's value and then we set its flag to ready status*/
+			Futures_Enviroment *env = Futures_Enviroment::Instance();
+			MPI_Win data_win = env->get_dataWindow(future_id);
+			//set future data
+			MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, data_win);
+			MPI_Put(&val, data_size, mpi_type, rank, 0, data_size, mpi_type, data_win);
+			MPI_Win_unlock(rank, data_win);
+			//set future to ready status
+			MPI_Win status_win = env->get_statusWindow(future_id);
+			int ready_flag = 1;
+			MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, status_win);		
+			MPI_Put(&ready_flag, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win);
+			MPI_Win_unlock(rank, status_win);	
+		};
+}; 
+
+template<typename TX> 
+	struct _set_value<TX*> { 
+		void operator()(TX* val, MPI_Datatype mpi_type, int rank, unsigned int future_id, unsigned int data_size) {
+			/* We set remotely the future's value and then we set its flag to ready status*/
+			Futures_Enviroment *env = Futures_Enviroment::Instance();
+			MPI_Win data_win = env->get_dataWindow(future_id);
+			//set future data
+			MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, data_win);
+			MPI_Put(val, data_size, mpi_type, rank, 0, data_size, mpi_type, data_win);
+			MPI_Win_unlock(rank, data_win);
+			//set future to ready status
+			MPI_Win status_win = env->get_statusWindow(future_id);
+			int ready_flag = 1;
+			MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, status_win);		
+			MPI_Put(&ready_flag, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win);
+			MPI_Win_unlock(rank, status_win);	
+		};
+}; 
+
 template<class T, class F>
 Future<T> *async(F& f, int master_rank, int worker_rank, 
 								unsigned int data_size, unsigned int type_size, MPI_Datatype mpi_type) {
@@ -92,13 +130,31 @@ Future<T> *async(F& f, int master_rank, int worker_rank,
 	if(myrank == worker_rank) {	
 		unsigned int future_id = future->get_Id();
 		//F should be callable
-		T retval = F()();
+		T retval = f();
+		_set_value<T>()(retval, mpi_type, master_rank, future_id, data_size);
+	}
+	//Master and the rest should skip here directly
+	return future; //the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank 
+};
+#if 0
+template<class T, class F>
+Future<T*> *async<T*>(F& f, int master_rank, int worker_rank, 
+								unsigned int data_size, unsigned int type_size, MPI_Datatype mpi_type) {
+	Future<T*> *future = new Future<T*>(data_size, type_size);
+	//these should only be executed only by the thread that will set future's value
+	int myrank;
+	Futures_Enviroment *env = Futures_Enviroment::Instance();
+	MPI_Comm_rank(env->get_communicator(), &myrank);
+	if(myrank == worker_rank) {	
+		unsigned int future_id = future->get_Id();
+		//F should be callable
+		T* retval = F()();
 		/* We set remotely the future's value and then we set its flag to ready status*/
 		Futures_Enviroment *env = Futures_Enviroment::Instance();
 		MPI_Win data_win = env->get_dataWindow(future_id);
 		//set future data
 		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, master_rank, 0, data_win);
-		MPI_Put(&retval, data_size, mpi_type, master_rank, 0, data_size, mpi_type, data_win);
+		MPI_Put(retval, data_size, mpi_type, master_rank, 0, data_size, mpi_type, data_win);
 		MPI_Win_unlock(master_rank, data_win);
 		//set future to ready status
 		MPI_Win status_win = env->get_statusWindow(future_id);
@@ -110,7 +166,7 @@ Future<T> *async(F& f, int master_rank, int worker_rank,
 	//Master and the rest should skip here directly
 	return future; //the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank 
 };
-
+#endif
 template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
 	data_size = _data_size;
