@@ -4,4 +4,3 @@
 * Implement scheduler (let's start with a round robin first)
 * See how boost and/or armci mpi implementation infer mpi types
 * Handle more complex c++ objects (serialization of one sided comm interface)
-* Use variadic template for async

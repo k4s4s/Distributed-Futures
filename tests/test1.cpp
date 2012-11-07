@@ -25,8 +25,8 @@ class Foo {
 		};
 };
 
-int funcfoo() {
-	return 42;
+int add(int a) {
+	return 42+a;
 }
 
 int main(int argc, char* argv[]) {
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	Promise<int> int_promise(0, 1, 1, sizeof(int));
 	Future<int> *int_future = int_promise.get_future();
 	Foo foo;
-	Future<int> *foo_fut = async<int>(funcfoo, 0, 1, 1, sizeof(int), MPI_INT);
+	Future<int> *foo_fut = async<int>(add, 0, 1, 1, sizeof(int), MPI_INT, 10);
 	cout << "Moving along #" << id << endl;
 
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
