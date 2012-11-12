@@ -6,4 +6,4 @@
 * Maybe allows async to transfer data to worker from master (data=arguments)
 * Handle different endianess on mpi version
 * Maybe have some overloaded methods that infer default options (comm interface, data and type size etc)
-
+* InterfaceComm implementations should keep their own namespace in order to implement utility functions, such as lock_and_get, etc

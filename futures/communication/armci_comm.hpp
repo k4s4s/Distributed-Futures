@@ -17,20 +17,33 @@ extern "C" {
 	#define ARMCI_Access_end(buff)
 #endif
 
+
+
 namespace futures {
 namespace communication {
 
+enum locktype {
+	DATA_LOCK = 0,
+	STATUS_LOCK = 1
+};
+
 namespace details {
 //TODO:add locks...
-static void lock_and_get(void *origin_addr, void** data_buff, int data_size, int rank) {
+static void lock_and_get(void *origin_addr, void** data_buff, int data_size, 
+												int rank, locktype lockt) {
+				ARMCI_Lock(lockt, rank);
 				ARMCI_Access_begin(data_buff);
 				memcpy (origin_addr, data_buff[rank], data_size);
 				//origin_addr = data_buff[rank];
 				ARMCI_Access_end(data_buff);
+				ARMCI_Unlock(lockt, rank);
 };
 //TODO: add locks here too
-static void lock_and_put(void *origin_addr, void** data_buff, int data_size, int target_rank) {
+static void lock_and_put(void *origin_addr, void** data_buff, int data_size, 
+												int target_rank, locktype lockt) {
+				ARMCI_Lock(lockt, target_rank);
 				ARMCI_Put(origin_addr, data_buff[target_rank], data_size, target_rank);
+				ARMCI_Unlock(lockt, target_rank);
 };
 
 }//end of details namespace
@@ -91,21 +104,24 @@ unsigned int ARMCISharedDataManager::get_dataSize() {
 void ARMCISharedDataManager::get_data(void* val) {
 		int rank;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		details::lock_and_get(val, data_buff, data_size*type_size, rank);
+		details::lock_and_get(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
 void ARMCISharedDataManager::set_data(void* val, int rank) {
-		details::lock_and_put(val, data_buff, data_size*type_size, rank);
+		details::lock_and_put(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
 void ARMCISharedDataManager::get_status(int* val) {
 		int rank;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		details::lock_and_get((void*)val, (void**)status_buff, sizeof(int), rank);
+		details::lock_and_get((void*)val, (void**)status_buff, sizeof(int), rank, STATUS_LOCK);
+		//std::cout << "val:" << *val << std::endl; 
 };
 
 void ARMCISharedDataManager::set_status(int* val, int rank) {
-		details::lock_and_put((void*)val, (void**)status_buff, sizeof(int), rank);
+//std::cout << "val:" << *val << std::endl;
+		details::lock_and_put((void*)val, (void**)status_buff, sizeof(int), rank, STATUS_LOCK);
+//std::cout << "val:" << *val << std::endl;
 };
 
 /*** ARMCIComm implementation ***/
@@ -116,10 +132,12 @@ ARMCIComm::ARMCIComm(int &argc, char**& argv) {
 		MPI_Init(&argc, &argv);
 	}
 	ARMCI_Init();
+	ARMCI_Create_mutexes(2);
 };
 
 ARMCIComm::~ARMCIComm() {
 	int mpi_status;	
+	ARMCI_Destroy_mutexes();
 	ARMCI_Finalize();
 	MPI_Finalized(&mpi_status);
 	if(!mpi_status) {
