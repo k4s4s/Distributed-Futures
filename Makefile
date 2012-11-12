@@ -1,8 +1,8 @@
 
 CC=mpic++
-CFLAGS=-gstabs+ -DDEBUG -std=c++0x
-LDFLAGS=-lboost_serialization -L/home/anthi/libs/armci/lib/ -larmci
-MPI_IFLAGS=-I./futures/ -I./futures/communication/ -I/home/anthi/libs/armci/include -I./armci_futures
+CFLAGS=-gstabs+ -DDEBUG -std=c++0x -DARMCI_MPI_V
+LDFLAGS=-lboost_serialization -L/home/anthi/libs/armci_mpi/lib/ -larmci
+MPI_IFLAGS=-I./futures/ -I./futures/communication/ -I/home/anthi/libs/armci_mpi/include
 TESTS_DIR=tests
 BIN_DIR=bin
 

@@ -32,10 +32,10 @@ namespace details {
 static void lock_and_get(void *origin_addr, void** data_buff, int data_size, 
 												int rank, locktype lockt) {
 				ARMCI_Lock(lockt, rank);
-				ARMCI_Access_begin(data_buff);
+				ARMCI_Access_begin(data_buff[rank]);
 				memcpy (origin_addr, data_buff[rank], data_size);
 				//origin_addr = data_buff[rank];
-				ARMCI_Access_end(data_buff);
+				ARMCI_Access_end(data_buff[rank]);
 				ARMCI_Unlock(lockt, rank);
 };
 //TODO: add locks here too
