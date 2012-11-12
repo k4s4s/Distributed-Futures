@@ -21,12 +21,12 @@ int main(int argc, char* argv[]) {
 	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
 	int id = env->get_procId();
 	
-	Future<int> *message = async<int>(helloWorld, 1, 0, 1, sizeof(int), MPI_INT);
+	Future<int> *message = async<int>(1, 0, 1, sizeof(int), helloWorld);
 	cout << "Moving along #" << id << endl;
 
 	if(id == MASTER) {
 		cout << "Master waits for answer" << endl;
-		cout << "Master:Hello " << message->get(MPI_INT) << endl;
+		cout << "Master:Hello " << message->get() << endl;
 	}
 	else {
 		cout << "Worker computes answer" << endl;

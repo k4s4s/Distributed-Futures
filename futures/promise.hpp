@@ -33,7 +33,7 @@ private:
 public:
     Promise(int _origin_rank, int _target_rank, unsigned int _data_size, unsigned int _type_size);
     ~Promise();
-    void set_value(T val, MPI_Datatype mpi_type);
+    void set_value(T val);
     Future<T> *get_future();
 };
 
@@ -50,10 +50,10 @@ template <class T> Promise<T>::Promise(int _origin_rank, int _target_rank, unsig
 
 template <class T> Promise<T>::~Promise() {};
 
-template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
+template <class T> void Promise<T>::set_value(T val) {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(future_id);
-    details::_set_data<T>()(sharedDataManager, val, mpi_type, target_rank);
+    details::_set_data<T>()(sharedDataManager, val, target_rank);
 		int ready_status = 1;
     sharedDataManager->set_status(&ready_status, target_rank);
 };

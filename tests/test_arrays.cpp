@@ -9,8 +9,7 @@
 #include <vector>
 
 #define MASTER 0
-#define MAX_FUTURES 1 //works for more
-#define NUMBER_OF_FUTURES 100
+#define NUMBER_OF_FUTURES 1
 #define SIZE_X 1000
 #define SIZE_Y 100
 
@@ -38,7 +37,7 @@ int main(int argc, char* argv[]) {
 	if(id == MASTER) {
 		cout << "Master waits for answer" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-			double *B = answers[i]->get(MPI_DOUBLE);
+			double *B = answers[i]->get();
 			/*
 			for(int j = 0; j < SIZE_X; j++) {
 				cout << "B[" << j << "]=" << B[j] << endl;
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
 		cout << "Worker computes answer" << endl;
 
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-    	promises[i]->set_value(&(A[0]), MPI_DOUBLE);
+    	promises[i]->set_value(&(A[0]));
 		}
 	}
 

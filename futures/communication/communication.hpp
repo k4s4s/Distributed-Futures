@@ -10,10 +10,9 @@ namespace communication {
 class SharedDataManager {
 public:
     virtual ~SharedDataManager() {};
-    //FIXME: find a way to remove MPI_Datatype
 		virtual unsigned int get_dataSize() = 0;
-    virtual void get_data(void* val, MPI_Datatype mpi_type) = 0;
-    virtual void set_data(void* val, MPI_Datatype mpi_type, int rank) = 0;
+    virtual void get_data(void* val) = 0;
+    virtual void set_data(void* val, int rank) = 0;
     virtual void get_status(int* val) = 0;
     virtual void set_status(int* val, int rank) = 0;
 };

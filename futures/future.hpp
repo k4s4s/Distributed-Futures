@@ -18,56 +18,56 @@ public:
     ~Future();
     unsigned int get_Id();
     bool is_ready();
-    T get(MPI_Datatype mpi_type);
+    T get();
 };
 
 template<typename T, typename F, typename ... Args>
-Future<T> *async(F& f, int origin_rank, int target_rank,
-                 unsigned int data_size, unsigned int type_size, MPI_Datatype mpi_type,
-                 Args ...args);
+Future<T> *async(int origin_rank, int target_rank,
+                 unsigned int data_size, unsigned int type_size,
+                 F& f, Args ...args);
 
 namespace details {
 
 template<typename TX>
 struct _get_data {
-    TX operator()(communication::SharedDataManager* sharedDataManager, MPI_Datatype mpi_type) {
+    TX operator()(communication::SharedDataManager* sharedDataManager) {
 				TX value;				
-				sharedDataManager->get_data(&value, mpi_type);
+				sharedDataManager->get_data(&value);
         return value;
     };
 };
 
 template<typename TX>
 struct _get_data<TX*> {
-    TX* operator()(communication::SharedDataManager* sharedDataManager, MPI_Datatype mpi_type) {
+    TX* operator()(communication::SharedDataManager* sharedDataManager) {
 				TX* value = new TX[sharedDataManager->get_dataSize()];				
-				sharedDataManager->get_data(value, mpi_type);
+				sharedDataManager->get_data(value);
         return value;
     };
 };
 
 template<typename TX>
 struct _set_data {
-    void operator()(communication::SharedDataManager* sharedDataManager, TX value,
-										MPI_Datatype mpi_type, int rank) {
-    	sharedDataManager->set_data(&value, mpi_type, rank);
+    void operator()(communication::SharedDataManager* sharedDataManager,
+										TX value, int rank) {
+    	sharedDataManager->set_data(&value, rank);
     };
 };
 
 template<typename TX>
 struct _set_data<TX*> {
-    void operator()(communication::SharedDataManager* sharedDataManager, TX* value,
-										MPI_Datatype mpi_type, int rank) {
-    	sharedDataManager->set_data(value, mpi_type, rank);
+    void operator()(communication::SharedDataManager* sharedDataManager, 
+										TX* value, int rank) {
+    	sharedDataManager->set_data(value, rank);
     };
 };
 
 }//end of namespace details
 
 template<typename T, typename F, typename ... Args>
-Future<T> *async(F& f, int origin_rank, int target_rank,
-                 unsigned int data_size, unsigned int type_size, MPI_Datatype mpi_type,
-                 Args ...args) {
+Future<T> *async(int origin_rank, int target_rank,
+                 unsigned int data_size, unsigned int type_size,
+                 F& f, Args ...args) {
     Future<T> *future = new Future<T>(data_size, type_size);
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     //these should only be executed only by the thread that will set future's value
@@ -77,7 +77,7 @@ Future<T> *async(F& f, int origin_rank, int target_rank,
         //F should be callable
         T retval = f(args...);
         communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(future_id);
-        details::_set_data<T>()(sharedDataManager, retval, mpi_type, target_rank);
+        details::_set_data<T>()(sharedDataManager, retval, target_rank);
 				int ready_status = 1;
         sharedDataManager->set_status(&ready_status, target_rank);
     }
@@ -107,7 +107,7 @@ template <class T> bool Future<T>::is_ready() {
     return sharedDataManager->get_status(&ready_status);
 };
 
-template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
+template <class T> T Future<T>::get() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
     int ready_status;
@@ -115,7 +115,7 @@ template <class T> T Future<T>::get(MPI_Datatype mpi_type) {
         sharedDataManager->get_status(&ready_status);
         if (ready_status) break;
     }
-    return	details::_get_data<T>()(sharedDataManager, mpi_type);
+    return	details::_get_data<T>()(sharedDataManager);
 };
 
 }//end of futures namespace

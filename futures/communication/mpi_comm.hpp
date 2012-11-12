@@ -44,8 +44,8 @@ public:
     MPISharedDataManager(unsigned int _data_size, unsigned int _type_size);
     ~MPISharedDataManager();
 		unsigned int get_dataSize();
-    void get_data(void* val, MPI_Datatype mpi_type);
-    void set_data(void* val, MPI_Datatype mpi_type, int rank);
+    void get_data(void* val);
+    void set_data(void* val, int rank);
     void get_status(int *val);
     void set_status(int *val, int rank);
 };
@@ -79,14 +79,16 @@ unsigned int MPISharedDataManager::get_dataSize() {
 		return data_size;
 };
 	
-void MPISharedDataManager::get_data(void* val, MPI_Datatype mpi_type) {
+void MPISharedDataManager::get_data(void* val) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		details::lock_and_get(val, data_size, mpi_type, rank, 0, data_size, mpi_type, data_win, MPI_LOCK_EXCLUSIVE);
+		details::lock_and_get(val, data_size*type_size, MPI_BYTE, rank, 0, 
+													data_size*type_size, MPI_BYTE, data_win, MPI_LOCK_EXCLUSIVE);
 };
 
-void MPISharedDataManager::set_data(void* val, MPI_Datatype mpi_type, int rank) {
-		details::lock_and_put(val, data_size, mpi_type, rank, 0, data_size, mpi_type, data_win, MPI_LOCK_EXCLUSIVE);
+void MPISharedDataManager::set_data(void* val, int rank) {
+		details::lock_and_put(val, data_size*type_size, MPI_BYTE, rank, 0, 
+													data_size*type_size, MPI_BYTE, data_win, MPI_LOCK_EXCLUSIVE);
 };
 
 void MPISharedDataManager::get_status(int* val) {
