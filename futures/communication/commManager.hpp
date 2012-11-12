@@ -4,7 +4,6 @@
 
 #include <iostream>
 
-#include <mpi.h>
 #include <string>
 #include <map>
 #include "communication.hpp"

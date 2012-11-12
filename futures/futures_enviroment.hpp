@@ -7,6 +7,7 @@
 #include "communication/communication.hpp"
 #include "communication/commManager.hpp"
 #include "communication/mpi_comm.hpp"
+#include "communication/armci_comm.hpp"
 
 #ifdef DEBUG
 #define DEBUG_MSG(str) std::cout << str << std::endl
@@ -64,6 +65,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		//Initilize communication manager and register default interfaces
 		commManager = communication::CommManager::Instance();
 		commManager->registerCommInterface("MPI", communication::MPIComm::create);
+		commManager->registerCommInterface("ARMCI", communication::ARMCIComm::create);
 		//Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
     total_futures = 0;

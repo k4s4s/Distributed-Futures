@@ -2,11 +2,7 @@
 #ifndef Promise_H
 #define Promise_H
 
-#include <mpi.h>
 #include <iostream>
-#include <typeinfo>
-#include "future.hpp"
-
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
@@ -14,6 +10,7 @@
 
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
+#include "future.hpp"
 
 namespace futures {
 

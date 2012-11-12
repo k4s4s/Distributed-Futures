@@ -1,6 +1,9 @@
 * Implement std mutex interface for distributed enviroment (mpi, armci)
 * Implement scheduler (let's start with a round robin first)
-* See how boost and/or armci mpi implementation infer mpi types
 * Handle more complex c++ objects (serialization of one sided comm interface)
-* Make multiple test files
 * Revise Makefile
+* See if recursion is possible with any interface
+* Maybe allows async to transfer data to worker from master (data=arguments)
+* Handle different endianess on mpi version
+* Maybe have some overloaded methods that infer default options (comm interface, data and type size etc)
+

@@ -1,10 +1,8 @@
 
 CC=mpic++
 CFLAGS=-gstabs+ -DDEBUG -std=c++0x
-LDFLAGS=-lboost_serialization
-MPI_IFLAGS=-I./futures/ -I./futures/communication/
-ARMCI_IFLAGS=-I/home/kasas/libs/armci/include -I./armci_futures
-ARMCI_LDFLAGS=-L/home/kasas/libs/armci/lib/ -larmci
+LDFLAGS=-lboost_serialization -L/home/anthi/libs/armci/lib/ -larmci
+MPI_IFLAGS=-I./futures/ -I./futures/communication/ -I/home/anthi/libs/armci/include -I./armci_futures
 TESTS_DIR=tests
 BIN_DIR=bin
 
