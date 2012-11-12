@@ -53,9 +53,9 @@ template <class T> Promise<T>::~Promise() {};
 template <class T> void Promise<T>::set_value(T val, MPI_Datatype mpi_type) {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(future_id);
+    details::_set_data<T>()(sharedDataManager, val, mpi_type, target_rank);
 		int ready_status = 1;
     sharedDataManager->set_status(&ready_status, target_rank);
-    details::_set_data<T>()(sharedDataManager, val, mpi_type, target_rank);
 };
 
 template <class T> Future<T> *Promise<T>::get_future() {

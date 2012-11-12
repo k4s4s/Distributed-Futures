@@ -41,7 +41,7 @@ template<typename TX>
 struct _get_data<TX*> {
     TX* operator()(communication::SharedDataManager* sharedDataManager, MPI_Datatype mpi_type) {
 				TX* value = new TX[sharedDataManager->get_dataSize()];				
-				sharedDataManager->get_data(&value, mpi_type);
+				sharedDataManager->get_data(value, mpi_type);
         return value;
     };
 };
@@ -58,7 +58,7 @@ template<typename TX>
 struct _set_data<TX*> {
     void operator()(communication::SharedDataManager* sharedDataManager, TX* value,
 										MPI_Datatype mpi_type, int rank) {
-    	sharedDataManager->get_data(value, mpi_type, rank);
+    	sharedDataManager->set_data(value, mpi_type, rank);
     };
 };
 
@@ -77,9 +77,9 @@ Future<T> *async(F& f, int origin_rank, int target_rank,
         //F should be callable
         T retval = f(args...);
         communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(future_id);
+        details::_set_data<T>()(sharedDataManager, retval, mpi_type, target_rank);
 				int ready_status = 1;
         sharedDataManager->set_status(&ready_status, target_rank);
-        details::_set_data<T>()(sharedDataManager, retval, mpi_type, target_rank);
     }
     //Master and the rest should skip here directly
     return future; //the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank

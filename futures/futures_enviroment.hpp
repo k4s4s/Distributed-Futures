@@ -31,7 +31,7 @@ protected:
     communication::CommInterface* commInterface;
 public:
     ~Futures_Enviroment();
-    static Futures_Enviroment* Instance(int &argc, char**& argv, const std::string& commInterfaceName);
+    static Futures_Enviroment* Initialize(int &argc, char**& argv, const std::string& commInterfaceName);
     static Futures_Enviroment* Instance();
     MPI_Comm get_communicator();
     communication::SharedDataManager* get_SharedDataManager(unsigned int id);
@@ -46,7 +46,7 @@ std::map<unsigned int, communication::SharedDataManager*> Futures_Enviroment::fu
 unsigned int Futures_Enviroment::total_futures = 0;
 Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
-Futures_Enviroment* Futures_Enviroment::Instance (int &argc, char**& argv,
+Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
 																									const std::string& commInterfaceName) {
     if (!pinstance) {
         pinstance = new Futures_Enviroment(argc, argv, commInterfaceName); // create sole instance
