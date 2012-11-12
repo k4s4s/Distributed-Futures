@@ -1,14 +1,15 @@
 
 CC=mpic++
-CFLAGS=-gstabs+ -DDEBUG -std=c++11
+CFLAGS=-gstabs+ -DDEBUG -std=c++0x
 LDFLAGS=-lboost_serialization -lboost_mpi
-MPI_IFLAGS=-I./mpi_futures/
+MPI_IFLAGS=-I./futures/ -I./futures/communication/
 ARMCI_IFLAGS=-I/home/kasas/libs/armci/include -I./armci_futures
 ARMCI_LDFLAGS=-L/home/kasas/libs/armci/lib/ -larmci
 TESTS_DIR=tests
 BIN_DIR=bin
 
-mpi_includes = $(wildcard mpi_futures/*.hpp)
+core = $(wildcard futures/*.hpp)
+communication = $(wildcard futures/communication/*.hpp)
 armci_includes = $(wildcard armci_futures/*.hpp)
 
 .PHONY: directories
@@ -24,7 +25,7 @@ mpi_tests: $(BIN_DIR) $(BIN_DIR)/mpi_test1
 
 armci_tests: $(BIN_DIR) $(BIN_DIR)/armci_test1
 
-$(BIN_DIR)/mpi_test1: $(TESTS_DIR)/test1.cpp $(mpi_includes)
+$(BIN_DIR)/mpi_test1: $(TESTS_DIR)/test1.cpp $(core) $(communication)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/mpi_test1 $(MPI_IFLAGS) $(TESTS_DIR)/test1.cpp $(LDFLAGS)
 
 $(BIN_DIR)/armci_test1: $(TESTS_DIR)/test1.cpp $(armci_includes)
