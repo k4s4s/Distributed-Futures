@@ -1,12 +1,5 @@
 
-#ifndef _ARMCIComm_H
-#define _ARMCIComm_H
-
-#include <mpi.h>
-extern "C" {
-	#include <armci.h>
-}
-#include "communication.hpp"
+#include "ARMCIComm.hpp"
 #include <iostream>
 
 #ifdef ARMCI_MPI_V
@@ -17,20 +10,9 @@ extern "C" {
 	#define ARMCI_Access_end(buff)
 #endif
 
-
-
-namespace futures {
-namespace communication {
-
-enum locktype {
-	DATA_LOCK = 0,
-	STATUS_LOCK = 1
-};
-
-namespace details {
-//TODO:add locks...
-static void lock_and_get(void *origin_addr, void** data_buff, int data_size, 
-												int rank, locktype lockt) {
+static void futures::communication::details::lock_and_get(void *origin_addr, 
+																													void** data_buff, int data_size, 
+																													int rank, locktype lockt) {
 				ARMCI_Lock(lockt, rank);
 				ARMCI_Access_begin(data_buff[rank]);
 				memcpy (origin_addr, data_buff[rank], data_size);
@@ -39,39 +21,16 @@ static void lock_and_get(void *origin_addr, void** data_buff, int data_size,
 				ARMCI_Unlock(lockt, rank);
 };
 //TODO: add locks here too
-static void lock_and_put(void *origin_addr, void** data_buff, int data_size, 
-												int target_rank, locktype lockt) {
+static void futures::communication::details::lock_and_put(void *origin_addr,
+																													void** data_buff, int data_size, 
+																													int target_rank, locktype lockt) {
 				ARMCI_Lock(lockt, target_rank);
 				ARMCI_Put(origin_addr, data_buff[target_rank], data_size, target_rank);
 				ARMCI_Unlock(lockt, target_rank);
 };
 
-}//end of details namespace
-
-class ARMCISharedDataManager : public SharedDataManager {
-private:
-		void **data_buff;
-		int **status_buff;
-		unsigned int data_size;
-		unsigned int type_size;
-public:
-    ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size);
-    ~ARMCISharedDataManager();
-		unsigned int get_dataSize();
-    void get_data(void* val);
-    void set_data(void* val, int rank);
-    void get_status(int *val);
-    void set_status(int *val, int rank);
-};
-
-class ARMCIComm : public CommInterface {
-public:
-    ARMCIComm(int &argc, char**& argv);
-    ~ARMCIComm();
-		static CommInterface* create(int &argc, char**& argv);
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
-    int get_procId();
-};
+using namespace futures;
+using namespace futures::communication;
 
 /*** ARMCISharedDataManager impelementation ***/
 ARMCISharedDataManager::ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size) { //TODO: workers should not allcate any memory
@@ -158,9 +117,4 @@ int ARMCIComm::get_procId() {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     return rank;
 };
-
-}//end of namespace communication
-}//end of namespace futures
-
-#endif
 

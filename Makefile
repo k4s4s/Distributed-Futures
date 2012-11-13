@@ -1,32 +1,56 @@
-
 CC=mpic++
-CFLAGS=-gstabs+ -DDEBUG -std=c++0x -DARMCI_MPI_V
-LDFLAGS=-lboost_serialization -L/home/anthi/libs/armci_mpi/lib/ -larmci
-MPI_IFLAGS=-I./futures/ -I./futures/communication/ -I/home/anthi/libs/armci_mpi/include
-TESTS_DIR=tests
+CCFLAGS=-gstabs+ -DDEBUG -std=c++0x -DARMCI_MPI_V
+LDFLAGS=-lboost_serialization -L./lib/ -lmutex -lfuture -L/home/anthi/libs/armci_mpi/lib/ -larmci
+INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/ -I/home/anthi/libs/armci_mpi/include
+LIB_DIR=lib
 BIN_DIR=bin
 
-core = $(wildcard futures/*.hpp)
-communication = $(wildcard futures/communication/*.hpp)
-armci_includes = $(wildcard armci_futures/*.hpp)
+FUTURES_SOURCES = $(wildcard futures/*.cpp)
+FUTURES_SOURCES += $(wildcard futures/communication/*.cpp)
+FUTURES_HEADERS = $(wildcard futures/*.hpp)
+FUTURES_HEADERS += $(wildcard futures/communication/*.hpp)
+FUTURES_OBJECTS = $(FUTURES_SOURCES:.cpp=.o)
+FUTURES_LIB = $(LIB_DIR)/libfuture.a
+
+MUTEX_SOURCES = $(wildcard mutex/*.cpp)
+MUTEX_HEADERS = $(wildcard mutex/*.hpp)
+MUTEX_OBJECTS = $(MUTEX_SOURCES:.cpp=.o)
+MUTEX_LIB = $(LIB_DIR)/libmutex.a
+
+TESTS_SOURCES =  $(wildcard tests/*.cpp)
+TESTS_OBJECTS = $(TESTS_SOURCES:.cpp=.o)
+TESTS_TARGETS = $(TESTS_SOURCES:.cpp=.out)
 
 .PHONY: directories
 
-all: directories mpi_tests
+all: directories mutex_lib futures_lib tests
 
-directories: $(BIN_DIR)
+directories: $(LIB_DIR)
 
 $(BIN_DIR): 
 	@mkdir -p $(BIN_DIR)
 
-mpi_tests: $(BIN_DIR) $(BIN_DIR)/hello $(BIN_DIR)/test_arrays.cpp
+$(LIB_DIR): 
+	@mkdir -p $(LIB_DIR)
 
-$(BIN_DIR)/hello: $(TESTS_DIR)/hello.cpp $(core) $(communication)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/hello $(MPI_IFLAGS) $(TESTS_DIR)/hello.cpp $(LDFLAGS)
+.cpp.o:
+	$(CC) $(INCLUDES) $(CCFLAGS) -c $< -o $@
 
-$(BIN_DIR)/test_arrays.cpp: $(TESTS_DIR)/test_arrays.cpp $(core) $(communication)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/test_arrays $(MPI_IFLAGS) $(TESTS_DIR)/test_arrays.cpp $(LDFLAGS)
+$(MUTEX_LIB): $(MUTEX_OBJECTS)
+	ar rcs $(MUTEX_LIB) $(MUTEX_OBJECTS)
+
+mutex_lib: $(LIB_DIR) $(MUTEX_LIB)
+
+$(FUTURES_LIB): $(FUTURES_OBJECTS)
+	ar rcs $(FUTURES_LIB) $(FUTURES_OBJECTS)
+
+futures_lib: $(LIB_DIR) $(FUTURES_LIB)
+
+.cpp.out: $(TESTS_OBJECTS)
+	$(CC) $(INCLUDES) $(CCFLAGS) -o $@ $< $(LDFLAGS)
+
+tests: $(TESTS_TARGETS)
 
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf $(LIB_DIR) $(MUTEX_OBJECTS) $(FUTURES_OBJECTS) $(TESTS_OBJECTS) $(TESTS_TARGET)
 

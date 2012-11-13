@@ -1,6 +1,4 @@
 
-#include <mpi.h>
-
 #include "futures_enviroment.hpp"
 #include "future.hpp"
 #include "promise.hpp"
@@ -17,7 +15,7 @@ using namespace std;
 using namespace futures;
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "ARMCI");
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
 	int id = env->get_procId();
 	
 	double A[SIZE_X];
@@ -35,7 +33,6 @@ int main(int argc, char* argv[]) {
 	}	
 
 	if(id == MASTER) {
-		cout << "Master waits for answer" << endl;
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 			double *B = answers[i]->get();
 			/*
@@ -50,8 +47,6 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	else {
-		cout << "Worker computes answer" << endl;
-
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
     	promises[i]->set_value(&(A[0]));
 		}

@@ -1,18 +1,14 @@
 
-#ifndef _MPICOMM_H
-#define _MPICOMM_H
-
 #include <mpi.h>
 #include "communication.hpp"
 
+#include <MPIComm.hpp>
 #include <iostream>
 
-namespace futures {
-namespace communication {
+using namespace futures;
+using namespace futures::communication;
 
-namespace details {
-//TODO:implement actual mutexes
-static void lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
+static void futures::communication::details::lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
                        int target_rank, MPI_Aint target_disp, int target_count,
                        MPI_Datatype target_datatype, MPI_Win win, int locktype) {
     MPI_Win_lock(locktype, target_rank, 0, win);
@@ -21,7 +17,7 @@ static void lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origi
     MPI_Win_unlock(target_rank, win);
 };
 
-static void lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
+static void futures::communication::details::lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
                           int target_rank, MPI_Aint target_disp, int target_count,
                           MPI_Datatype target_datatype, MPI_Win win, int locktype) {
     MPI_Win_lock(locktype, target_rank, 0, win);
@@ -30,34 +26,6 @@ static void lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origi
     MPI_Win_unlock(target_rank, win);
 };
 
-}//end of details namespace
-
-class MPISharedDataManager : public SharedDataManager {
-private:
-    MPI_Win data_win;
-    MPI_Win status_win;
-    void *data; //would be nice to have this as an template instead of void*
-    int status;
-    unsigned int data_size; //maybe we do not need this one
-    unsigned int type_size;
-public:
-    MPISharedDataManager(unsigned int _data_size, unsigned int _type_size);
-    ~MPISharedDataManager();
-		unsigned int get_dataSize();
-    void get_data(void* val);
-    void set_data(void* val, int rank);
-    void get_status(int *val);
-    void set_status(int *val, int rank);
-};
-
-class MPIComm : public CommInterface {
-public:
-    MPIComm(int &argc, char**& argv);
-    ~MPIComm();
-		static CommInterface* create(int &argc, char**& argv);
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
-    int get_procId();
-};
 
 /*** MPISharedDataManager impelementation ***/
 MPISharedDataManager::MPISharedDataManager(unsigned int _data_size, unsigned int _type_size) { //TODO: workers should not allcate any memory
@@ -131,9 +99,4 @@ int MPIComm::get_procId() {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     return rank;
 };
-
-}//end of namespace communication
-}//end of namespace futures
-
-#endif
 
