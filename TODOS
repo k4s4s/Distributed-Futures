@@ -1,7 +1,6 @@
 * Implement scheduler (let's start with a round robin first)
 * Handle more complex c++ objects (serialization of one sided comm interface)
-* Revise Makefile
-* See if recursion is possible with any interface
+* See if recursion is possible with any interface - It seems it's far from trivial
 * async should be able to transfer data to worker from master (data=arguments)
 * Handle different endianess on mpi version
 * Maybe have some overloaded methods that infer default options (comm interface, data and type size etc)

@@ -1,6 +1,6 @@
 CC=mpic++
 CCFLAGS=-gstabs+ -DDEBUG -std=c++0x -DARMCI_MPI_V
-LDFLAGS=-lboost_serialization -L./lib/ -lmutex -lfuture -L/home/anthi/libs/armci_mpi/lib/ -larmci
+LDFLAGS=-lboost_serialization -L./lib/ -lfuture -lmutex -L/home/anthi/libs/armci_mpi/lib/ -larmci
 INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/ -I/home/anthi/libs/armci_mpi/include
 LIB_DIR=lib
 BIN_DIR=bin
@@ -52,5 +52,5 @@ futures_lib: $(LIB_DIR) $(FUTURES_LIB)
 tests: $(TESTS_TARGETS)
 
 clean:
-	rm -rf $(LIB_DIR) $(MUTEX_OBJECTS) $(FUTURES_OBJECTS) $(TESTS_OBJECTS) $(TESTS_TARGET)
+	rm -rf $(LIB_DIR) $(MUTEX_OBJECTS) $(FUTURES_OBJECTS) $(TESTS_OBJECTS) $(TESTS_TARGETS)
 

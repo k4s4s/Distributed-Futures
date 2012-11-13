@@ -58,7 +58,7 @@ void MPIMutex::lock(int proc) {
 	int rank, nproc, already_locked;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &nproc);
-
+	//std::cout << "trying to get lock" << std::endl;
 	MPI_Win_lock(MPI_LOCK_EXCLUSIVE, proc, 0, win);
 	byte *buff = (byte*)malloc(sizeof(byte)*nproc);
 	buff[rank] = 1;
@@ -81,11 +81,11 @@ void MPIMutex::lock(int proc) {
   /* Wait for notification */
   if (already_locked) {
       MPI_Status status;
-      std::cout << "waiting for notification [proc = "<<proc<<"]" << std::endl;
+      //std::cout << "waiting for notification [proc = "<<proc<<"]" << std::endl;
       MPI_Recv(NULL, 0, MPI_BYTE, MPI_ANY_SOURCE, MPI_MUTEX_TAG+id, comm, &status);
   }
 	
-	std::cout << "lock acquired [proc = "<<proc<<"]" << std::endl;
+	//std::cout << "lock acquired [proc = "<<proc<<"]" << std::endl;
   free(buff);
 };
 
@@ -118,13 +118,13 @@ void MPIMutex::unlock(int proc) {
   for (int i = 1; i < nproc; i++) {
       int p = (rank + i) % nproc;
       if (buff[p] == 1) {
-          std::cout << "notifying "<<p<<"[proc = "<<proc<<"]" << std::endl;
+          //std::cout << "notifying "<<p<<"[proc = "<<proc<<"]" << std::endl;
           MPI_Send(NULL, 0, MPI_BYTE, p, MPI_MUTEX_TAG+id, comm);
           break;
       }
   }
 
- 	std::cout << "lock released [proc = "<<proc<<"]" << std::endl;
+ 	//std::cout << "lock released [proc = "<<proc<<"]" << std::endl;
   free(buff);
 };
 
