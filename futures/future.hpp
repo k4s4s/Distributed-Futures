@@ -13,8 +13,9 @@ class Future {
 private:
     bool ready_status;
     unsigned int id; //id in the enviroment
+		int promise_rank;
 public:
-    Future(unsigned int _data_size, unsigned int _type_size);
+    Future(unsigned int _data_size, unsigned int _type_size, int _promise_rank);
     ~Future();
     unsigned int get_Id();
     bool is_ready();
@@ -30,18 +31,18 @@ namespace details {
 
 template<typename TX>
 struct _get_data {
-    TX operator()(communication::SharedDataManager* sharedDataManager) {
+    TX operator()(communication::SharedDataManager* sharedDataManager, int rank) {
 				TX value;				
-				sharedDataManager->get_data(&value);
+				sharedDataManager->get_data(&value, rank);
         return value;
     };
 };
 
 template<typename TX>
 struct _get_data<TX*> {
-    TX* operator()(communication::SharedDataManager* sharedDataManager) {
+    TX* operator()(communication::SharedDataManager* sharedDataManager, int rank) {
 				TX* value = new TX[sharedDataManager->get_dataSize()];				
-				sharedDataManager->get_data(value);
+				sharedDataManager->get_data(value, rank);
         return value;
     };
 };
@@ -68,7 +69,7 @@ template<typename T, typename F, typename ... Args>
 Future<T> *async(int origin_rank, int target_rank,
                  unsigned int data_size, unsigned int type_size,
                  F& f, Args ...args) {
-    Future<T> *future = new Future<T>(data_size, type_size);
+    Future<T> *future = new Future<T>(data_size, type_size, origin_rank);
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     //these should only be executed only by the thread that will set future's value
     int myrank = env->get_procId();
@@ -85,10 +86,12 @@ Future<T> *async(int origin_rank, int target_rank,
     return future; //the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank
 };
 
-template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
+/*** Future Implementation ***/
+template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size, int _promise_rank) {
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     ready_status = 0;
     id = env->registerFuture(_data_size, _type_size);
+		promise_rank = _promise_rank;
 };
 
 template <class T> Future<T>::~Future() {
@@ -103,19 +106,19 @@ template <class T> unsigned int Future<T>::get_Id() {
 template <class T> bool Future<T>::is_ready() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
-    int ready_status;
-    return sharedDataManager->get_status(&ready_status);
+    int ready_status = 0;
+    return sharedDataManager->get_status(&ready_status, promise_rank);
 };
 
 template <class T> T Future<T>::get() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
-    int ready_status;
+    int ready_status = 0;
     while (1) {
-        sharedDataManager->get_status(&ready_status);
+        sharedDataManager->get_status(&ready_status, promise_rank);
         if (ready_status) break;
     }
-    return	details::_get_data<T>()(sharedDataManager);
+    return	details::_get_data<T>()(sharedDataManager, promise_rank);
 };
 
 }//end of futures namespace

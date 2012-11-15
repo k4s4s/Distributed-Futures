@@ -2,6 +2,7 @@
 #include "futures_enviroment.hpp"
 #include "communication/MPIComm.hpp"
 #include "communication/ARMCIComm.hpp"
+#include "communication/MPIAsyncComm.hpp"
 
 using namespace futures;
 /*** Future_Enviroment impelementation ***/
@@ -28,6 +29,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		commManager = communication::CommManager::Instance();
 		commManager->registerCommInterface("MPI", communication::MPIComm::create);
 		commManager->registerCommInterface("ARMCI", communication::ARMCIComm::create);
+		commManager->registerCommInterface("MPIAsync", communication::MPIAsyncComm::create);
 		//Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
     total_futures = 0;
@@ -47,7 +49,7 @@ communication::SharedDataManager* Futures_Enviroment::get_SharedDataManager(unsi
 unsigned int Futures_Enviroment::registerFuture(unsigned int _data_size, unsigned int _type_size) {
     unsigned int id = total_futures;
     total_futures++;
-    futuresMap[id] = commInterface->new_sharedDataManager(_data_size, _type_size);
+    futuresMap[id] = commInterface->new_sharedDataManager(_data_size, _type_size, id);
     return id;
 };
 

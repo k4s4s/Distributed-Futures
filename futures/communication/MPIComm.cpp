@@ -32,7 +32,7 @@ static void futures::communication::details::lock_and_put(void *origin_addr, int
 
 
 /*** MPISharedDataManager impelementation ***/
-MPISharedDataManager::MPISharedDataManager(unsigned int _data_size, unsigned int _type_size) { //TODO: workers should not allcate any memory
+MPISharedDataManager::MPISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) { //TODO: workers should not allcate any memory
     data_size = _data_size;
     type_size = _type_size;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
@@ -55,9 +55,7 @@ unsigned int MPISharedDataManager::get_dataSize() {
 		return data_size;
 };
 	
-void MPISharedDataManager::get_data(void* val) {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+void MPISharedDataManager::get_data(void* val, int rank) {
 		details::lock_and_get(val, data_size*type_size, MPI_BYTE, rank, 0, 
 													data_size*type_size, MPI_BYTE, data_win, data_lock);
 };
@@ -67,9 +65,7 @@ void MPISharedDataManager::set_data(void* val, int rank) {
 													data_size*type_size, MPI_BYTE, data_win, data_lock);
 };
 
-void MPISharedDataManager::get_status(int* val) {
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+void MPISharedDataManager::get_status(int* val, int rank) {
 	details::lock_and_get((void*)val, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win, status_lock);
 };
 
@@ -98,8 +94,8 @@ CommInterface* MPIComm::create(int &argc, char**& argv) {
 	return new MPIComm(argc, argv);
 };
 
-SharedDataManager* MPIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size) {
-	return new MPISharedDataManager(_data_size, _type_size);
+SharedDataManager* MPIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) {
+	return new MPISharedDataManager(_data_size, _type_size, _id);
 }
 
 int MPIComm::get_procId() {

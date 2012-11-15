@@ -33,12 +33,12 @@ private:
 		unsigned int data_size;
 		unsigned int type_size;
 public:
-    ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size);
+    ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
     ~ARMCISharedDataManager();
 		unsigned int get_dataSize();
-    void get_data(void* val);
+    void get_data(void* val, int rank);
     void set_data(void* val, int rank);
-    void get_status(int *val);
+    void get_status(int *val, int rank);
     void set_status(int *val, int rank);
 };
 
@@ -47,7 +47,7 @@ public:
     ARMCIComm(int &argc, char**& argv);
     ~ARMCIComm();
 		static CommInterface* create(int &argc, char**& argv);
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
+		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
     int get_procId();
 };
 

@@ -32,12 +32,12 @@ private:
     unsigned int data_size; //maybe we do not need this one
     unsigned int type_size;
 public:
-    MPISharedDataManager(unsigned int _data_size, unsigned int _type_size);
+    MPISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
     ~MPISharedDataManager();
 		unsigned int get_dataSize();
-    void get_data(void* val);
+    void get_data(void* val, int rank);
     void set_data(void* val, int rank);
-    void get_status(int *val);
+    void get_status(int *val, int rank);
     void set_status(int *val, int rank);
 };
 
@@ -46,7 +46,7 @@ public:
     MPIComm(int &argc, char**& argv);
     ~MPIComm();
 		static CommInterface* create(int &argc, char**& argv);
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
+		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
     int get_procId();
 };
 

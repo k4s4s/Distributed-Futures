@@ -33,7 +33,7 @@ using namespace futures;
 using namespace futures::communication;
 
 /*** ARMCISharedDataManager impelementation ***/
-ARMCISharedDataManager::ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size) { //TODO: workers should not allcate any memory
+ARMCISharedDataManager::ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) { //TODO: workers should not allcate any memory
 	data_size = _data_size;
 	type_size = _type_size;
 	int nprocs;
@@ -60,9 +60,7 @@ unsigned int ARMCISharedDataManager::get_dataSize() {
 		return data_size;
 };
 	
-void ARMCISharedDataManager::get_data(void* val) {
-		int rank;
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+void ARMCISharedDataManager::get_data(void* val, int rank) {
 		details::lock_and_get(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
@@ -70,9 +68,7 @@ void ARMCISharedDataManager::set_data(void* val, int rank) {
 		details::lock_and_put(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
-void ARMCISharedDataManager::get_status(int* val) {
-		int rank;
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+void ARMCISharedDataManager::get_status(int* val, int rank) {
 		details::lock_and_get((void*)val, (void**)status_buff, sizeof(int), rank, STATUS_LOCK);
 		//std::cout << "val:" << *val << std::endl; 
 };
@@ -108,8 +104,8 @@ CommInterface* ARMCIComm::create(int &argc, char**& argv) {
 	return new ARMCIComm(argc, argv);
 };
 
-SharedDataManager* ARMCIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size) {
-	return new ARMCISharedDataManager(_data_size, _type_size);
+SharedDataManager* ARMCIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) {
+	return new ARMCISharedDataManager(_data_size, _type_size, _id);
 };
 
 int ARMCIComm::get_procId() {
