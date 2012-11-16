@@ -23,8 +23,9 @@ Futures_Enviroment* Futures_Enviroment::Instance () {
 };
 
 Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
-                                       const std::string& commInterfaceName) {
+                                       const std::string& _commInterfaceName) {
 		//Initilize communication manager and register default interfaces
+		commInterfaceName = _commInterfaceName;
 		commManager = communication::CommManager::Instance();
 		commManager->registerCommInterface("MPI", communication::MPIComm::create);
 		commManager->registerCommInterface("ARMCI", communication::ARMCIComm::create);
@@ -60,4 +61,10 @@ void Futures_Enviroment::removeFuture(unsigned int id) {
 int Futures_Enviroment::get_procId() {
     return commInterface->get_procId();
 };
+
+std::string Futures_Enviroment::get_commInterfaceName() {
+		return commInterfaceName;
+};
+
+
 

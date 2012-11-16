@@ -43,11 +43,11 @@ public:
 
 class MPIComm : public CommInterface {
 public:
-    MPIComm(int &argc, char**& argv);
-    ~MPIComm();
-		static CommInterface* create(int &argc, char**& argv);
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
-    int get_procId();
+  MPIComm(int &argc, char**& argv);
+  ~MPIComm();
+	static CommInterface* create(int &argc, char**& argv);
+	SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size);
+  int get_procId();
 };
 
 }//end of namespace communication

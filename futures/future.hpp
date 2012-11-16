@@ -3,8 +3,14 @@
 #define Future_H
 
 #include <iostream>
+#include <string>
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
+
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/assume_abstract.hpp>
 
 namespace futures {
 
@@ -19,6 +25,16 @@ public:
     unsigned int get_Id();
     bool is_ready();
     T get();
+};
+
+template<typename T, typename ... Args>
+class Functor {
+private:
+	friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int /* file_version */) {};
+public:
+	virtual T operator()(Args ...args) = 0;
 };
 
 template<typename T, typename F, typename ... Args>
@@ -71,6 +87,14 @@ Future<T> *async(int origin_rank, int target_rank,
     Future<T> *future = new Future<T>(data_size, type_size);
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     //these should only be executed only by the thread that will set future's value
+		std::string worker_program = ROOT_PATH;
+		worker_program.append("bin/worker.out");
+		char *commInterfaceName[1];
+		commInterfaceName[0] = (char*)(env->get_commInterfaceName().c_str());
+		MPI_Comm everyone;
+		MPI_Comm_spawn((char*)(worker_program.data()), commInterfaceName, 1,  
+             MPI_INFO_NULL, 0, MPI_COMM_SELF, &everyone,  
+             MPI_ERRCODES_IGNORE); 
     int myrank = env->get_procId();
     if (myrank == origin_rank) {
         unsigned int future_id = future->get_Id();

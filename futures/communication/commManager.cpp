@@ -25,7 +25,8 @@ void CommManager::registerCommInterface(const std::string &commInterfaceName,
 	commInterfaceMap[commInterfaceName] = pfnCreate;
 };
    	
-CommInterface* CommManager::createCommInterface(const std::string &commInterfaceName, int &argc, char**& argv) { 
+CommInterface* CommManager::createCommInterface(const std::string &commInterfaceName, 
+																								int &argc, char**& argv) { 
 	std::map<std::string, CommInterface* (*)(int &, char**&)>::iterator fnIt;
 	fnIt = commInterfaceMap.find(commInterfaceName);
 	if (fnIt != commInterfaceMap.end())

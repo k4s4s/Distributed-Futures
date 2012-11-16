@@ -107,4 +107,9 @@ int MPIComm::get_procId() {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     return rank;
 };
-
+/*
+void* MPIComm::get_parent_channel() {
+	MPI_Comm_get_parent(&comm);
+	return (void*)&comm; 
+};
+*/

@@ -24,8 +24,9 @@ private:
     static std::map<unsigned int, communication::SharedDataManager*> futuresMap;
     static unsigned int total_futures; //never decrease that value, it is  not actual number of futures, just next avaible id for the map
     static Futures_Enviroment* pinstance;
+		std::string commInterfaceName;
 protected:
-    Futures_Enviroment(int &argc, char**& argv, const std::string& commInterfaceName);
+    Futures_Enviroment(int &argc, char**& argv, const std::string& _commInterfaceName);
 		communication::CommManager* commManager;
     communication::CommInterface* commInterface;
 public:
@@ -38,6 +39,7 @@ public:
     unsigned int registerFuture(unsigned int _data_size, unsigned int _type_size);
     void removeFuture(unsigned int id);
     int get_procId();
+		std::string get_commInterfaceName();
 };
 
 }//end of futures namespace
