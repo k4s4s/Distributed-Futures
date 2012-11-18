@@ -5,8 +5,6 @@
 
 using namespace futures;
 /*** Future_Enviroment impelementation ***/
-std::map<unsigned int, communication::SharedDataManager*> Futures_Enviroment::futuresMap;
-unsigned int Futures_Enviroment::total_futures = 0;
 Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
 Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
@@ -30,7 +28,6 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		commManager->registerCommInterface("ARMCI", communication::ARMCIComm::create);
 		//Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
-    total_futures = 0;
 };
 
 Futures_Enviroment::~Futures_Enviroment() {
@@ -40,21 +37,11 @@ Futures_Enviroment::~Futures_Enviroment() {
     pinstance = NULL;
 };
 
-communication::SharedDataManager* Futures_Enviroment::get_SharedDataManager(unsigned int id) {
-    return futuresMap[id];
-};
-
-unsigned int Futures_Enviroment::registerFuture(unsigned int _data_size, unsigned int _type_size) {
-    unsigned int id = total_futures;
-    total_futures++;
-    futuresMap[id] = commInterface->new_sharedDataManager(_data_size, _type_size);
-    return id;
-};
-
-void Futures_Enviroment::removeFuture(unsigned int id) {
-    communication::SharedDataManager *sharedDataManager = futuresMap[id];
-    futuresMap.erase(id);
-    delete sharedDataManager;
+communication::SharedDataManager* 
+Futures_Enviroment::new_SharedDataManager(int _src_id, int _dst_id, 
+																					int _data_size, int _type_size) {
+		return commInterface->new_sharedDataManager(_src_id, _dst_id,
+																								_data_size, _type_size);
 };
 
 int Futures_Enviroment::get_procId() {

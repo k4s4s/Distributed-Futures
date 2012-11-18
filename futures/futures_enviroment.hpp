@@ -19,24 +19,17 @@ namespace futures {
 				 thus using RMA puts/gets to emulate shared memory model more closely. An issue here can be serialization */
 class Futures_Enviroment { //singleton class
 private:
-    /* hold information about different futures. Attention: it is possible that
-    enviroment are different accross processes */
-    static std::map<unsigned int, communication::SharedDataManager*> futuresMap;
-    static unsigned int total_futures; //never decrease that value, it is  not actual number of futures, just next avaible id for the map
     static Futures_Enviroment* pinstance;
-protected:
-    Futures_Enviroment(int &argc, char**& argv, const std::string& commInterfaceName);
 		communication::CommManager* commManager;
     communication::CommInterface* commInterface;
+protected:
+    Futures_Enviroment(int &argc, char**& argv, const std::string& commInterfaceName);
 public:
     ~Futures_Enviroment();
     static Futures_Enviroment* Initialize(int &argc, char**& argv, const std::string& commInterfaceName);
     static Futures_Enviroment* Instance();
     MPI_Comm get_communicator();
-    communication::SharedDataManager* get_SharedDataManager(unsigned int id);
-    // this function returns the id used to register the future in the map
-    unsigned int registerFuture(unsigned int _data_size, unsigned int _type_size);
-    void removeFuture(unsigned int id);
+		communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id, int _data_size, int _type_size);
     int get_procId();
 };
 

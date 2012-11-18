@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 	}
-	else {
+	else if(id == 1) {
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
     	promises[i]->set_value(&(A[0]));
 		}

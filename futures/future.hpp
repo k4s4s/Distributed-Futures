@@ -3,6 +3,7 @@
 #define Future_H
 
 #include <iostream>
+#include <cassert>
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
 
@@ -12,17 +13,18 @@ template <class T>
 class Future {
 private:
     bool ready_status;
-    unsigned int id; //id in the enviroment
+    int src_id, dst_id;
+		communication::SharedDataManager *sharedData;
 public:
-    Future(unsigned int _data_size, unsigned int _type_size);
+		Future(int _src_id, int _dst_id, 
+					communication::SharedDataManager *_sharedData);
     ~Future();
-    unsigned int get_Id();
     bool is_ready();
     T get();
 };
 
 template<typename T, typename F, typename ... Args>
-Future<T> *async(int origin_rank, int target_rank,
+Future<T> *async(int src_id, int dst_id,
                  unsigned int data_size, unsigned int type_size,
                  F& f, Args ...args);
 
@@ -49,73 +51,80 @@ struct _get_data<TX*> {
 template<typename TX>
 struct _set_data {
     void operator()(communication::SharedDataManager* sharedDataManager,
-										TX value, int rank) {
-    	sharedDataManager->set_data(&value, rank);
+										TX value) {
+    	sharedDataManager->set_data(&value);
     };
 };
 
 template<typename TX>
 struct _set_data<TX*> {
     void operator()(communication::SharedDataManager* sharedDataManager, 
-										TX* value, int rank) {
-    	sharedDataManager->set_data(value, rank);
+										TX* value) {
+    	sharedDataManager->set_data(value);
     };
 };
 
 }//end of namespace details
 
 template<typename T, typename F, typename ... Args>
-Future<T> *async(int origin_rank, int target_rank,
+Future<T> *async(int src_id, int dst_id,
                  unsigned int data_size, unsigned int type_size,
                  F& f, Args ...args) {
-    Future<T> *future = new Future<T>(data_size, type_size);
     Futures_Enviroment *env = Futures_Enviroment::Instance();
-    //these should only be executed only by the thread that will set future's value
-    int myrank = env->get_procId();
-    if (myrank == origin_rank) {
-        unsigned int future_id = future->get_Id();
-        //F should be callable
+    int id = env->get_procId();
+		if(id == src_id || id == dst_id) {
+			communication::SharedDataManager *sharedData;
+			sharedData = env->new_SharedDataManager(src_id, dst_id, data_size, type_size);
+			if(id == dst_id) {
+				Future<T> *future = new Future<T>(src_id, dst_id, sharedData);
+				return future;
+			}
+			else if(id == src_id) {
         T retval = f(args...);
-        communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(future_id);
-        details::_set_data<T>()(sharedDataManager, retval, target_rank);
+        details::_set_data<T>()(sharedData, retval);
 				int ready_status = 1;
-        sharedDataManager->set_status(&ready_status, target_rank);
-    }
+        sharedData->set_status(&ready_status);
+				//delete sharedData;
+			}
+		}
     //Master and the rest should skip here directly
-    return future; //the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank
+    return NULL;//the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank
 };
 
-template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size) {
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
+template <class T> Future<T>::Future(int _src_id, int _dst_id, 
+																		communication::SharedDataManager *_sharedData) {
     ready_status = 0;
-    id = env->registerFuture(_data_size, _type_size);
+    src_id = _src_id;
+		dst_id = _dst_id;
+		sharedData = _sharedData;
 };
 
 template <class T> Future<T>::~Future() {
     Futures_Enviroment *env = Futures_Enviroment::Instance();
-    env->removeFuture(id);
+		int id = env->get_procId();
+    if(id == dst_id) {
+			delete sharedData;
+		}
 };
-
-template <class T> unsigned int Future<T>::get_Id() {
-    return id;
-}
 
 template <class T> bool Future<T>::is_ready() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
-    communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
+		int id = env->get_procId();
+		assert(id == dst_id);
     int ready_status;
-    return sharedDataManager->get_status(&ready_status);
+    return sharedData->get_status(&ready_status);
 };
 
 template <class T> T Future<T>::get() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
-    communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
+		int id = env->get_procId();
+		assert(id == dst_id);
     int ready_status;
     while (1) {
-        sharedDataManager->get_status(&ready_status);
+        sharedData->get_status(&ready_status);
         if (ready_status) break;
     }
-    return	details::_get_data<T>()(sharedDataManager);
+    return	details::_get_data<T>()(sharedData);
 };
 
 }//end of futures namespace
