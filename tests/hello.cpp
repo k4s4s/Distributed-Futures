@@ -69,9 +69,15 @@ int helloWorld() {
 }
 
 int main(int argc, char* argv[]) {
+<<<<<<< HEAD
 	//Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
 	//int id = env->get_procId();
 	/*
+=======
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPIAsync");
+	int id = env->get_procId();
+	
+>>>>>>> mpi-async-comm
 	Future<int> *message = async<int>(1, 0, 1, sizeof(int), helloWorld);
 
 

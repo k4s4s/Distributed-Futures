@@ -33,12 +33,9 @@ using namespace futures;
 using namespace futures::communication;
 
 /*** ARMCISharedDataManager impelementation ***/
-ARMCISharedDataManager::ARMCISharedDataManager(int _src_id, int _dst_id,
-																							unsigned int _data_size, unsigned int _type_size) {
+ARMCISharedDataManager::ARMCISharedDataManager(unsigned int _data_size, unsigned int _type_size) { //TODO: workers should not allcate any memory
 	data_size = _data_size;
 	type_size = _type_size;
-	src_id = _src_id;
-	dst_id = _dst_id;
 	int nprocs;
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	int rank;
@@ -56,7 +53,7 @@ ARMCISharedDataManager::~ARMCISharedDataManager() {
 	ARMCI_Free(data_buff[rank]);
 	free(data_buff);
 	ARMCI_Free(status_buff[rank]);
-	free(status_buff);	//FIXME: WE need to free all the shared space
+	free(status_buff);	
 }
 
 unsigned int ARMCISharedDataManager::get_dataSize() {
@@ -64,21 +61,25 @@ unsigned int ARMCISharedDataManager::get_dataSize() {
 };
 	
 void ARMCISharedDataManager::get_data(void* val) {
-		details::lock_and_get(val, data_buff, data_size*type_size, dst_id, DATA_LOCK);
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		details::lock_and_get(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
-void ARMCISharedDataManager::set_data(void* val) {
-		details::lock_and_put(val, data_buff, data_size*type_size, dst_id, DATA_LOCK);
+void ARMCISharedDataManager::set_data(void* val, int rank) {
+		details::lock_and_put(val, data_buff, data_size*type_size, rank, DATA_LOCK);
 };
 
 void ARMCISharedDataManager::get_status(int* val) {
-		details::lock_and_get((void*)val, (void**)status_buff, sizeof(int), dst_id, STATUS_LOCK);
+		int rank;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		details::lock_and_get((void*)val, (void**)status_buff, sizeof(int), rank, STATUS_LOCK);
 		//std::cout << "val:" << *val << std::endl; 
 };
 
-void ARMCISharedDataManager::set_status(int* val) {
+void ARMCISharedDataManager::set_status(int* val, int rank) {
 //std::cout << "val:" << *val << std::endl;
-		details::lock_and_put((void*)val, (void**)status_buff, sizeof(int), dst_id, STATUS_LOCK);
+		details::lock_and_put((void*)val, (void**)status_buff, sizeof(int), rank, STATUS_LOCK);
 //std::cout << "val:" << *val << std::endl;
 };
 
@@ -107,9 +108,8 @@ CommInterface* ARMCIComm::create(int &argc, char**& argv) {
 	return new ARMCIComm(argc, argv);
 };
 
-SharedDataManager* ARMCIComm::new_sharedDataManager(int _src_id, int _dst_id, 
-																										unsigned int _data_size, unsigned int _type_size) {
-	return new ARMCISharedDataManager(_src_id, _dst_id, _data_size, _type_size);
+SharedDataManager* ARMCIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size) {
+	return new ARMCISharedDataManager(_data_size, _type_size);
 };
 
 int ARMCIComm::get_procId() {

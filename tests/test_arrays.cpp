@@ -15,7 +15,7 @@ using namespace std;
 using namespace futures;
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPIAsync");
 	int id = env->get_procId();
 	
 	double A[SIZE_X];
