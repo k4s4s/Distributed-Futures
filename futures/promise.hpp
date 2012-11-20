@@ -38,7 +38,6 @@ public:
     Future<T> *get_future();
 };
 
-<<<<<<< HEAD
 template <class T> Promise<T>::Promise(int _src_id, int _dst_id, 
 																			unsigned int _data_size, unsigned int _type_size) {
  		Futures_Enviroment *env = Futures_Enviroment::Instance();
@@ -54,17 +53,6 @@ template <class T> Promise<T>::Promise(int _src_id, int _dst_id,
 		}
 		else 
 			future = NULL;
-=======
-template <class T> Promise<T>::Promise(int _origin_rank, int _target_rank, unsigned int _data_size, unsigned int _type_size) {
-    future = new Future<T>(_data_size, _type_size, target_rank);
-    //these should only be executed only by the thread that will set future's value
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
-    int myrank = env->get_procId();
-    if (myrank == _origin_rank) {
-        future_id = future->get_Id();
-        target_rank = _target_rank;
-    }
->>>>>>> mpi-async-comm
 };
 
 template <class T> Promise<T>::~Promise() {

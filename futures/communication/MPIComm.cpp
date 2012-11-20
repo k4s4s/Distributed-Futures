@@ -73,7 +73,6 @@ static void futures::communication::details::group_create_comm(MPI_Group group, 
 }
 
 /*** MPISharedDataManager impelementation ***/
-<<<<<<< HEAD
 MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id, 
 																					unsigned int _data_size, unsigned int _type_size) {
 		int pids[2];
@@ -86,9 +85,6 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 		MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
 		MPI_Group_incl(worldgroup, 2, pids,	&newgroup);
 		details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
-=======
-MPISharedDataManager::MPISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) { //TODO: workers should not allcate any memory
->>>>>>> mpi-async-comm
     data_size = _data_size;
     type_size = _type_size;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
@@ -111,16 +107,11 @@ MPISharedDataManager::~MPISharedDataManager() {
 unsigned int MPISharedDataManager::get_dataSize() {
 		return data_size;
 };
-	
-<<<<<<< HEAD
+
 void MPISharedDataManager::get_data(void* val) {
 		//could also get current rank
-		details::lock_and_get(val, data_size*type_size, MPI_BYTE, dst_id, 0, 
-=======
-void MPISharedDataManager::get_data(void* val, int rank) {
-		details::lock_and_get(val, data_size*type_size, MPI_BYTE, rank, 0, 
->>>>>>> mpi-async-comm
-													data_size*type_size, MPI_BYTE, data_win, data_lock);
+		details::lock_and_get(val, data_size*type_size, MPI_BYTE, dst_id, 0,
+													data_size*type_size, MPI_BYTE, data_win, data_lock); 
 };
 
 void MPISharedDataManager::set_data(void* val) {
@@ -128,13 +119,8 @@ void MPISharedDataManager::set_data(void* val) {
 													data_size*type_size, MPI_BYTE, data_win, data_lock);
 };
 
-<<<<<<< HEAD
 void MPISharedDataManager::get_status(int* val) {
 	details::lock_and_get((void*)val, 1, MPI_INT, dst_id, 0, 1, MPI_INT, status_win, status_lock);
-=======
-void MPISharedDataManager::get_status(int* val, int rank) {
-	details::lock_and_get((void*)val, 1, MPI_INT, rank, 0, 1, MPI_INT, status_win, status_lock);
->>>>>>> mpi-async-comm
 };
 
 void MPISharedDataManager::set_status(int* val) {
@@ -162,14 +148,9 @@ CommInterface* MPIComm::create(int &argc, char**& argv) {
 	return new MPIComm(argc, argv);
 };
 
-<<<<<<< HEAD
 SharedDataManager* MPIComm::new_sharedDataManager(int _src_id, int _dst_id, 
 																									unsigned int _data_size, unsigned int _type_size) {
 	return new MPISharedDataManager(_src_id, _dst_id, _data_size, _type_size);
-=======
-SharedDataManager* MPIComm::new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id) {
-	return new MPISharedDataManager(_data_size, _type_size, _id);
->>>>>>> mpi-async-comm
 }
 
 int MPIComm::get_procId() {

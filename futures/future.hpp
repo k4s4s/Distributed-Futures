@@ -20,18 +20,11 @@ template <class T>
 class Future {
 private:
     bool ready_status;
-<<<<<<< HEAD
     int src_id, dst_id;
 		communication::SharedDataManager *sharedData;
 public:
 		Future(int _src_id, int _dst_id, 
 					communication::SharedDataManager *_sharedData);
-=======
-    unsigned int id; //id in the enviroment
-		int promise_rank;
-public:
-    Future(unsigned int _data_size, unsigned int _type_size, int _promise_rank);
->>>>>>> mpi-async-comm
     ~Future();
     bool is_ready();
     T get();
@@ -46,18 +39,18 @@ namespace details {
 
 template<typename TX>
 struct _get_data {
-    TX operator()(communication::SharedDataManager* sharedDataManager, int rank) {
+    TX operator()(communication::SharedDataManager* sharedDataManager) {
 				TX value;				
-				sharedDataManager->get_data(&value, rank);
+				sharedDataManager->get_data(&value);
         return value;
     };
 };
 
 template<typename TX>
 struct _get_data<TX*> {
-    TX* operator()(communication::SharedDataManager* sharedDataManager, int rank) {
+    TX* operator()(communication::SharedDataManager* sharedDataManager) {
 				TX* value = new TX[sharedDataManager->get_dataSize()];				
-				sharedDataManager->get_data(value, rank);
+				sharedDataManager->get_data(value);
         return value;
     };
 };
@@ -84,10 +77,6 @@ template<typename T, typename F, typename ... Args>
 Future<T> *async(int src_id, int dst_id,
                  unsigned int data_size, unsigned int type_size,
                  F& f, Args ...args) {
-<<<<<<< HEAD
-=======
-    Future<T> *future = new Future<T>(data_size, type_size, origin_rank);
->>>>>>> mpi-async-comm
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     int id = env->get_procId();
 		if(id == src_id || id == dst_id) {
@@ -109,21 +98,12 @@ Future<T> *async(int src_id, int dst_id,
     return NULL;//the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank
 };
 
-<<<<<<< HEAD
 template <class T> Future<T>::Future(int _src_id, int _dst_id, 
 																		communication::SharedDataManager *_sharedData) {
     ready_status = 0;
     src_id = _src_id;
 		dst_id = _dst_id;
 		sharedData = _sharedData;
-=======
-/*** Future Implementation ***/
-template <class T> Future<T>::Future(unsigned int _data_size, unsigned int _type_size, int _promise_rank) {
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
-    ready_status = 0;
-    id = env->registerFuture(_data_size, _type_size);
-		promise_rank = _promise_rank;
->>>>>>> mpi-async-comm
 };
 
 template <class T> Future<T>::~Future() {
@@ -136,21 +116,14 @@ template <class T> Future<T>::~Future() {
 
 template <class T> bool Future<T>::is_ready() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
-<<<<<<< HEAD
 		int id = env->get_procId();
 		assert(id == dst_id);
     int ready_status;
     return sharedData->get_status(&ready_status);
-=======
-    communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
-    int ready_status = 0;
-    return sharedDataManager->get_status(&ready_status, promise_rank);
->>>>>>> mpi-async-comm
 };
 
 template <class T> T Future<T>::get() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
-<<<<<<< HEAD
 		int id = env->get_procId();
 		assert(id == dst_id);
     int ready_status;
@@ -159,15 +132,6 @@ template <class T> T Future<T>::get() {
         if (ready_status) break;
     }
     return	details::_get_data<T>()(sharedData);
-=======
-    communication::SharedDataManager* sharedDataManager = env->get_SharedDataManager(id);
-    int ready_status = 0;
-    while (1) {
-        sharedDataManager->get_status(&ready_status, promise_rank);
-        if (ready_status) break;
-    }
-    return	details::_get_data<T>()(sharedDataManager, promise_rank);
->>>>>>> mpi-async-comm
 };
 
 }//end of futures namespace

@@ -37,7 +37,6 @@ private:
 		int src_id;
 		int dst_id;
 public:
-<<<<<<< HEAD
     MPISharedDataManager(int _src_id, int _dst_id, 
 												unsigned int _data_size, unsigned int _type_size);
     ~MPISharedDataManager();
@@ -46,15 +45,6 @@ public:
     void set_data(void* val);
     void get_status(int *val);
     void set_status(int *val);
-=======
-    MPISharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
-    ~MPISharedDataManager();
-		unsigned int get_dataSize();
-    void get_data(void* val, int rank);
-    void set_data(void* val, int rank);
-    void get_status(int *val, int rank);
-    void set_status(int *val, int rank);
->>>>>>> mpi-async-comm
 };
 
 class MPIComm : public CommInterface {
@@ -62,12 +52,8 @@ public:
     MPIComm(int &argc, char**& argv);
     ~MPIComm();
 		static CommInterface* create(int &argc, char**& argv);
-<<<<<<< HEAD
 		SharedDataManager* new_sharedDataManager(int _src_id, int _dst_id, 
 																						unsigned int _data_size, unsigned int _type_size);
-=======
-		SharedDataManager* new_sharedDataManager(unsigned int _data_size, unsigned int _type_size, int _id);
->>>>>>> mpi-async-comm
     int get_procId();
 };
 
