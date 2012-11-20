@@ -9,6 +9,13 @@
 
 namespace futures {
 
+template <class T, class DataT>
+class AsyncTask {
+public:
+	virtual ~AsyncTask() {};
+	virtual T operator()(DataT args) = 0; 
+};
+
 template <class T>
 class Future {
 private:

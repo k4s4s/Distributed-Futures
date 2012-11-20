@@ -1,6 +1,6 @@
 CC=mpic++
 CCFLAGS=-gstabs+ -DDEBUG -std=c++0x -DARMCI_MPI_V
-LDFLAGS=-lboost_serialization -L./lib/ -lfuture -lmutex -L/home/kasas/libs/armci_mpi/lib/ -larmci
+LDFLAGS=-lboost_serialization -lboost_mpi -L./lib/ -lfuture -lmutex -L/home/kasas/libs/armci_mpi/lib/ -larmci
 INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/ -I/home/kasas/libs/armci_mpi/include
 LIB_DIR=lib
 BIN_DIR=bin
