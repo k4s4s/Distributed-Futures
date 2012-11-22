@@ -4,10 +4,11 @@
 
 #include <iostream>
 #include <cassert>
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/assume_abstract.hpp>
+#include <boost/mpi/datatype.hpp>
+// For (de-)serializing sends and receives
+#include <boost/mpi/packed_oarchive.hpp>
+#include <boost/mpi/packed_iarchive.hpp>
+#include <boost/serialization/array.hpp>
 
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
@@ -19,18 +20,11 @@ namespace futures {
 template <class T> //implementation will probably work only for basic types (int, float, etc)
 class Promise {
 private:
-    friend class boost::serialization::access;
     Future<T> *future; //this is only valid on destination, NULL otherwise
 		/*these values also exist on future and sharedDataManager, maybe keep them in one place?, 
 			could use inline functions to get them maybe? */
 		int src_id, dst_id;
 		communication::SharedDataManager *sharedData;
-    //MPI_Datatype mpi_type; //openmpi's MPI_Datatype is rather complicated, I can not serialize it
-    //Maybe we could get similar wrappers as boost's for one-sided comm
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */) {
-        ar & src_id << dst_id;
-    };
 public:
     Promise(int _src_rank, int _dst_rank, unsigned int _data_size, unsigned int _type_size);
     ~Promise();
@@ -45,7 +39,8 @@ template <class T> Promise<T>::Promise(int _src_id, int _dst_id,
 		src_id = _src_id;
 		dst_id = _dst_id;
 		if(id == _src_id || id == _dst_id) {
-			sharedData = env->new_SharedDataManager(_src_id, _dst_id, _data_size, _type_size);
+			sharedData = env->new_SharedDataManager(_src_id, _dst_id, _data_size, _type_size,
+																							details::_get_mpi_datatype<T>()());
 			if(id == _dst_id)
 				future = new Future<T>(_src_id, _dst_id, sharedData);
 			else 
@@ -67,7 +62,7 @@ template <class T> void Promise<T>::set_value(T val) {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
 		int id = env->get_procId();
 		assert(id == src_id);
-    details::_set_data<T>()(sharedData, val);
+    details::_set_data<T>()(sharedData, val, details::_is_mpi_datatype<T>());
 		int ready_status = 1;
     sharedData->set_status(&ready_status);
 };

@@ -41,12 +41,17 @@ Futures_Enviroment::~Futures_Enviroment() {
 
 communication::SharedDataManager* 
 Futures_Enviroment::new_SharedDataManager(int _src_id, int _dst_id, 
-																					int _data_size, int _type_size) {
+																					int _data_size, int _type_size,
+																					MPI_Datatype _datatype) {
 		return commInterface->new_sharedDataManager(_src_id, _dst_id,
-																								_data_size, _type_size);
+																								_data_size, _type_size, _datatype);
 };
 
 int Futures_Enviroment::get_procId() {
     return commInterface->get_procId();
+};
+
+int Futures_Enviroment::get_avaibleWorker() {
+		return 1;
 };
 

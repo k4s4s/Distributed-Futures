@@ -36,9 +36,12 @@ private:
 		MPI_Comm comm;
 		int src_id;
 		int dst_id;
+		std::string type_name;
+		MPI_Datatype datatype;
 public:
     MPISharedDataManager(int _src_id, int _dst_id, 
-												unsigned int _data_size, unsigned int _type_size);
+												unsigned int _data_size, unsigned int _type_size,
+												MPI_Datatype datatype);
     ~MPISharedDataManager();
 		unsigned int get_dataSize();
     void get_data(void* val);
@@ -53,7 +56,8 @@ public:
     ~MPIComm();
 		static CommInterface* create(int &argc, char**& argv);
 		SharedDataManager* new_sharedDataManager(int _src_id, int _dst_id, 
-																						unsigned int _data_size, unsigned int _type_size);
+																						unsigned int _data_size, unsigned int _type_size,
+																						MPI_Datatype _datatype);
     int get_procId();
 };
 

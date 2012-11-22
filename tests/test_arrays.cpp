@@ -35,13 +35,16 @@ int main(int argc, char* argv[]) {
 	if(id == MASTER) {
 		for(int i=0; i < NUMBER_OF_FUTURES; i++) {
 			double *B = answers[i]->get();
-			/*
-			for(int j = 0; j < SIZE_X; j++) {
+			
+			/*for(int j = 0; j < SIZE_X; j++) {
 				cout << "B[" << j << "]=" << B[j] << endl;
-			}
-			*/
+			}*/
+			
 			for(int i=0; i < SIZE_X; i++) {
-				if(A[i] != B[i]) cout << "Test Failed" << endl;
+				if(A[i] != B[i]) { 
+					cout << "Test Failed" << endl;
+					break;				
+				}
 				else if(i == SIZE_X-1) cout << "Test Passed" << endl;
 			}
 		}

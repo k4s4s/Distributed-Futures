@@ -23,7 +23,8 @@ public:
     virtual ~CommInterface() {};
 		//User should also implement a create function for the CommInterface factory
 		virtual SharedDataManager* new_sharedDataManager(int src_id, int dst_id, 
-																										unsigned int _data_size, unsigned int _type_size) = 0;
+																										unsigned int _data_size, unsigned int _type_size,
+																										MPI_Datatype _datatype) = 0;
     virtual int get_procId() = 0;
 };
 

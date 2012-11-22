@@ -29,8 +29,11 @@ public:
     static Futures_Enviroment* Initialize(int &argc, char**& argv, const std::string& commInterfaceName);
     static Futures_Enviroment* Instance();
     MPI_Comm get_communicator();
-		communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id, int _data_size, int _type_size);
+		communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id, 
+																														int _data_size, int _type_size,
+																														MPI_Datatype datatype);
     int get_procId();
+		int get_avaibleWorker();
 };
 
 }//end of futures namespace

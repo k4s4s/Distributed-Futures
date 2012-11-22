@@ -68,13 +68,14 @@ static void futures::communication::details::group_create_comm(MPI_Group group, 
 			MPI_Comm_free(&comm_old);
 		}
 	}
-	delete pids;
-	delete grp_pids;
+	//delete pids;
+	//delete grp_pids;
 }
 
 /*** MPISharedDataManager impelementation ***/
 MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id, 
-																					unsigned int _data_size, unsigned int _type_size) {
+																					unsigned int _data_size, unsigned int _type_size,
+																					MPI_Datatype _datatype) {
 		int pids[2];
 		src_id = _src_id;
 		dst_id = _dst_id;
@@ -87,6 +88,7 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 		details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
     data_size = _data_size;
     type_size = _type_size;
+		datatype = _datatype;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
     MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
     status = 0;
@@ -110,13 +112,13 @@ unsigned int MPISharedDataManager::get_dataSize() {
 
 void MPISharedDataManager::get_data(void* val) {
 		//could also get current rank
-		details::lock_and_get(val, data_size*type_size, MPI_BYTE, dst_id, 0,
-													data_size*type_size, MPI_BYTE, data_win, data_lock); 
+		details::lock_and_get(val, data_size, datatype, dst_id, 0,
+													data_size, datatype, data_win, data_lock); 
 };
 
 void MPISharedDataManager::set_data(void* val) {
-		details::lock_and_put(val, data_size*type_size, MPI_BYTE, dst_id, 0, 
-													data_size*type_size, MPI_BYTE, data_win, data_lock);
+		details::lock_and_put(val, data_size, datatype, dst_id, 0, 
+													data_size, datatype, data_win, data_lock);
 };
 
 void MPISharedDataManager::get_status(int* val) {
@@ -149,8 +151,9 @@ CommInterface* MPIComm::create(int &argc, char**& argv) {
 };
 
 SharedDataManager* MPIComm::new_sharedDataManager(int _src_id, int _dst_id, 
-																									unsigned int _data_size, unsigned int _type_size) {
-	return new MPISharedDataManager(_src_id, _dst_id, _data_size, _type_size);
+																									unsigned int _data_size, unsigned int _type_size,
+																									MPI_Datatype _datatype) {
+	return new MPISharedDataManager(_src_id, _dst_id, _data_size, _type_size, _datatype);
 }
 
 int MPIComm::get_procId() {

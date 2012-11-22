@@ -10,6 +10,8 @@
 #include <boost/mpi.hpp>
 #include <iostream>
 
+#include <mpi.h>
+
 #define MASTER 0
 
 using namespace std;
@@ -69,16 +71,16 @@ int helloWorld() {
 }
 
 int main(int argc, char* argv[]) {
-	//Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
-	//int id = env->get_procId();
-	/*
-	Future<int> *message = async<int>(1, 0, 1, sizeof(int), helloWorld);
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
+	int id = env->get_procId();
+	
+	Future<int> *message = async<int>(helloWorld);
 
 
 	if(id == MASTER) {
 		cout << "- Master :Hello " << message->get() << endl;
 	}
-*/
+/*
  	mpi::environment env(argc, argv);
 	mpi::communicator world;
 	int id = world.rank();
@@ -92,8 +94,9 @@ int main(int argc, char* argv[]) {
 		world.recv( 0, 0, w2);
 		cout << "result:" << w2() << endl;
 	}
-	
-	//delete message;
-	//delete env;
+*/	
+//	MPI_Barrier(MPI_COMM_WORLD);
+	delete message;
+	delete env;
 }
 
