@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 	vector<Future<double*>* > answers(NUMBER_OF_FUTURES);
 
 	for(int i=0; i < NUMBER_OF_FUTURES; i++) {
-		promises[i] = new Promise<double*>(1, 0, SIZE_X, sizeof(double));
+		promises[i] = new Promise<double*>(1, 0, SIZE_X);
 		answers[i] = promises[i]->get_future();
 	}	
 

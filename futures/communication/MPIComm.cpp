@@ -10,9 +10,10 @@
 using namespace futures;
 using namespace futures::communication;
 //MPI_Win_Lock do not define a critical region, merely an epoch, thus we need mutexes to lock concurrent accesses
-static void futures::communication::details::lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
-                       int target_rank, MPI_Aint target_disp, int target_count,
-                       MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
+static void futures::communication::details::lock_and_get(void *origin_addr, 
+												int origin_count, MPI_Datatype origin_datatype,
+                       	int target_rank, MPI_Aint target_disp, int target_count,
+                       	MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
 		mutex->lock(target_rank);
 		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
     MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
@@ -21,7 +22,8 @@ static void futures::communication::details::lock_and_get(void *origin_addr, int
 		mutex->unlock(target_rank);
 };
 
-static void futures::communication::details::lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
+static void futures::communication::details::lock_and_put(void *origin_addr, 
+													int origin_count, MPI_Datatype origin_datatype,
                           int target_rank, MPI_Aint target_disp, int target_count,
                           MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
 		mutex->lock(target_rank);
@@ -32,7 +34,8 @@ static void futures::communication::details::lock_and_put(void *origin_addr, int
 		mutex->unlock(target_rank);
 };
 
-static void futures::communication::details::group_create_comm(MPI_Group group, MPI_Comm comm, MPI_Comm *comm_new, int tag) {	
+static void futures::communication::details::group_create_comm(MPI_Group group, 
+																		MPI_Comm comm, MPI_Comm *comm_new, int tag) {	
 	//REQUIRE: group is ordered by desired rank in comm and is identical on all callers
 	int rank, grp_rank, grp_size;
 	MPI_Group new_group;

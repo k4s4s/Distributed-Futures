@@ -19,22 +19,43 @@ private:
 		int src_id, dst_id;
 		communication::SharedDataManager *sharedData;
 public:
-    Promise(int _src_rank, int _dst_rank, unsigned int _data_size, unsigned int _type_size);
+    Promise(int _src_rank, int _dst_rank, unsigned int _data_size);
+    Promise(int _src_rank, int _dst_rank);
     ~Promise();
     void set_value(T val);
     Future<T> *get_future();
 };
 
 template <class T> Promise<T>::Promise(int _src_id, int _dst_id, 
-																			unsigned int _data_size, unsigned int _type_size) {
+																			unsigned int _data_size) {
  		Futures_Enviroment *env = Futures_Enviroment::Instance();
     int id = env->get_procId();
 		src_id = _src_id;
 		dst_id = _dst_id;
+		unsigned int _type_size = details::_sizeof<T>()();
 		if(id == _src_id || id == _dst_id) {
 			sharedData = env->new_SharedDataManager(_src_id, _dst_id, _data_size, _type_size,
 																							details::_get_mpi_datatype<T>()(
 																								details::_is_mpi_datatype<T>()));
+			if(id == _dst_id)
+				future = new Future<T>(_src_id, _dst_id, sharedData);
+			else 
+				future = NULL;
+		}
+		else 
+			future = NULL;
+};
+
+template <class T> Promise<T>::Promise(int _src_id, int _dst_id) {
+ 		Futures_Enviroment *env = Futures_Enviroment::Instance();
+    int id = env->get_procId();
+		src_id = _src_id;
+		dst_id = _dst_id;
+		unsigned int _type_size = details::_sizeof<T>()();
+		if(id == _src_id || id == _dst_id) {
+			sharedData = env->new_SharedDataManager(_src_id, _dst_id, 1, _type_size,
+																							details::_get_mpi_datatype<T>()(
+																							details::_is_mpi_datatype<T>()));
 			if(id == _dst_id)
 				future = new Future<T>(_src_id, _dst_id, sharedData);
 			else 
