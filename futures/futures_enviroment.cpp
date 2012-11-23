@@ -35,7 +35,6 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 };
 
 Futures_Enviroment::~Futures_Enviroment() {
-		//TODO: free map, future should have cleared out his shared data though
     delete commInterface;
 		delete commManager;
     pinstance = NULL;

@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
 				}
 				else if(i == SIZE_X-1) cout << "Test Passed" << endl;
 			}
+			delete B;
 		}
 	}
 	else if(id == 1) {

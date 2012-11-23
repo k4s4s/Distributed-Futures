@@ -32,7 +32,7 @@ template <class T> Promise<T>::Promise(int _src_id, int _dst_id,
     int id = env->get_procId();
 		src_id = _src_id;
 		dst_id = _dst_id;
-		unsigned int _type_size = details::_sizeof<T>()();
+		unsigned int _type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
 		if(id == _src_id || id == _dst_id) {
 			sharedData = env->new_SharedDataManager(_src_id, _dst_id, _data_size, _type_size,
 																							details::_get_mpi_datatype<T>()(
@@ -51,7 +51,7 @@ template <class T> Promise<T>::Promise(int _src_id, int _dst_id) {
     int id = env->get_procId();
 		src_id = _src_id;
 		dst_id = _dst_id;
-		unsigned int _type_size = details::_sizeof<T>()();
+		unsigned int _type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
 		if(id == _src_id || id == _dst_id) {
 			sharedData = env->new_SharedDataManager(_src_id, _dst_id, 1, _type_size,
 																							details::_get_mpi_datatype<T>()(

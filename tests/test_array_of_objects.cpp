@@ -42,25 +42,31 @@ int main(int argc, char* argv[]) {
 	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
 	int id = env->get_procId();
 	
+	answer_to_the_question answer[SIZE];
+	for(int i=0; i < SIZE; i++) {
+		answer[i] = answer_to_the_question(i);
+	}
+
 	//Future<int> *message = async<>(helloWorld);
 	Promise<answer_to_the_question*> *prom = new Promise<answer_to_the_question*>(1, 0, SIZE);
 	Future<answer_to_the_question*> *message = prom->get_future();
 	if(id == MASTER) {
-		answer_to_the_question *answer;
-		answer = message->get();
+		answer_to_the_question *ans;
+		ans = message->get();
 		for(int i=0; i < SIZE; i++) {
-			cout << "- The answer to the question is " << answer[i].get_value() << endl;
+			if(answer[i].get_value() != ans[i].get_value()) {
+				cout << "Test Failed" << endl;
+				break;
+			}
+			else if(i == SIZE-1) cout << "Test Passed" << endl;
+			//cout << "- The answer to the question is " << ans[i].get_value() << endl;
 		}
-		delete answer;	
+		//delete ans;	FIXME: delete here causes a memory error in glibc
 	}
 	else if(id == 1) {
-		answer_to_the_question answer[SIZE];
-		for(int i=0; i < SIZE; i++) {
-			answer[i] = answer_to_the_question(i);
-		}
 	  prom->set_value(answer);
 	}
-
+	MPI_Barrier(MPI_COMM_WORLD);
 	delete prom;
 	delete message;
 	delete env;

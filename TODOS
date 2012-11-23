@@ -1,5 +1,4 @@
 * See if recursion is possible with any interface - It seems it's far from trivial
 * Possibly drop ARMCI,  does not seem to be mature enough to handle a higher level interface like ours
-* Serialization for arrays of objects
 * Implement a sheduler factory class
-* Fix memory leak with arrays of objects
+* Find a way to delete array of objects...if you simply delete allocated data it causes an error in glibc

@@ -118,15 +118,21 @@ struct _set_data<TX*> {
 
 template<typename TX>
 struct _sizeof {
-	int operator()() {
+	int operator()(boost::mpl::true_) {
+		return sizeof(TX);
+	};
+	int operator()(boost::mpl::false_) {
 		return sizeof(TX);
 	};
 };
 
 template<typename TX>
 struct _sizeof<TX*> {
-	int operator()() {
+	int operator()(boost::mpl::true_) {
 		return sizeof(TX);
+	};
+	int operator()(boost::mpl::false_) {
+		return sizeof(boost::serialization::array<TX>);
 	};
 };
 
@@ -193,7 +199,7 @@ Future<T> *async_impl(int src_id, int dst_id,
 template<typename T, typename F, typename ... Args>
 Future<T> *async(unsigned int data_size, F& f, Args ...args) {
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	int type_size = details::_sizeof<T>()();
+	int type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
 	int src_id = env->get_avaibleWorker();
 	return async_impl<T>(1, 0, data_size, type_size, f, args...);
 }
@@ -202,7 +208,7 @@ template<typename T, typename F, typename ... Args>
 Future<T> *async(F& f, Args ...args) {
 	//FIXME: assert if T is pointer
 	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	int type_size = details::_sizeof<T>()();
+	int type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
 	int dst_id = env->get_avaibleWorker();
 	return async_impl<T>(1, 0, 1, type_size, f, args...);
 }
