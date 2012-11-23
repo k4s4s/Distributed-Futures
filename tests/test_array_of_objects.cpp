@@ -39,7 +39,7 @@ int helloWorld() {
 }
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI", "RR");
 	int id = env->get_procId();
 	
 	answer_to_the_question answer[SIZE];

@@ -1,6 +1,8 @@
 #ifndef _SCHEDULER_H
 #define _SCHEDULER_H
 
+#include "../communication/communication.hpp"
+
 namespace futures {
 namespace scheduler {
 

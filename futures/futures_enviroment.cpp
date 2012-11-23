@@ -10,9 +10,17 @@ using namespace futures;
 Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
 Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
-																									const std::string& commInterfaceName) {
+																									const std::string& commInterfaceName,
+																									const std::string& schedulerName) {
     if (!pinstance) {
-        pinstance = new Futures_Enviroment(argc, argv, commInterfaceName); // create sole instance
+        pinstance = new Futures_Enviroment(argc, argv, commInterfaceName, schedulerName);
+		}
+    return pinstance; // address of sole instance
+};
+
+Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv) {
+    if (!pinstance) {
+        pinstance = new Futures_Enviroment(argc, argv); // create sole instance
     }
     return pinstance; // address of sole instance
 };
@@ -23,7 +31,8 @@ Futures_Enviroment* Futures_Enviroment::Instance () {
 };
 
 Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
-                                       const std::string& commInterfaceName) {
+                                      const std::string& commInterfaceName,
+																			const std::string& schedulerName) {
 		//Initilize communication manager and register default interfaces
 		commManager = communication::CommManager::Instance();
 		commManager->registerCommInterface("MPI", communication::MPIComm::create);
@@ -31,7 +40,19 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		//commManager->registerCommInterface("MPIAsync", communication::MPIAsyncComm::create);
 		//Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
-		sched = new scheduler::RRScheduler(commInterface);
+		schedManager = scheduler::SchedManager::Instance();
+		schedManager->registerScheduler("RR", scheduler::RRScheduler::create);	
+		sched = schedManager->createScheduler(schedulerName, commInterface);
+};
+
+Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
+		//Initilize communication manager and register default interfaces
+		commManager = communication::CommManager::Instance();
+		commManager->registerCommInterface("MPI", communication::MPIComm::create);
+    commInterface = commManager->createCommInterface("MPI", argc, argv);
+		schedManager = scheduler::SchedManager::Instance();
+		schedManager->registerScheduler("RR", scheduler::RRScheduler::create);	
+		sched = schedManager->createScheduler("RR", commInterface);
 };
 
 Futures_Enviroment::~Futures_Enviroment() {

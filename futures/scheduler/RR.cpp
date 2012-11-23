@@ -15,6 +15,10 @@ RRScheduler::~RRScheduler() {
 
 };
 
+Scheduler* RRScheduler:: create(CommInterface *commInterface) {
+	return new RRScheduler(commInterface);
+};
+
 int RRScheduler::nextAvaibleWorkerId() {
 	curr_worker_id = (curr_worker_id+1)%total_workers;
 };

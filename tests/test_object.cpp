@@ -30,7 +30,7 @@ using namespace std;
 using namespace futures;
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
+	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI", "RR");
 	int id = env->get_procId();
 	
 	//Future<int> *message = async<>(helloWorld);

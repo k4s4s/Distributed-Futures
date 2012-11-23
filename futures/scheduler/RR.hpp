@@ -16,6 +16,7 @@ private:
 public:
 	RRScheduler(communication::CommInterface* commInterface);
 	~RRScheduler();
+	static Scheduler* create(communication::CommInterface *commInterface);
 	int nextAvaibleWorkerId();
 };
 

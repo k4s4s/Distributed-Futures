@@ -7,12 +7,7 @@
 #include "communication/communication.hpp"
 #include "communication/commManager.hpp"
 #include "scheduler/scheduler.hpp"
-
-#ifdef DEBUG
-#define DEBUG_MSG(str) std::cout << str << std::endl
-#else
-#define DEBUG_MSG(str) ;
-#endif
+#include "scheduler/schedManager.hpp"
 
 namespace futures {
 
@@ -23,12 +18,19 @@ private:
     static Futures_Enviroment* pinstance;
 		communication::CommManager* commManager;
     communication::CommInterface* commInterface;
+		scheduler::SchedManager* schedManager;
 		scheduler::Scheduler* sched;
 protected:
-    Futures_Enviroment(int &argc, char**& argv, const std::string& commInterfaceName);
+    Futures_Enviroment(int &argc, char**& argv, 
+											const std::string& commInterfaceName,
+											const std::string& schedulerName);
+    Futures_Enviroment(int &argc, char**& argv);
 public:
     ~Futures_Enviroment();
-    static Futures_Enviroment* Initialize(int &argc, char**& argv, const std::string& commInterfaceName);
+    static Futures_Enviroment* Initialize(int &argc, char**& argv, 
+																					const std::string& commInterfaceName,
+																					const std::string& schedulerName);
+    static Futures_Enviroment* Initialize(int &argc, char**& argv);
     static Futures_Enviroment* Instance();
     MPI_Comm get_communicator();
 		communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id, 

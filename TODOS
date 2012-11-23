@@ -2,3 +2,4 @@
 * Possibly drop ARMCI,  does not seem to be mature enough to handle a higher level interface like ours
 * Implement a sheduler factory class
 * Find a way to delete array of objects...if you simply delete allocated data it causes an error in glibc
+* Add exceptions
