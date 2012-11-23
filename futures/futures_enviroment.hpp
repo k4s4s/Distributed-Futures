@@ -6,6 +6,7 @@
 #include <map>
 #include "communication/communication.hpp"
 #include "communication/commManager.hpp"
+#include "scheduler/scheduler.hpp"
 
 #ifdef DEBUG
 #define DEBUG_MSG(str) std::cout << str << std::endl
@@ -22,6 +23,7 @@ private:
     static Futures_Enviroment* pinstance;
 		communication::CommManager* commManager;
     communication::CommInterface* commInterface;
+		scheduler::Scheduler* sched;
 protected:
     Futures_Enviroment(int &argc, char**& argv, const std::string& commInterfaceName);
 public:

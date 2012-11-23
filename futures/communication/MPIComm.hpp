@@ -64,6 +64,7 @@ public:
 																						unsigned int _data_size, unsigned int _type_size,
 																						MPI_Datatype _datatype);
     int get_procId();
+		int size();
 };
 
 }//end of namespace communication

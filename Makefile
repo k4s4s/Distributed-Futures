@@ -7,8 +7,10 @@ BIN_DIR=bin
 
 FUTURES_SOURCES = $(wildcard futures/*.cpp)
 FUTURES_SOURCES += $(wildcard futures/communication/*.cpp)
+FUTURES_SOURCES += $(wildcard futures/scheduler/*.cpp)
 FUTURES_HEADERS = $(wildcard futures/*.hpp)
 FUTURES_HEADERS += $(wildcard futures/communication/*.hpp)
+FUTURES_HEADERS += $(wildcard futures/scheduler/*.hpp)
 FUTURES_OBJECTS = $(FUTURES_SOURCES:.cpp=.o)
 FUTURES_LIB = $(LIB_DIR)/libfuture.a
 

@@ -1,5 +1,6 @@
 
 #include "futures_enviroment.hpp"
+#include "scheduler/RR.hpp"
 #include "communication/MPIComm.hpp"
 //#include "communication/ARMCIComm.hpp"
 //#include "communication/MPIAsyncComm.hpp"
@@ -30,6 +31,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		//commManager->registerCommInterface("MPIAsync", communication::MPIAsyncComm::create);
 		//Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
+		sched = new scheduler::RRScheduler(commInterface);
 };
 
 Futures_Enviroment::~Futures_Enviroment() {
@@ -52,6 +54,6 @@ int Futures_Enviroment::get_procId() {
 };
 
 int Futures_Enviroment::get_avaibleWorker() {
-		return 1;
+		return sched->nextAvaibleWorkerId();
 };
 

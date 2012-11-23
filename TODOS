@@ -1,4 +1,4 @@
-* Implement scheduler (let's start with a round robin first)
 * See if recursion is possible with any interface - It seems it's far from trivial
 * Possibly drop ARMCI,  does not seem to be mature enough to handle a higher level interface like ours
 * Serialization for arrays of objects
+* Implement a sheduler factory class

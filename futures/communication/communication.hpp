@@ -39,6 +39,7 @@ public:
 																										unsigned int _data_size, unsigned int _type_size,
 																										MPI_Datatype _datatype) = 0;
     virtual int get_procId() = 0;
+		virtual int size() = 0;
 };
 
 }//end of namespace communication

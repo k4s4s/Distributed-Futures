@@ -190,3 +190,9 @@ int MPIComm::get_procId() {
     return rank;
 };
 
+int MPIComm::size() {
+		int size;
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
+		return size;
+};
+
