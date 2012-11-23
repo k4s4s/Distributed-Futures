@@ -6,6 +6,7 @@
 #include <cassert>
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
+#include <array>
 
 //There is an issue if no BOOST_CLASS_EXPORT is present with linking boost::mpi::exception
 class linker_fix {
@@ -73,9 +74,16 @@ struct _get_data<TX*> {
         return value;
     };
     TX* operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
-				TX* value = new TX[sharedDataManager->get_dataSize()];	
-				sharedDataManager->get_data(value);
-        return value;
+				TX* values = new TX[sharedDataManager->get_dataSize()];
+  			boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
+  			sharedDataManager->get_data(ia);
+				// Determine how much data we are going to receive
+				int count;
+				ia >> count;
+				// Deserialize the data in the message
+				boost::serialization::array<TX> arr(values, count);
+				ia >> arr;
+        return values;
     };
 };
 
@@ -100,8 +108,11 @@ struct _set_data<TX*> {
     	sharedDataManager->set_data(value);
     };
     void operator()(communication::SharedDataManager* sharedDataManager, 
-										TX* value, boost::mpl::false_) {
-    	sharedDataManager->set_data(value);
+										TX* values, boost::mpl::false_) {
+			int n = sharedDataManager->get_dataSize();
+  		boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
+  		oa << n << boost::serialization::make_array(values, n);	
+    	sharedDataManager->set_data(oa);
     };
 };
 

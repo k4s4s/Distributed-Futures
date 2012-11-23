@@ -2,3 +2,4 @@
 * Possibly drop ARMCI,  does not seem to be mature enough to handle a higher level interface like ours
 * Serialization for arrays of objects
 * Implement a sheduler factory class
+* Fix memory leak with arrays of objects

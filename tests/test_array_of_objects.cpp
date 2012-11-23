@@ -10,6 +10,8 @@
 
 #include <mpi.h>
 
+#define SIZE 10
+
 class answer_to_the_question {
 private:
 	int value;
@@ -20,6 +22,7 @@ private:
 	};
 public:
 	answer_to_the_question(): value(42) {};
+	answer_to_the_question(int _value): value(_value) {};
 	~answer_to_the_question() {};
 	int get_value() { return value; };
 };
@@ -29,19 +32,32 @@ public:
 using namespace std;
 using namespace futures;
 
+int helloWorld() {
+	int id = Futures_Enviroment::Instance()->get_procId();
+	cout << "- Worker" << id << ":Hello Master" << endl;
+	return id;
+}
+
 int main(int argc, char* argv[]) {
 	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI");
 	int id = env->get_procId();
 	
 	//Future<int> *message = async<>(helloWorld);
-	Promise<answer_to_the_question> *prom = new Promise<answer_to_the_question>(1, 0);
-	Future<answer_to_the_question> *message = prom->get_future();
+	Promise<answer_to_the_question*> *prom = new Promise<answer_to_the_question*>(1, 0, SIZE);
+	Future<answer_to_the_question*> *message = prom->get_future();
 	if(id == MASTER) {
-		answer_to_the_question answer = message->get();
-		cout << "- The answer to the question is " << answer.get_value() << endl;
+		answer_to_the_question *answer;
+		answer = message->get();
+		for(int i=0; i < SIZE; i++) {
+			cout << "- The answer to the question is " << answer[i].get_value() << endl;
+		}
+		delete answer;	
 	}
 	else if(id == 1) {
-		answer_to_the_question answer = answer_to_the_question();
+		answer_to_the_question answer[SIZE];
+		for(int i=0; i < SIZE; i++) {
+			answer[i] = answer_to_the_question(i);
+		}
 	  prom->set_value(answer);
 	}
 
