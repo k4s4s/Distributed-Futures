@@ -4,15 +4,19 @@
 
 #include <iostream>
 #include <cassert>
-
-#include <boost/mpi/datatype.hpp>
-// For (de-)serializing sends and receives
-#include <boost/mpi/packed_oarchive.hpp>
-#include <boost/mpi/packed_iarchive.hpp>
-#include <boost/serialization/array.hpp>
-
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
+
+//There is an issue if no BOOST_CLASS_EXPORT is present with linking boost::mpi::exception
+class linker_fix {
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int /* file_version */) {};
+public:
+	linker_fix() {};
+	~linker_fix() {};
+};
+BOOST_CLASS_EXPORT(linker_fix);
 
 namespace futures {
 
@@ -52,8 +56,11 @@ struct _get_data {
         return value;
     };
     TX operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
-				TX value;		
-				sharedDataManager->get_data(&value);
+				TX value;
+  			boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
+				sharedDataManager->get_data(ia);
+  			// Deserialize the data in the message
+  			ia >> value;		
         return value;
     };
 };
@@ -80,7 +87,9 @@ struct _set_data {
     };
     void operator()(communication::SharedDataManager* sharedDataManager,
 										TX value, boost::mpl::false_) {
-    	sharedDataManager->set_data(&value);
+  		boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
+  		oa << value;
+    	sharedDataManager->set_data(oa);
     };
 };
 
@@ -112,15 +121,21 @@ struct _sizeof<TX*> {
 
 template<typename TX>
 struct _get_mpi_datatype {
-	MPI_Datatype operator()() {
+	MPI_Datatype operator()(boost::mpl::true_) {
 		return boost::mpi::get_mpi_datatype<TX>(TX());
+	};
+	MPI_Datatype operator()(boost::mpl::false_) {
+		return MPI_DATATYPE_NULL;
 	};
 };
 
 template<typename TX>
 struct	_get_mpi_datatype<TX*> {
-	MPI_Datatype operator()() {
+	MPI_Datatype operator()(boost::mpl::true_) {
 		return boost::mpi::get_mpi_datatype<TX>(TX());
+	};
+	MPI_Datatype operator()(boost::mpl::false_) {
+		return MPI_DATATYPE_NULL;
 	};
 };
 
@@ -146,7 +161,8 @@ Future<T> *async_impl(int src_id, int dst_id,
 		if(id == src_id || id == dst_id) {
 			communication::SharedDataManager *sharedData;
 			sharedData = env->new_SharedDataManager(src_id, dst_id, data_size, type_size,
-																							details::_get_mpi_datatype<T>()());
+																							details::_get_mpi_datatype<T>()(
+																								details::_is_mpi_datatype<T>()));
 			if(id == dst_id) {
 				Future<T> *future = new Future<T>(src_id, dst_id, sharedData);
 				return future;

@@ -4,20 +4,13 @@
 
 #include <iostream>
 #include <cassert>
-#include <boost/mpi/datatype.hpp>
-// For (de-)serializing sends and receives
-#include <boost/mpi/packed_oarchive.hpp>
-#include <boost/mpi/packed_iarchive.hpp>
-#include <boost/serialization/array.hpp>
-
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
 #include "future.hpp"
-#include <mpi.h>
 
 namespace futures {
 
-template <class T> //implementation will probably work only for basic types (int, float, etc)
+template <class T>
 class Promise {
 private:
     Future<T> *future; //this is only valid on destination, NULL otherwise
@@ -40,7 +33,8 @@ template <class T> Promise<T>::Promise(int _src_id, int _dst_id,
 		dst_id = _dst_id;
 		if(id == _src_id || id == _dst_id) {
 			sharedData = env->new_SharedDataManager(_src_id, _dst_id, _data_size, _type_size,
-																							details::_get_mpi_datatype<T>()());
+																							details::_get_mpi_datatype<T>()(
+																								details::_is_mpi_datatype<T>()));
 			if(id == _dst_id)
 				future = new Future<T>(_src_id, _dst_id, sharedData);
 			else 

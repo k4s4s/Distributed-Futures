@@ -91,18 +91,23 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 		datatype = _datatype;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
     MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
+		ar_size = 0;
+		MPI_Win_create(&ar_size, 1, sizeof(int), MPI_INFO_NULL, comm, &ar_size_win);
     status = 0;
     MPI_Win_create(&status, 1, sizeof(int), MPI_INFO_NULL, comm, &status_win);
 		data_lock = new MPIMutex(comm);
+		ar_size_lock = new MPIMutex(comm);
 		status_lock = new MPIMutex(comm);
 }
 
 MPISharedDataManager::~MPISharedDataManager() {
     MPI_Win_free(&data_win);
     MPI_Free_mem(data);
+		MPI_Win_free(&ar_size_win);
     MPI_Win_free(&status_win);
 		MPI_Comm_free(&comm);
 		delete data_lock;
+		delete ar_size_lock;
 		delete status_lock;
 }
 
@@ -111,14 +116,30 @@ unsigned int MPISharedDataManager::get_dataSize() {
 };
 
 void MPISharedDataManager::get_data(void* val) {
-		//could also get current rank
 		details::lock_and_get(val, data_size, datatype, dst_id, 0,
 													data_size, datatype, data_win, data_lock); 
+};
+
+void MPISharedDataManager::get_data(boost::mpi::packed_iarchive& ar) {
+			int count;
+			details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, 0,
+														1, MPI_INT, ar_size_win, ar_size_lock); 
+  		// Prepare input buffer and receive the message
+  		ar.resize(count);
+			details::lock_and_get(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id, 
+														0, ar.size(), MPI_PACKED, data_win, data_lock); 
 };
 
 void MPISharedDataManager::set_data(void* val) {
 		details::lock_and_put(val, data_size, datatype, dst_id, 0, 
 													data_size, datatype, data_win, data_lock);
+};
+
+void MPISharedDataManager::set_data(boost::mpi::packed_oarchive& ar) {
+		details::lock_and_put((void*)(&ar.size()), 1, MPI_INT, dst_id, 0, 
+													1, MPI_INT, ar_size_win, ar_size_lock);
+		details::lock_and_put(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id, 0, 
+													ar.size(), MPI_PACKED, data_win, data_lock);
 };
 
 void MPISharedDataManager::get_status(int* val) {
@@ -127,6 +148,10 @@ void MPISharedDataManager::get_status(int* val) {
 
 void MPISharedDataManager::set_status(int* val) {
 	details::lock_and_put((void*)val, 1, MPI_INT, dst_id, 0, 1, MPI_INT, status_win, status_lock);
+};
+
+MPI_Comm MPISharedDataManager::get_comm() {
+	return comm;
 };
 
 /*** MPIComm implementation ***/
