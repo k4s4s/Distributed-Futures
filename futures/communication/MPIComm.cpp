@@ -1,11 +1,13 @@
 
-#include <mpi.h>
 #include "communication.hpp"
-
-#include <MPIComm.hpp>
+#include "MPIComm.hpp"
+#include <mpi.h>
+#include <boost/mpi.hpp>
 #include <iostream>
+#include "../common.hpp"
 
 #define GROUP_COMM_CREATE_TAG 1001
+#define NEW_JOB	2001
 
 using namespace futures;
 using namespace futures::communication;
@@ -88,15 +90,21 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 		MPI_Group newgroup, worldgroup;
 		MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
 		MPI_Group_incl(worldgroup, 2, pids,	&newgroup);
+		DPRINT_MESSAGE("MPIComm:creating new group"); 
 		details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
     data_size = _data_size;
     type_size = _type_size;
 		datatype = _datatype;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
+		DPRINT_MESSAGE("MPIComm:creating data window"); 
+		DPRINT_VAR("MPIComm:", data_size);
+		DPRINT_VAR("MPIComm:", type_size);
     MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
 		ar_size = 0;
+		DPRINT_MESSAGE("MPIComm:creating ar window");
 		MPI_Win_create(&ar_size, 1, sizeof(int), MPI_INFO_NULL, comm, &ar_size_win);
     status = 0;
+		DPRINT_MESSAGE("MPIComm:creating status window");
     MPI_Win_create(&status, 1, sizeof(int), MPI_INFO_NULL, comm, &status_win);
 		data_lock = new MPIMutex(comm);
 		ar_size_lock = new MPIMutex(comm);
@@ -157,6 +165,7 @@ MPI_Comm MPISharedDataManager::get_comm() {
 	return comm;
 };
 
+
 /*** MPIComm implementation ***/
 MPIComm::MPIComm(int &argc, char**& argv) {
     int mpi_status;
@@ -183,6 +192,31 @@ SharedDataManager* MPIComm::new_sharedDataManager(int _src_id, int _dst_id,
 																									MPI_Datatype _datatype) {
 	return new MPISharedDataManager(_src_id, _dst_id, _data_size, _type_size, _datatype);
 }
+
+void MPIComm::send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data) {
+		DPRINT_VAR("MPIComm:", *((int*)data));
+		MPI_Send(data, count, datatype, dst_id, tag, MPI_COMM_WORLD);
+};
+
+void MPIComm::send(int dst_id, int tag, boost::mpi::packed_oarchive& ar) {
+		MPI_Send((void*)(&ar.size()), 1, MPI_INT, dst_id, tag, MPI_COMM_WORLD);
+		MPI_Send(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id, tag+1, MPI_COMM_WORLD);
+};
+
+void MPIComm::recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data) {
+		MPI_Status status;
+		MPI_Recv(data, count, datatype, src_id, tag, MPI_COMM_WORLD, &status);
+		DPRINT_VAR("MPIComm:", *((int*)data));	
+};
+
+void MPIComm::recv(int src_id, int tag, boost::mpi::packed_iarchive& ar) {
+		MPI_Status status;
+		int count;
+		MPI_Recv((void*)&count, 1, MPI_INT, src_id, tag, MPI_COMM_WORLD, &status);
+		ar.resize(count);
+		MPI_Recv(const_cast<void*>(ar.address()), count, MPI_PACKED, src_id, tag+1, 
+						MPI_COMM_WORLD, &status);
+};
 
 int MPIComm::get_procId() {
     int rank;

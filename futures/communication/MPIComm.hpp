@@ -63,6 +63,10 @@ public:
 		SharedDataManager* new_sharedDataManager(int _src_id, int _dst_id, 
 																						unsigned int _data_size, unsigned int _type_size,
 																						MPI_Datatype _datatype);
+		void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data);
+		void send(int dst_id, int tag, boost::mpi::packed_oarchive& ar);
+		void recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data);
+		void recv(int src_id, int tag, boost::mpi::packed_iarchive& ar);
     int get_procId();
 		int size();
 };

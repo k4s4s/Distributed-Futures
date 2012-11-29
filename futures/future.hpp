@@ -6,27 +6,11 @@
 #include <cassert>
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
-#include <array>
-
-//There is an issue if no BOOST_CLASS_EXPORT is present with linking boost::mpi::exception
-class linker_fix {
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /* file_version */) {};
-public:
-	linker_fix() {};
-	~linker_fix() {};
-};
-BOOST_CLASS_EXPORT(linker_fix);
+#include "details.hpp"
+#include "future_fwd.hpp"
+#include "common.hpp"
 
 namespace futures {
-
-template <class T, class DataT>
-class AsyncTask {
-public:
-	virtual ~AsyncTask() {};
-	virtual T operator()(DataT args) = 0; 
-};
 
 template <class T>
 class Future {
@@ -42,176 +26,76 @@ public:
     T get();
 };
 
-template<typename T, typename F, typename ... Args>
-Future<T> *async(int src_id, int dst_id,
-                 unsigned int data_size, unsigned int type_size,
-                 F& f, Args ...args);
+typedef communication::SharedDataManager* TaskHandler;
 
-namespace details {
-
-template<typename TX>
-struct _get_data {
-    TX operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::true_) {
-				TX value;		
-				sharedDataManager->get_data(&value);
-        return value;
-    };
-    TX operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
-				TX value;
-  			boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
-				sharedDataManager->get_data(ia);
-  			// Deserialize the data in the message
-  			ia >> value;		
-        return value;
-    };
+template<typename T>
+TaskHandler init_async_task(int future_owner) {
+	DPRINT_MESSAGE("JOB:initilizing job");
+  Futures_Enviroment *env = Futures_Enviroment::Instance();
+	//get ids, data_size, type_size
+	DPRINT_MESSAGE("JOB:receiving job data");
+	int data_size = env->recv_data<int>(future_owner);
+	int type_size = env->recv_data<int>(future_owner);
+	int id = env->get_procId();
+	//create shared data on both ends, initial comm is over global communicator(?)
+DPRINT_VAR("JOB:", data_size);
+DPRINT_VAR("JOB:", type_size);
+	DPRINT_MESSAGE("JOB:creating shared data");
+	communication::SharedDataManager *sharedData;
+	sharedData = env->new_SharedDataManager(id, future_owner, data_size, type_size,
+																					details::_get_mpi_datatype<T>()(
+																						details::_is_mpi_datatype<T>()));
+	return sharedData;
 };
 
-template<typename TX>
-struct _get_data<TX*> {
-    TX* operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::true_) {
-				TX* value = new TX[sharedDataManager->get_dataSize()];			
-				sharedDataManager->get_data(value);
-        return value;
-    };
-    TX* operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
-				TX* values = new TX[sharedDataManager->get_dataSize()];
-  			boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
-  			sharedDataManager->get_data(ia);
-				// Determine how much data we are going to receive
-				int count;
-				ia >> count;
-				// Deserialize the data in the message
-				boost::serialization::array<TX> arr(values, count);
-				ia >> arr;
-        return values;
-    };
+template<typename T>
+void return_future(T& retVal, TaskHandler taskHandler) {
+	//set future;
+    details::_set_data<T>()(taskHandler, retVal, details::_is_mpi_datatype<T>());
+		int ready_status = 1;
+    taskHandler->set_status(&ready_status);
 };
-
-template<typename TX>
-struct _set_data {
-    void operator()(communication::SharedDataManager* sharedDataManager,
-										TX value, boost::mpl::true_) {
-    	sharedDataManager->set_data(&value);
-    };
-    void operator()(communication::SharedDataManager* sharedDataManager,
-										TX value, boost::mpl::false_) {
-  		boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
-  		oa << value;
-    	sharedDataManager->set_data(oa);
-    };
-};
-
-template<typename TX>
-struct _set_data<TX*> {
-    void operator()(communication::SharedDataManager* sharedDataManager, 
-										TX* value, boost::mpl::true_) {
-    	sharedDataManager->set_data(value);
-    };
-    void operator()(communication::SharedDataManager* sharedDataManager, 
-										TX* values, boost::mpl::false_) {
-			int n = sharedDataManager->get_dataSize();
-  		boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
-  		oa << n << boost::serialization::make_array(values, n);	
-    	sharedDataManager->set_data(oa);
-    };
-};
-
-template<typename TX>
-struct _sizeof {
-	int operator()(boost::mpl::true_) {
-		return sizeof(TX);
-	};
-	int operator()(boost::mpl::false_) {
-		return sizeof(TX);
-	};
-};
-
-template<typename TX>
-struct _sizeof<TX*> {
-	int operator()(boost::mpl::true_) {
-		return sizeof(TX);
-	};
-	int operator()(boost::mpl::false_) {
-		return sizeof(boost::serialization::array<TX>);
-	};
-};
-
-template<typename TX>
-struct _get_mpi_datatype {
-	MPI_Datatype operator()(boost::mpl::true_) {
-		return boost::mpi::get_mpi_datatype<TX>(TX());
-	};
-	MPI_Datatype operator()(boost::mpl::false_) {
-		return MPI_DATATYPE_NULL;
-	};
-};
-
-template<typename TX>
-struct	_get_mpi_datatype<TX*> {
-	MPI_Datatype operator()(boost::mpl::true_) {
-		return boost::mpi::get_mpi_datatype<TX>(TX());
-	};
-	MPI_Datatype operator()(boost::mpl::false_) {
-		return MPI_DATATYPE_NULL;
-	};
-};
-
-template<typename TX>
-struct _is_mpi_datatype
- : public boost::mpi::is_mpi_datatype<TX>
-{};
-
-template<typename TX>
-struct _is_mpi_datatype<TX*>
- : public boost::mpi::is_mpi_datatype<TX>
-{};
-
-}//end of namespace details
 
 /** Implementation of async function **/
-template<typename T, typename F, typename ... Args>
-Future<T> *async_impl(int src_id, int dst_id,
-                 			unsigned int data_size, unsigned int type_size,
-                 			F& f, Args ...args) {
+template<typename T>
+Future<T> *async_impl(unsigned int data_size, AsyncTask& f) {
+		DPRINT_MESSAGE("ASYNC:call to async");
     Futures_Enviroment *env = Futures_Enviroment::Instance();
+		int type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
     int id = env->get_procId();
-		if(id == src_id || id == dst_id) {
-			communication::SharedDataManager *sharedData;
-			sharedData = env->new_SharedDataManager(src_id, dst_id, data_size, type_size,
-																							details::_get_mpi_datatype<T>()(
-																								details::_is_mpi_datatype<T>()));
-			if(id == dst_id) {
-				Future<T> *future = new Future<T>(src_id, dst_id, sharedData);
-				return future;
-			}
-			else if(id == src_id) {
-        T retval = f(args...);
-        details::_set_data<T>()(sharedData, retval, details::_is_mpi_datatype<T>());
-				int ready_status = 1;
-        sharedData->set_status(&ready_status);
-				delete sharedData;
-			}
-		}
-    //Master and the rest should skip here directly
-    return NULL;//the rest procs should move on... //FIXME: may return NULL if proc_rank != future_rank
+		//get worker id and wake him
+		DPRINT_MESSAGE("ASYNC:issuing job");
+		int worker_id = env->get_avaibleWorker(&f); //this call also wakes worker
+		//send function object, worker runs it, get to init phase
+		//env->send_job(worker_id, f);
+		//send ids, data_size, type_size
+		//env->send_job_data(worker_id, id);
+		DPRINT_MESSAGE("ASYNC:sending job data");
+		DPRINT_VAR("ASYNC:", data_size);
+		DPRINT_VAR("ASYNC:", type_size);
+		env->send_data(worker_id, data_size);
+		env->send_data(worker_id, type_size);
+		//create shared data on both ends, initial comm is over global communicator(?)
+		DPRINT_MESSAGE("ASYNC:creating shared data");
+		communication::SharedDataManager *sharedData;
+		sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
+																						details::_get_mpi_datatype<T>()(
+																							details::_is_mpi_datatype<T>()));
+		//return future
+		DPRINT_MESSAGE("ASYNC:returning future");
+		Future<T> *future = new Future<T>(worker_id, id, sharedData);
+		return future;
 };
 
-template<typename T, typename F, typename ... Args>
-Future<T> *async(unsigned int data_size, F& f, Args ...args) {
-	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	int type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
-	int src_id = env->get_avaibleWorker();
-	return async_impl<T>(1, 0, data_size, type_size, f, args...);
-}
+template<typename T>
+Future<T> *async(AsyncTask& f) {
+	return async_impl<T>(1, f);
+};
 
-template<typename T, typename F, typename ... Args>
-Future<T> *async(F& f, Args ...args) {
-	//FIXME: assert if T is pointer
-	Futures_Enviroment *env = Futures_Enviroment::Instance();
-	int type_size = details::_sizeof<T>()(details::_is_mpi_datatype<T>());
-	int dst_id = env->get_avaibleWorker();
-	return async_impl<T>(1, 0, 1, type_size, f, args...);
-}
+template<typename T>
+Future<T> *async(unsigned int data_size, AsyncTask& f) {
+	return async_impl<T>(data_size, f);
+};
 
 template <class T> Future<T>::Future(int _src_id, int _dst_id, 
 																		communication::SharedDataManager *_sharedData) {

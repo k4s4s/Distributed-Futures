@@ -1,11 +1,5 @@
 
-#include "futures_enviroment.hpp"
-#include "future.hpp"
-#include "promise.hpp"
-
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/mpi.hpp>
+#include "futures.hpp"
 #include <iostream>
 
 #include <mpi.h>

@@ -4,6 +4,12 @@
 #include "communication/MPIComm.hpp"
 //#include "communication/ARMCIComm.hpp"
 //#include "communication/MPIAsyncComm.hpp"
+#include "details.hpp"
+#include "boost/mpi.hpp"
+#include <iostream>
+#include "common.hpp"
+
+#define NEW_TASK 2001
 
 using namespace futures;
 /*** Future_Enviroment impelementation ***/
@@ -14,6 +20,16 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
 																									const std::string& schedulerName) {
     if (!pinstance) {
         pinstance = new Futures_Enviroment(argc, argv, commInterfaceName, schedulerName);
+				int id = pinstance->get_procId();
+				if(id != 0) {
+					DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
+					DPRINT_VAR("ENVIROMENT:", id);
+					pinstance->wait_for_job();
+					DPRINT_MESSAGE("ENVIROMENT:worker deletes enviroment");
+					delete pinstance;
+					DPRINT_MESSAGE("ENVIROMENT:worker exits program");
+					exit(1);
+				}
 		}
     return pinstance; // address of sole instance
 };
@@ -21,6 +37,16 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
 Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv) {
     if (!pinstance) {
         pinstance = new Futures_Enviroment(argc, argv); // create sole instance
+				int id = pinstance->get_procId();
+				if(id != 0) {
+					DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
+					DPRINT_VAR("ENVIROMENT:", id);
+					pinstance->wait_for_job();
+					DPRINT_MESSAGE("ENVIROMENT:worker deletes enviroment");
+					delete pinstance;
+					DPRINT_MESSAGE("ENVIROMENT:worker exits program");
+					exit(1);
+				}
     }
     return pinstance; // address of sole instance
 };
@@ -73,7 +99,38 @@ int Futures_Enviroment::get_procId() {
     return commInterface->get_procId();
 };
 
-int Futures_Enviroment::get_avaibleWorker() {
-		return sched->nextAvaibleWorkerId();
+int Futures_Enviroment::get_avaibleWorker(AsyncTask* job) {
+		int worker_id = sched->nextAvaibleWorkerId();
+		DPRINT_VAR("ENVIROMENT:", worker_id);
+		this->send_data(worker_id, this->get_procId());
+		this->send_job(worker_id, job);
+		return worker_id;
+};
+
+void Futures_Enviroment::send_job(int dst_id, AsyncTask* job) {
+		boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
+		TaskWrapper tw(job);
+		oa << tw;
+  	commInterface->send(dst_id, NEW_TASK, oa);
+};
+		
+AsyncTask *Futures_Enviroment::recv_job(int src_id) {
+  	boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
+		commInterface->recv(src_id, NEW_TASK, ia);
+		TaskWrapper tw;
+		ia >> tw;		
+    return tw.get_task();
+}
+
+void Futures_Enviroment::wait_for_job() {
+	while(1) {
+		DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
+		int master_id = this->recv_data<int>(MPI_ANY_SOURCE);
+		DPRINT_MESSAGE("ENVIROMENT:worker got some work");		
+		DPRINT_VAR("ENVIROMENT:", master_id);
+		AsyncTask *job = this->recv_job(master_id);	
+		DPRINT_MESSAGE("ENVIROMENT:worker runs job");
+		job->operator()(master_id);		
+	}
 };
 

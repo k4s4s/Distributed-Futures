@@ -8,11 +8,15 @@
 #include "communication/commManager.hpp"
 #include "scheduler/scheduler.hpp"
 #include "scheduler/schedManager.hpp"
+#include "future_fwd.hpp"
+#include "details.hpp"
+#include "mpi.h"
+#include "common.hpp"
+
+#define TASK_DATA 2003
 
 namespace futures {
 
-/*TODO: perhaps we could have the enviroment maintain another window, that will be used to contain futures, promises,
-				 thus using RMA puts/gets to emulate shared memory model more closely. An issue here can be serialization */
 class Futures_Enviroment { //singleton class
 private:
     static Futures_Enviroment* pinstance;
@@ -37,7 +41,31 @@ public:
 																														int _data_size, int _type_size,
 																														MPI_Datatype datatype);
     int get_procId();
-		int get_avaibleWorker();
+		int get_avaibleWorker(AsyncTask *job);
+		void send_job(int dst_id, AsyncTask *job);
+		AsyncTask *recv_job(int src_id);
+		template<typename T>
+		void send_data(int dst_id, T data);
+		template<typename T>
+		T recv_data(int src_id);
+		void wait_for_job();
+};
+
+template<typename T>
+void Futures_Enviroment::send_data(int dst_id, T data) {
+		DPRINT_MESSAGE("ENVIROMENT:sending data");
+		DPRINT_VAR("ENVIROMENT:", data);
+		details::_send_data<T>()(commInterface, dst_id, TASK_DATA, 
+														data, details::_is_mpi_datatype<T>());
+};
+
+template<typename T>
+T Futures_Enviroment::recv_data(int src_id) {
+		return details::_recv_data<T>()(commInterface, src_id, TASK_DATA, 
+																	details::_is_mpi_datatype<T>());  
+		//DPRINT_MESSAGE("ENVIROMENT:receiving data");
+		//DPRINT_VAR("ENVIROMENT:", data);
+		//return data;
 };
 
 }//end of futures namespace
