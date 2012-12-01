@@ -119,7 +119,6 @@ struct _recv_data {
 									boost::mpl::true_) {
 			TX data;
     	commInterface->recv(src_id, tag, 1, boost::mpi::get_mpi_datatype<TX>(TX()), &data);
-			DPRINT_VAR("DETAILS:", data);
 			return data;
     };
     TX operator()(communication::CommInterface* commInterface, int src_id, int tag,

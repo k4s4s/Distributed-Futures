@@ -1,5 +1,6 @@
 * Find a way to delete array of objects...if you simply delete allocated data it causes an error in glibc
+	- preferably the interface should not work with pointers, but with objects, in any case
+		since we have support now, just leave it as is
 * Add exceptions
-* Exiting of master thread should signal all workers to exit, but only until they have no more jobs to do
-* Implement avaiability scheduler
-* Maybe use one-sided comm interface to send tasks(problem with communicator)
+* Implement a much more sophisticated scheduler
+* FIXME: probably need to translate src and dst id to new comm for sharedData

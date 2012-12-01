@@ -10,6 +10,7 @@
 #include "common.hpp"
 
 #define NEW_TASK 2001
+#define EXIT -1
 
 using namespace futures;
 /*** Future_Enviroment impelementation ***/
@@ -22,12 +23,8 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
         pinstance = new Futures_Enviroment(argc, argv, commInterfaceName, schedulerName);
 				int id = pinstance->get_procId();
 				if(id != 0) {
-					DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
-					DPRINT_VAR("ENVIROMENT:", id);
 					pinstance->wait_for_job();
-					DPRINT_MESSAGE("ENVIROMENT:worker deletes enviroment");
 					delete pinstance;
-					DPRINT_MESSAGE("ENVIROMENT:worker exits program");
 					exit(1);
 				}
 		}
@@ -39,12 +36,8 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv) {
         pinstance = new Futures_Enviroment(argc, argv); // create sole instance
 				int id = pinstance->get_procId();
 				if(id != 0) {
-					DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
-					DPRINT_VAR("ENVIROMENT:", id);
 					pinstance->wait_for_job();
-					DPRINT_MESSAGE("ENVIROMENT:worker deletes enviroment");
 					delete pinstance;
-					DPRINT_MESSAGE("ENVIROMENT:worker exits program");
 					exit(1);
 				}
     }
@@ -82,6 +75,18 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
 };
 
 Futures_Enviroment::~Futures_Enviroment() {
+		if(commInterface->get_procId() == 0) { /*maybe not necessary, 
+																	terminate would also return 
+																	correct value for workers
+																	in order to terminate*/ 
+			while(sched->terminate()) {
+				sched->set_status(scheduler::ProcStatus::TERMINATED);
+				for(int i=1; i < commInterface->size(); i++)
+					this->send_data(i, EXIT);
+			}
+			DPRINT_MESSAGE("ENVIROMENT: master exiting program");
+		}
+		delete sched;
     delete commInterface;
 		delete commManager;
     pinstance = NULL;
@@ -101,7 +106,6 @@ int Futures_Enviroment::get_procId() {
 
 int Futures_Enviroment::get_avaibleWorker(AsyncTask* job) {
 		int worker_id = sched->nextAvaibleWorkerId();
-		DPRINT_VAR("ENVIROMENT:", worker_id);
 		this->send_data(worker_id, this->get_procId());
 		this->send_job(worker_id, job);
 		return worker_id;
@@ -115,22 +119,25 @@ void Futures_Enviroment::send_job(int dst_id, AsyncTask* job) {
 };
 		
 AsyncTask *Futures_Enviroment::recv_job(int src_id) {
+		sched->set_status(scheduler::ProcStatus::RUNNING);
   	boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
 		commInterface->recv(src_id, NEW_TASK, ia);
 		TaskWrapper tw;
-		ia >> tw;		
+		ia >> tw;
     return tw.get_task();
-}
+};
 
 void Futures_Enviroment::wait_for_job() {
-	while(1) {
-		DPRINT_MESSAGE("ENVIROMENT:worker waits for job");
+	while(sched->terminate()) {
+		DPRINT_MESSAGE("ENVIROMENT: worker waiting for job");
 		int master_id = this->recv_data<int>(MPI_ANY_SOURCE);
-		DPRINT_MESSAGE("ENVIROMENT:worker got some work");		
-		DPRINT_VAR("ENVIROMENT:", master_id);
+		if(master_id == EXIT) break;
 		AsyncTask *job = this->recv_job(master_id);	
-		DPRINT_MESSAGE("ENVIROMENT:worker runs job");
-		job->operator()(master_id);		
+		job->operator()(master_id);
+		DPRINT_MESSAGE("ENVIROMENT: worker setting status to idle");
+		sched->set_status(scheduler::ProcStatus::IDLE);		
 	}
+	DPRINT_MESSAGE("ENVIROMENT: worker exiting program");
+	sched->set_status(scheduler::ProcStatus::TERMINATED);
 };
 

@@ -5,23 +5,10 @@
 #include <mpi.h>
 #include "communication.hpp"
 #include "MPIMutex.hpp"
+#include "mpi_details.hpp"
 
 namespace futures {
 namespace communication {
-
-namespace details {
-//TODO:implement actual mutexes
-static void lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
-                       int target_rank, MPI_Aint target_disp, int target_count,
-                       MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex);
-
-static void lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
-                          int target_rank, MPI_Aint target_disp, int target_count,
-                          MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex);
-
-static void group_create_comm(MPI_Group group, MPI_Comm comm, MPI_Comm *comm_new, int tag);
-
-}//end of details namespace
 
 class MPISharedDataManager : public SharedDataManager {
 private:

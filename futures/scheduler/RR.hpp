@@ -3,6 +3,7 @@
 
 #include "scheduler.hpp"
 #include "../communication/communication.hpp"
+#include <map>
 
 namespace futures {
 namespace scheduler {
@@ -13,11 +14,14 @@ private:
 	unsigned int total_workers;
 	unsigned int curr_worker_id;
 	communication::CommInterface* comm;
+	Process *proc;
 public:
 	RRScheduler(communication::CommInterface* commInterface);
 	~RRScheduler();
 	static Scheduler* create(communication::CommInterface *commInterface);
 	int nextAvaibleWorkerId();
+	void set_status(ProcStatus status);
+	bool terminate();
 };
 
 }

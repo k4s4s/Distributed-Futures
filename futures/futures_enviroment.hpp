@@ -53,8 +53,6 @@ public:
 
 template<typename T>
 void Futures_Enviroment::send_data(int dst_id, T data) {
-		DPRINT_MESSAGE("ENVIROMENT:sending data");
-		DPRINT_VAR("ENVIROMENT:", data);
 		details::_send_data<T>()(commInterface, dst_id, TASK_DATA, 
 														data, details::_is_mpi_datatype<T>());
 };
@@ -62,10 +60,7 @@ void Futures_Enviroment::send_data(int dst_id, T data) {
 template<typename T>
 T Futures_Enviroment::recv_data(int src_id) {
 		return details::_recv_data<T>()(commInterface, src_id, TASK_DATA, 
-																	details::_is_mpi_datatype<T>());  
-		//DPRINT_MESSAGE("ENVIROMENT:receiving data");
-		//DPRINT_VAR("ENVIROMENT:", data);
-		//return data;
+																	details::_is_mpi_datatype<T>());
 };
 
 }//end of futures namespace

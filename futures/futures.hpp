@@ -10,6 +10,9 @@
 #include "future.hpp"
 #include "promise.hpp"
 
+//stupid fix...
+//if serialization is not used by user program, compiler
+//does not link some boost::serialization and mpl routines needed
 class fix {
 private:
   friend class boost::serialization::access;

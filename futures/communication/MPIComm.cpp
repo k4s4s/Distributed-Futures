@@ -5,77 +5,13 @@
 #include <boost/mpi.hpp>
 #include <iostream>
 #include "../common.hpp"
+#include "mpi_details.hpp"
 
 #define GROUP_COMM_CREATE_TAG 1001
 #define NEW_JOB	2001
 
 using namespace futures;
 using namespace futures::communication;
-//MPI_Win_Lock do not define a critical region, merely an epoch, thus we need mutexes to lock concurrent accesses
-static void futures::communication::details::lock_and_get(void *origin_addr, 
-												int origin_count, MPI_Datatype origin_datatype,
-                       	int target_rank, MPI_Aint target_disp, int target_count,
-                       	MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-		mutex->lock(target_rank);
-		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
-    MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
-            target_datatype, win);
-    MPI_Win_unlock(target_rank, win);
-		mutex->unlock(target_rank);
-};
-
-static void futures::communication::details::lock_and_put(void *origin_addr, 
-													int origin_count, MPI_Datatype origin_datatype,
-                          int target_rank, MPI_Aint target_disp, int target_count,
-                          MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-		mutex->lock(target_rank);
-		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
-    MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
-            target_datatype, win);
-    MPI_Win_unlock(target_rank, win);
-		mutex->unlock(target_rank);
-};
-
-static void futures::communication::details::group_create_comm(MPI_Group group, 
-																		MPI_Comm comm, MPI_Comm *comm_new, int tag) {	
-	//REQUIRE: group is ordered by desired rank in comm and is identical on all callers
-	int rank, grp_rank, grp_size;
-	MPI_Group new_group;
-	MPI_Comm_rank(comm, &rank);
-	MPI_Group_rank(group, &grp_rank);
-	MPI_Group_size(group, &grp_size);
-	MPI_Comm_dup(MPI_COMM_SELF, comm_new);
-	int *grp_pids = new int[grp_size];
-	int *pids = new int[grp_size];
-	for(int i=0; i < grp_size; i++) {
-		grp_pids[i] = i;
-	}
-	MPI_Group parent_grp; 
-	MPI_Comm_group(comm, &parent_grp);
-	MPI_Group_translate_ranks(group, grp_size, grp_pids, parent_grp, pids);
-	MPI_Group_free(&parent_grp);
-
-	for(int merge_sz=1; merge_sz < grp_size; merge_sz = merge_sz*2) {
-		int gid = grp_rank/merge_sz;
-		MPI_Comm ic, comm_old = *comm_new; //FIXME: not sure if this is ok, I think openmpi has a pointer underneath
-		if(gid%2 == 0) {
-			if((gid+1)*merge_sz < grp_size) {
-				MPI_Intercomm_create(*comm_new, 0, comm, pids[(gid+1)*merge_sz], tag, &ic);
-				MPI_Intercomm_merge(ic, 0, comm_new);
-			}
-		}
-		else {
-			MPI_Intercomm_create(*comm_new , 0, comm, pids[(gid-1)*merge_sz], tag, &ic);
-			MPI_Intercomm_merge(ic, 1, comm_new);
-		}
-		if(*comm_new != comm_old) {
-			MPI_Comm_free(&ic);
-			MPI_Comm_free(&comm_old);
-		}
-	}
-	//delete pids;
-	//delete grp_pids;
-}
 
 /*** MPISharedDataManager impelementation ***/
 MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id, 
@@ -90,21 +26,15 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 		MPI_Group newgroup, worldgroup;
 		MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
 		MPI_Group_incl(worldgroup, 2, pids,	&newgroup);
-		DPRINT_MESSAGE("MPIComm:creating new group"); 
 		details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
     data_size = _data_size;
     type_size = _type_size;
 		datatype = _datatype;
     MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
-		DPRINT_MESSAGE("MPIComm:creating data window"); 
-		DPRINT_VAR("MPIComm:", data_size);
-		DPRINT_VAR("MPIComm:", type_size);
     MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
 		ar_size = 0;
-		DPRINT_MESSAGE("MPIComm:creating ar window");
 		MPI_Win_create(&ar_size, 1, sizeof(int), MPI_INFO_NULL, comm, &ar_size_win);
     status = 0;
-		DPRINT_MESSAGE("MPIComm:creating status window");
     MPI_Win_create(&status, 1, sizeof(int), MPI_INFO_NULL, comm, &status_win);
 		data_lock = new MPIMutex(comm);
 		ar_size_lock = new MPIMutex(comm);
@@ -116,7 +46,7 @@ MPISharedDataManager::~MPISharedDataManager() {
     MPI_Free_mem(data);
 		MPI_Win_free(&ar_size_win);
     MPI_Win_free(&status_win);
-		MPI_Comm_free(&comm);
+		MPI_Comm_free(&comm);	
 		delete data_lock;
 		delete ar_size_lock;
 		delete status_lock;
@@ -194,7 +124,6 @@ SharedDataManager* MPIComm::new_sharedDataManager(int _src_id, int _dst_id,
 }
 
 void MPIComm::send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data) {
-		DPRINT_VAR("MPIComm:", *((int*)data));
 		MPI_Send(data, count, datatype, dst_id, tag, MPI_COMM_WORLD);
 };
 
@@ -206,7 +135,6 @@ void MPIComm::send(int dst_id, int tag, boost::mpi::packed_oarchive& ar) {
 void MPIComm::recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data) {
 		MPI_Status status;
 		MPI_Recv(data, count, datatype, src_id, tag, MPI_COMM_WORLD, &status);
-		DPRINT_VAR("MPIComm:", *((int*)data));	
 };
 
 void MPIComm::recv(int src_id, int tag, boost::mpi::packed_iarchive& ar) {

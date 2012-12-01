@@ -42,8 +42,7 @@ int main(int argc, char* argv[]) {
 	if(id == MASTER) {
 		cout << "- Master :Hello " << message->get() << endl;
 	}
-
 	delete message;
 	delete env;
-}
+};
 

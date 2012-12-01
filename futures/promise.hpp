@@ -6,6 +6,7 @@
 #include <cassert>
 #include "futures_enviroment.hpp"
 #include "communication/communication.hpp"
+#include "communication/mpi_details.hpp"
 #include "future.hpp"
 
 namespace futures {
