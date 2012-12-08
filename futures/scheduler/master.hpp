@@ -10,17 +10,17 @@ namespace scheduler {
 
 class Master : public Process {
 private:
-	MPI_Comm comm;
-	MPI_Win	status_win;
-	MPIMutex *status_lock;
-	ProcStatus *status_vector;
-	int id;
-	int nprocs;
+    MPI_Comm comm;
+    MPI_Win	status_win;
+    MPIMutex *status_lock;
+    ProcStatus *status_vector;
+    int id;
+    int nprocs;
 public:
-	Master();
-	~Master();
-	void set_status(ProcStatus status);
-	bool terminate();
+    Master();
+    ~Master();
+    void set_status(ProcStatus status);
+    bool terminate();
 };
 
 }

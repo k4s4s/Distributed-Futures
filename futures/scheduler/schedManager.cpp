@@ -11,28 +11,28 @@ SchedManager* SchedManager::pinstance;
 SchedManager::SchedManager() {};
 
 SchedManager::~SchedManager() {
-	schedulerMap.clear();
+    schedulerMap.clear();
 };
 
 SchedManager* SchedManager::Instance() {
-	if(pinstance == NULL) {
-		pinstance = new SchedManager();
-	}
-	return pinstance;
+    if(pinstance == NULL) {
+        pinstance = new SchedManager();
+    }
+    return pinstance;
 };
 
-void SchedManager::registerScheduler(const std::string &schedulerName, 
-																				schedulerFn pfnCreate) {
-	schedulerMap[schedulerName] = pfnCreate;
+void SchedManager::registerScheduler(const std::string &schedulerName,
+                                     schedulerFn pfnCreate) {
+    schedulerMap[schedulerName] = pfnCreate;
 };
-   	
-Scheduler* SchedManager::createScheduler(const std::string &schedulerName, 
-																						CommInterface *commInterface) { 
-	std::map<std::string, schedulerFn>::iterator fnIt;
-	fnIt = schedulerMap.find(schedulerName);
-	if (fnIt != schedulerMap.end())
-		return fnIt->second(commInterface);
-	else
-		return NULL; //TODO: throw an exception
+
+Scheduler* SchedManager::createScheduler(const std::string &schedulerName,
+        CommInterface *commInterface) {
+    std::map<std::string, schedulerFn>::iterator fnIt;
+    fnIt = schedulerMap.find(schedulerName);
+    if (fnIt != schedulerMap.end())
+        return fnIt->second(commInterface);
+    else
+        return NULL; //TODO: throw an exception
 };
 

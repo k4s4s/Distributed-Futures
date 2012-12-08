@@ -15,14 +15,14 @@ class CommManager {
 private:
     CommManager();
     std::map<std::string, commInterfaceFn> commInterfaceMap;
-		static CommManager *pinstance;
+    static CommManager *pinstance;
 public:
     ~CommManager();
     static CommManager* Instance();
-    void registerCommInterface(const std::string &commInterfaceName, 
-															commInterfaceFn pfnCreate);
-   	CommInterface *createCommInterface(const std::string &commInterfaceName, 
-																			int &argc, char**& argv);
+    void registerCommInterface(const std::string &commInterfaceName,
+                               commInterfaceFn pfnCreate);
+    CommInterface *createCommInterface(const std::string &commInterfaceName,
+                                       int &argc, char**& argv);
 };
 
 }//end of communication namespace

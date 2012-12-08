@@ -10,17 +10,20 @@
 #include "future.hpp"
 #include "promise.hpp"
 
+#define FUTURES_EXPORT_FUNCTOR(F) BOOST_CLASS_EXPORT(_async_stub<F>)
+#define FUTURES_EXPORT_FUNCTION(F) BOOST_CLASS_EXPORT(_async_stub<F>)
+
 //stupid fix...
 //if serialization is not used by user program, compiler
 //does not link some boost::serialization and mpl routines needed
 class fix {
 private:
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /* file_version */) {};
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int /* file_version */) {};
 public:
-	fix() {};
-	~fix() {};
+    fix() {};
+    ~fix() {};
 };
 
 BOOST_CLASS_EXPORT(fix);

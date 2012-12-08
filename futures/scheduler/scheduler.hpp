@@ -11,10 +11,10 @@ namespace scheduler {
 
 class Scheduler {
 public:
-	virtual ~Scheduler() {};
-	virtual int nextAvaibleWorkerId() = 0;
-	virtual void set_status(ProcStatus status) = 0;
-	virtual bool terminate() = 0;
+    virtual ~Scheduler() {};
+    virtual int nextAvaibleWorkerId() = 0;
+    virtual void set_status(ProcStatus status) = 0;
+    virtual bool terminate() = 0;
 };
 
 }

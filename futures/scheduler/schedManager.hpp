@@ -16,13 +16,13 @@ class SchedManager {
 private:
     SchedManager();
     std::map<std::string, schedulerFn> schedulerMap;
-		static SchedManager *pinstance;
+    static SchedManager *pinstance;
 public:
     ~SchedManager();
     static SchedManager* Instance();
     void registerScheduler(const std::string &schedulerName, schedulerFn pfnCreate);
-   	Scheduler *createScheduler(const std::string &schedulerName, 
-															communication::CommInterface* commInterface);
+    Scheduler *createScheduler(const std::string &schedulerName,
+                               communication::CommInterface* commInterface);
 };
 
 }//end of communication namespace
