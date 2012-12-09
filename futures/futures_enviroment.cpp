@@ -105,10 +105,8 @@ int Futures_Enviroment::get_procId() {
     return commInterface->get_procId();
 };
 
-int Futures_Enviroment::get_avaibleWorker(_stub *job) {
+int Futures_Enviroment::get_avaibleWorker() {
     int worker_id = sched->nextAvaibleWorkerId();
-    this->send_data(worker_id, this->get_procId());
-    this->send_job(worker_id, job);
     return worker_id;
 };
 

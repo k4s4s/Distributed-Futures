@@ -8,3 +8,5 @@
 	need another mechanism to delete data without anyone blocking
 * ISSUE: cannot use function pointers, since they cannot be serialized.  Maybe we could
 	serialize an id or something and then reconstruct it on worker end.
+* Fine tune locks on scheduler
+* Share scheduler variables

@@ -41,7 +41,7 @@ public:
             int _data_size, int _type_size,
             MPI_Datatype datatype);
     int get_procId();
-    int get_avaibleWorker(_stub *job);
+    int get_avaibleWorker();
     void send_job(int dst_id, _stub *job);
     _stub *recv_job(int src_id);
     template<typename T>

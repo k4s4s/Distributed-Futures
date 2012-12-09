@@ -29,6 +29,19 @@ void Master::set_status(ProcStatus status) {
                                          MPI_INT, status_win, status_lock);
 };
 
+int Master::getId() {
+	return id;
+};
+
+ProcStatus Master::get_status(int _id) {
+		ProcStatus status;
+		DPRINT_VAR("Master::Trying to status of ", _id);
+    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, id, 1,
+                                         MPI_INT, status_win, status_lock);		
+	  DPRINT_VAR("Master:", status);
+		return status;
+};
+
 bool Master::terminate() {
     ProcStatus worker_status;
     for(int i=1; i < nprocs; i++) {

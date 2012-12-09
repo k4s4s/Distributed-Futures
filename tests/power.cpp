@@ -79,11 +79,17 @@ public:
     }
     else if (n>0)	{
 			power_rec f = power_rec();
-    	return(a*f(a,n-1));
+			Future<int> *p = async(f, a, n-1);
+			int retval = a*p->get();
+			delete p; 
+    	return retval;
     }
     else	{
 			power_rec f = power_rec();
-      return ((1/a)*f(a,n+1));
+			Future<int> *p = async(f, a, n+1);
+			int retval = (1/a)*p->get();
+			delete p;
+      return retval;
     }
 	};
 

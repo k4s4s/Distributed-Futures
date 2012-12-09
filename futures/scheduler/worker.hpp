@@ -17,7 +17,9 @@ private:
 public:
     Worker();
     ~Worker();
+		int getId();
     void set_status(ProcStatus status);
+		ProcStatus get_status(int _id);
     bool terminate();
 };
 

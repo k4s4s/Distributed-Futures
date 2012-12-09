@@ -24,6 +24,7 @@ private:
 public:
     Future(int _src_id, int _dst_id,
            communication::SharedDataManager *_sharedData);
+		Future(int _src_id, int _dst_id, T _data);
     ~Future();
     bool is_ready();
     T get();
@@ -59,21 +60,30 @@ Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_
     //get worker id and wake him
     DPRINT_MESSAGE("ASYNC:issuing job");
     _stub *job = new _async_stub<F, Args...>(f, args...);
-    int worker_id = env->get_avaibleWorker(job); //this call also wakes worker
-    delete job;
-    //send function object, worker runs it, get to init phase
-    env->send_data(worker_id, data_size);
-    env->send_data(worker_id, type_size);
+		Future<typename std::result_of<F(Args...)>::type> *future;
+    int worker_id = env->get_avaibleWorker(); //this call also wakes worker
+		if(worker_id == id) {
+		  DPRINT_MESSAGE("ASYNC:running on self");
+			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
+			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+		}
+		else {
+			env->send_data(worker_id, env->get_procId());
+		  env->send_job(worker_id, job);			
+		  delete job;
+		  //send function object, worker runs it, get to init phase
+		  env->send_data(worker_id, data_size);
+		  env->send_data(worker_id, type_size);
+		  DPRINT_MESSAGE("ASYNC:creating shared data");
+			communication::SharedDataManager *sharedData;
+		  sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
+		                                          details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
+		                                                  details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
+			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
+		}
     //create shared data on both ends, initial comm is over global communicator(?)
-    DPRINT_MESSAGE("ASYNC:creating shared data");
-    communication::SharedDataManager *sharedData;
-    sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
-                                            details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
-                                                    details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
     //return future
     DPRINT_MESSAGE("ASYNC:returning future");
-    Future<typename std::result_of<F(Args...)>::type> *future =
-        new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
     return future;
 };
 
@@ -94,6 +104,14 @@ template <class T> Future<T>::Future(int _src_id, int _dst_id,
     src_id = _src_id;
     dst_id = _dst_id;
     sharedData = _sharedData;
+};
+
+template <class T> Future<T>::Future(int _src_id, int _dst_id,
+                                     T _data) {
+    ready_status = 1;
+    src_id = _src_id;
+    dst_id = _dst_id;
+    data = _data;
 };
 
 template <class T> Future<T>::~Future() {

@@ -6,6 +6,7 @@
 #include <iostream>
 #include "../common.hpp"
 #include "mpi_details.hpp"
+#include <cassert>
 
 #define GROUP_COMM_CREATE_TAG 1001
 #define NEW_JOB	2001
@@ -17,29 +18,35 @@ using namespace futures::communication;
 MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
         unsigned int _data_size, unsigned int _type_size,
         MPI_Datatype _datatype) {
-    int pids[2];
-    src_id = _src_id;
-    dst_id = _dst_id;
-    //need to assign them in ordered fashion
-    pids[0] = (src_id>dst_id)?src_id:dst_id;
-    pids[1] = (src_id<dst_id)?src_id:dst_id;
-    MPI_Group newgroup, worldgroup;
-    MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
-    MPI_Group_incl(worldgroup, 2, pids,	&newgroup);
-    details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
-    data_size = _data_size;
-    type_size = _type_size;
-    datatype = _datatype;
-    MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
-    MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
-    ar_size = 0;
-    MPI_Win_create(&ar_size, 1, sizeof(int), MPI_INFO_NULL, comm, &ar_size_win);
-    status = 0;
-    MPI_Win_create(&status, 1, sizeof(int), MPI_INFO_NULL, comm, &status_win);
-    data_lock = new MPIMutex(comm);
-    ar_size_lock = new MPIMutex(comm);
-    status_lock = new MPIMutex(comm);
-}
+		assert(_src_id != _dst_id);
+	  int pids[2];
+	  src_id = _src_id;
+	  dst_id = _dst_id;
+		MPI_Group newgroup, worldgroup;
+		MPI_Comm_group(MPI_COMM_WORLD, &worldgroup);
+	  //need to assign them in ordered fashion
+	  pids[0] = (src_id>dst_id)?src_id:dst_id;
+	  pids[1] = (src_id<dst_id)?src_id:dst_id;
+	  MPI_Group_incl(worldgroup, 2, pids,	&newgroup);
+	  details::group_create_comm(newgroup, MPI_COMM_WORLD, &comm, GROUP_COMM_CREATE_TAG);
+		//get correct proc ids from new group
+		src_id = (_src_id>_dst_id)?1:0;
+		dst_id = (_src_id<_dst_id)?1:0;
+
+	  data_size = _data_size;
+	  type_size = _type_size;
+	  datatype = _datatype;
+	  MPI_Alloc_mem(type_size*data_size, MPI_INFO_NULL, &data);
+	  MPI_Win_create(data, data_size, type_size, MPI_INFO_NULL, comm, &data_win);
+	  ar_size = 0;
+	  MPI_Win_create(&ar_size, 1, sizeof(int), MPI_INFO_NULL, comm, &ar_size_win);
+	  status = 0;
+	  MPI_Win_create(&status, 1, sizeof(int), MPI_INFO_NULL, comm, &status_win);
+	  data_lock = new MPIMutex(comm);
+	  ar_size_lock = new MPIMutex(comm);
+	  status_lock = new MPIMutex(comm);
+		DPRINT_MESSAGE("MPIComm:SharedData Created");
+};
 
 MPISharedDataManager::~MPISharedDataManager() {
     MPI_Win_free(&data_win);
