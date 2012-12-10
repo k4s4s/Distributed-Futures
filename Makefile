@@ -48,11 +48,14 @@ $(FUTURES_LIB): $(FUTURES_OBJECTS)
 
 futures_lib: $(LIB_DIR) $(FUTURES_LIB)
 
-.cpp.out: $(TESTS_OBJECTS)
+.cpp.out: $(TESTS_OBJECTS) $(FUTURES_LIB)
 	$(CC) $(INCLUDES) $(CCFLAGS) -o $@ $< $(LDFLAGS)
 
-tests: $(TESTS_TARGETS) $(FUTURES_LIB)
+tests: $(TESTS_TARGETS)
 
 clean:
 	rm -rf $(LIB_DIR) $(MUTEX_OBJECTS) $(FUTURES_OBJECTS) $(TESTS_OBJECTS) $(TESTS_TARGETS)
+
+clean_out:
+	rm -rf $(TESTS_OBJECTS) $(TESTS_TARGETS)
 

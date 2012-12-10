@@ -35,21 +35,20 @@ int Master::getId() {
 
 ProcStatus Master::get_status(int _id) {
 		ProcStatus status;
-		DPRINT_VAR("Master::Trying to status of ", _id);
     communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, id, 1,
                                          MPI_INT, status_win, status_lock);		
-	  DPRINT_VAR("Master:", status);
 		return status;
 };
 
 bool Master::terminate() {
     ProcStatus worker_status;
+		if(nprocs == 1) return true; //only self to check, so just terminate
     for(int i=1; i < nprocs; i++) {
         communication::details::lock_and_get(&worker_status, 1, MPI_INT, MASTER, i, 1,
                                              MPI_INT, status_win, status_lock);
-        if(!worker_status == RUNNING) break;
-        else if(i == nprocs-1) {
-            ProcStatus status = RUNNING;
+        if(worker_status == RUNNING) break;
+        else if(i == nprocs-1) { //set your status to terminated
+            ProcStatus status = TERMINATED;
             communication::details::lock_and_put(&status, 1, MPI_INT, MASTER, 0, 1,
                                                  MPI_INT, status_win, status_lock);
             return true;

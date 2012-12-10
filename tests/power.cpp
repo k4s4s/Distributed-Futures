@@ -1,28 +1,6 @@
 
 #include "futures.hpp"
 #include <iostream>
-#include <boost/serialization/export.hpp>
-
-#include <utility>
-#include <cstddef> // NULL
-
-#include <boost/config.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/preprocessor/stringize.hpp>
-#include <boost/type_traits/is_polymorphic.hpp>
-
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/not.hpp>
-#include <boost/mpl/bool.hpp>
-
-#include <boost/serialization/extended_type_info.hpp> // for guid_defined only
-#include <boost/serialization/static_warning.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/serialization/force_include.hpp>
-#include <boost/serialization/singleton.hpp>
-
-#include <boost/archive/detail/register_archive.hpp>
 
 #define MASTER 0
 
@@ -95,11 +73,10 @@ public:
 
 };
 
-//FUTURES_EXPORT_FUNCTOR(power);
-typedef _async_stub<power, int, int> power_arg2;
-BOOST_CLASS_EXPORT(power_arg2);
-typedef _async_stub<power_rec, int, int> power_rec_arg2;
-BOOST_CLASS_EXPORT(power_rec_arg2);
+typedef _async_stub<power, int, int> power_int;
+BOOST_CLASS_EXPORT(power_int);
+typedef _async_stub<power_rec, int, int> power_rec_int;
+BOOST_CLASS_EXPORT(power_rec_int);
 
 int main(int argc, char* argv[]) {
 	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI", "RR");
@@ -113,6 +90,6 @@ int main(int argc, char* argv[]) {
 		cout << "- Master :You say " <<message->get()<< "?" << endl;
 	}
 	delete message;
-	delete env;
+	env->Finalize();
 };
 

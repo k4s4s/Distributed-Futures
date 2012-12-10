@@ -35,6 +35,7 @@ public:
                                           const std::string& commInterfaceName,
                                           const std::string& schedulerName);
     static Futures_Enviroment* Initialize(int &argc, char**& argv);
+		void Finalize();
     static Futures_Enviroment* Instance();
     MPI_Comm get_communicator();
     communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id,

@@ -33,11 +33,12 @@ int RRScheduler::nextAvaibleWorkerId() {
     assert(total_workers != 0);
     curr_worker_id = (curr_worker_id+1)%(total_workers);
 		curr_worker_id = (curr_worker_id==0)?curr_worker_id+1:curr_worker_id;
-		DPRINT_MESSAGE("RRSched:find avaible worker");
 		DPRINT_VAR("RRSched:", curr_worker_id);
 		for(int i = curr_worker_id; i < total_workers; i++) {
+				DPRINT_VAR("RRSched:", proc->get_status(i));
+				DPRINT_VAR("RRSched:", i);	
 			if(proc->get_status(i) == IDLE) {
-				curr_worker_id = i;				
+				curr_worker_id = i;			
 				DPRINT_VAR("RRSched:", curr_worker_id);
 				return curr_worker_id;
 			}

@@ -74,23 +74,26 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
     sched = schedManager->createScheduler("RR", commInterface);
 };
 
-Futures_Enviroment::~Futures_Enviroment() {
+Futures_Enviroment::~Futures_Enviroment() {};
+
+void Futures_Enviroment::Finalize() {
     if(commInterface->get_procId() == 0) {
         /*maybe not necessary,
         															terminate would also return
         															correct value for workers
         															in order to terminate*/
-        while(sched->terminate()) {
+        do {
             sched->set_status(scheduler::ProcStatus::TERMINATED);
-            for(int i=1; i < commInterface->size(); i++)
+            for(int i=1; i < commInterface->size(); i++) {
                 this->send_data(i, EXIT);
-        }
+						}
+        } while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
     delete sched;
     delete commInterface;
     delete commManager;
-    pinstance = NULL;
+    //delete pinstance;
 };
 
 communication::SharedDataManager*
@@ -133,10 +136,10 @@ void Futures_Enviroment::wait_for_job() {
         if(master_id == EXIT) break;
         _stub *job = this->recv_job(master_id);
         job->run(master_id);
-        DPRINT_MESSAGE("ENVIROMENT: worker setting status to idle");
         sched->set_status(scheduler::ProcStatus::IDLE);
     }
     DPRINT_MESSAGE("ENVIROMENT: worker exiting program");
     sched->set_status(scheduler::ProcStatus::TERMINATED);
+		this->Finalize();
 };
 

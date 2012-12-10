@@ -3,7 +3,6 @@
 		since we have support now, just leave it as is
 * Add exceptions
 * Implement a much more sophisticated scheduler
-* FIXME: probably need to translate src and dst id to new comm for sharedData
 * Now worker will block until future gets value, in order to delete sharedData,
 	need another mechanism to delete data without anyone blocking
 * ISSUE: cannot use function pointers, since they cannot be serialized.  Maybe we could
