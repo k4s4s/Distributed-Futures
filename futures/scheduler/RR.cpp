@@ -33,19 +33,21 @@ int RRScheduler::nextAvaibleWorkerId() {
     assert(total_workers != 0);
     curr_worker_id = (curr_worker_id+1)%(total_workers);
 		curr_worker_id = (curr_worker_id==0)?curr_worker_id+1:curr_worker_id;
-		DPRINT_VAR("RRSched:", curr_worker_id);
+		DPRINT_VAR("\tRRSched:actual ", curr_worker_id);
+		//find the next idle proc
 		for(int i = curr_worker_id; i < total_workers; i++) {
-				DPRINT_VAR("RRSched:", proc->get_status(i));
-				DPRINT_VAR("RRSched:", i);	
+				ProcStatus status = proc->get_status(i);
+				DPRINT_VAR("\tRRSched:", status);
+				DPRINT_VAR("\tRRSched:", i);	
 			if(proc->get_status(i) == IDLE) {
 				curr_worker_id = i;			
-				DPRINT_VAR("RRSched:", curr_worker_id);
+				DPRINT_VAR("\tRRSched:", curr_worker_id);
 				return curr_worker_id;
 			}
 		}
 		//if we get here we didn't find any idle procs, so run on self
 		curr_worker_id = proc->getId();
-		DPRINT_VAR("RRSched:", curr_worker_id);
+		DPRINT_VAR("\tRRSched:", curr_worker_id);
     return curr_worker_id;
 };
 

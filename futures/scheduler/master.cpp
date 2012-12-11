@@ -2,6 +2,7 @@
 #include "master.hpp"
 #include "../communication/mpi_details.hpp"
 #include "../common.hpp"
+#include <stdlib.h>
 
 #define MASTER 0
 
@@ -13,6 +14,7 @@ Master::Master() {
     MPI_Comm_rank(comm, &id);
     MPI_Comm_size(comm, &nprocs);
     MPI_Alloc_mem(nprocs*sizeof(ProcStatus), MPI_INFO_NULL, &status_vector);
+		bzero(status_vector, nprocs);
     status_vector[0] = RUNNING;
     MPI_Win_create(status_vector, nprocs, sizeof(ProcStatus), MPI_INFO_NULL, comm, &status_win);
     status_lock = new MPIMutex(comm);
@@ -35,7 +37,7 @@ int Master::getId() {
 
 ProcStatus Master::get_status(int _id) {
 		ProcStatus status;
-    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, id, 1,
+    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, _id, 1,
                                          MPI_INT, status_win, status_lock);		
 		return status;
 };

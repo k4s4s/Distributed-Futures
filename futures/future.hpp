@@ -58,12 +58,11 @@ Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_
                     (details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());
     int id = env->get_procId();
     //get worker id and wake him
-    DPRINT_MESSAGE("ASYNC:issuing job");
     _stub *job = new _async_stub<F, Args...>(f, args...);
 		Future<typename std::result_of<F(Args...)>::type> *future;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
 		if(worker_id == id) {
-		  DPRINT_MESSAGE("ASYNC:running on self");
+		  DPRINT_MESSAGE("\tASYNC:running on self");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
@@ -74,16 +73,12 @@ Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_
 		  //send function object, worker runs it, get to init phase
 		  env->send_data(worker_id, data_size);
 		  env->send_data(worker_id, type_size);
-		  DPRINT_MESSAGE("ASYNC:creating shared data");
 			communication::SharedDataManager *sharedData;
 		  sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
 		                                          details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
 		                                                  details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
 			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
 		}
-    //create shared data on both ends, initial comm is over global communicator(?)
-    //return future
-    DPRINT_MESSAGE("ASYNC:returning future");
     return future;
 };
 
@@ -154,15 +149,13 @@ _async_stub<F, Args...>::~_async_stub() {};
 
 template <class F, class... Args>
 void _async_stub<F, Args...>::run(int future_owner) {
-    DPRINT_MESSAGE("JOB:initilizing job");
+    DPRINT_MESSAGE("\tJOB:Running job on worker");
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     //get ids, data_size, type_size
-    DPRINT_MESSAGE("JOB:receiving job data");
     int data_size = env->recv_data<int>(future_owner);
     int type_size = env->recv_data<int>(future_owner);
     int id = env->get_procId();
     //create shared data on both ends, initial comm is over global communicator(?)
-    DPRINT_MESSAGE("JOB:creating shared data");
     communication::SharedDataManager *sharedData;
     sharedData = env->new_SharedDataManager(id, future_owner, data_size, type_size,
                                             details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(

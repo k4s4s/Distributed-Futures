@@ -45,7 +45,6 @@ MPISharedDataManager::MPISharedDataManager(int _src_id, int _dst_id,
 	  data_lock = new MPIMutex(comm);
 	  ar_size_lock = new MPIMutex(comm);
 	  status_lock = new MPIMutex(comm);
-		DPRINT_MESSAGE("MPIComm:SharedData Created");
 };
 
 MPISharedDataManager::~MPISharedDataManager() {

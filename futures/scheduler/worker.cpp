@@ -39,11 +39,13 @@ int Worker::getId() {
 void Worker::set_status(ProcStatus status) {
     communication::details::lock_and_put(&status, 1, MPI_INT, MASTER, id, 1,
                                          MPI_INT, status_win, status_lock);
+    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, id, 1,
+                                         MPI_INT, status_win, status_lock);
 };
 
 ProcStatus Worker::get_status(int _id) {
 		ProcStatus status;
-    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, id, 1,
+    communication::details::lock_and_get(&status, 1, MPI_INT, MASTER, _id, 1,
                                          MPI_INT, status_win, status_lock);		
 		return status;
 };
