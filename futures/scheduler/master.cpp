@@ -21,6 +21,7 @@ Master::Master() {
 };
 
 Master::~Master() {
+		//FIXME: free status_vector
     MPI_Win_free(&status_win);
     delete status_lock;
 };

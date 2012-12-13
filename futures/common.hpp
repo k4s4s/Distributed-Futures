@@ -1,3 +1,5 @@
+#include "stats/stats.hpp"
+
 #ifndef DEBUG
 #define DPRINT_VAR(m, x)
 #define DPRINT_MESSAGE(x)
@@ -7,3 +9,4 @@
 #define DPRINT_MESSAGE(x) \
 	std::cout << x << std::endl;
 #endif
+

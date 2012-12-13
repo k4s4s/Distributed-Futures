@@ -24,6 +24,7 @@ private:
     communication::CommInterface* commInterface;
     scheduler::SchedManager* schedManager;
     scheduler::Scheduler* sched;
+		stats::StatManager* statManager;
 protected:
     Futures_Enviroment(int &argc, char**& argv,
                        const std::string& commInterfaceName,

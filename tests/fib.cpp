@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 	int id = env->get_procId();
 	
 	fib f = fib();
-	Future<int> *result = async(f, 2);
+	Future<int> *result = async(f, 10);
 
 
 	if(id == MASTER) {

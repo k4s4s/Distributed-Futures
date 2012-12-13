@@ -52,6 +52,9 @@ public:
 /** Implementation of async function **/
 template<typename F, typename... Args>
 Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_size, F& f, Args... args) {
+		stats::StatManager *statManager = stats::StatManager::Instance();
+		statManager->increase_total_jobs();
+		statManager->start_timer("job_issue_time");
     DPRINT_MESSAGE("ASYNC:call to async");
     Futures_Enviroment *env = Futures_Enviroment::Instance();
     int type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
@@ -79,6 +82,7 @@ Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_
 		                                                  details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
 			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
 		}
+		statManager->stop_timer("job_issue_time");
     return future;
 };
 
@@ -128,10 +132,13 @@ template <class T> T Future<T>::get() {
     Futures_Enviroment* env = Futures_Enviroment::Instance();
     int id = env->get_procId();
     assert(id == dst_id);
+		stats::StatManager *statManager = stats::StatManager::Instance();
+		statManager->start_timer("idle_time");
     while (1) {
         sharedData->get_status(&ready_status);
         if (ready_status) break;
     }
+		statManager->stop_timer("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
     delete sharedData;
     return data;
@@ -161,8 +168,10 @@ void _async_stub<F, Args...>::run(int future_owner) {
                                             details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
                                                     details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
     //execute work
-    //retVal = f();
+    stats::StatManager *statManager = stats::StatManager::Instance();
+		statManager->start_timer("job_execution_time");
 		retVal = apply(f, args);
+		statManager->stop_timer("job_execution_time");
     //return value to future
     details::_set_data<typename std::result_of<F(Args...)>::type>()(sharedData, retVal,
             details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());

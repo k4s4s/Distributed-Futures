@@ -52,6 +52,9 @@ Futures_Enviroment* Futures_Enviroment::Instance () {
 Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
                                        const std::string& commInterfaceName,
                                        const std::string& schedulerName) {
+		statManager = stats::StatManager::Instance();
+		statManager->start_timer("total_execution_time");
+		statManager->start_timer("initialization_time");
     //Initilize communication manager and register default interfaces
     commManager = communication::CommManager::Instance();
     commManager->registerCommInterface("MPI", communication::MPIComm::create);
@@ -62,6 +65,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
     schedManager = scheduler::SchedManager::Instance();
     schedManager->registerScheduler("RR", scheduler::RRScheduler::create);
     sched = schedManager->createScheduler(schedulerName, commInterface);
+		statManager->stop_timer("initialization_time");
 };
 
 Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
@@ -77,6 +81,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
 Futures_Enviroment::~Futures_Enviroment() {};
 
 void Futures_Enviroment::Finalize() {
+		statManager->start_timer("finalization_time");
     if(commInterface->get_procId() == 0) {
         /*maybe not necessary,
         															terminate would also return
@@ -90,9 +95,13 @@ void Futures_Enviroment::Finalize() {
         } while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
+		statManager->stop_timer("finalization_time");
+		statManager->stop_timer("total_execution_time");
+		statManager->print_stats();	
     delete sched;
     delete commInterface;
-    delete commManager;
+    delete commManager;	
+		delete statManager;
     //delete pinstance;
 };
 
@@ -132,7 +141,9 @@ _stub *Futures_Enviroment::recv_job(int src_id) {
 void Futures_Enviroment::wait_for_job() {
     while(sched->terminate()) {
         DPRINT_MESSAGE("ENVIROMENT: worker waiting for job");
+				statManager->start_timer("idle_time");
         int master_id = this->recv_data<int>(MPI_ANY_SOURCE);
+				statManager->stop_timer("idle_time");
         if(master_id == EXIT) break;
         _stub *job = this->recv_job(master_id);
         job->run(master_id);
