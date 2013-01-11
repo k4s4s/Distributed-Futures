@@ -146,6 +146,5 @@ void StatManager::print_stats() {
 		unsigned long idle_time = this->get_time("idle_time");
 		MPI_Send(&idle_time, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);		
 	}
-	
 };
 

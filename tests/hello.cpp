@@ -1,7 +1,8 @@
 
 #include "futures.hpp"
 #include <iostream>
-
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 #define MASTER 0
 
@@ -9,36 +10,35 @@ using namespace std;
 using namespace futures;
 
 class helloWorld {
-private:
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /* file_version */) {};
 public:
 	helloWorld() {};
 	~helloWorld() {};
 	int operator()() { 
-		int id = Futures_Enviroment::Instance()->get_procId();
+		int id = Futures_Id();
 		cout << "- Worker" << id << ":Hello Master" << endl;
 		return id;
 	};
 };
 
 int helloWorld_func() { 
-	int id = Futures_Enviroment::Instance()->get_procId();
+	int id = Futures_Id();
 	cout << "- Worker" << id << ":Hello Master" << endl;
 	return id;
 };
 
-FUTURES_EXPORT_FUNCTOR(helloWorld);
+FUTURES_EXPORT_FUNCTOR((async_function<helloWorld>));
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI", "RR");
+	Futures_Initialize(argc, argv);
 	helloWorld f;
-	Future<int> *message = async(f);
+	boost::function<void()> foo;
+	foo = boost::bind(helloWorld_func);
+	foo();
+	future<int> message = async(f);
 
-	cout << "- Master :Hello " << message->get() << endl;
+	cout << "- Master :Hello " << message.get() << endl;
 
-	delete message;
-	env->Finalize();
+	Futures_Finalize();
+	cout << "done!!";
 };
 

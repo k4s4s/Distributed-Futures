@@ -1,5 +1,5 @@
 
-#include "futures_enviroment.hpp"
+#include "futures_environment.hpp"
 #include "scheduler/RR.hpp"
 #include "communication/MPIComm.hpp"
 //#include "communication/ARMCIComm.hpp"
@@ -13,14 +13,30 @@
 #define EXIT -1
 
 using namespace futures;
-/*** Future_Enviroment impelementation ***/
-Futures_Enviroment* Futures_Enviroment::pinstance = NULL;// initialize pointer
 
-Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
+/* environment wrappers */
+Futures_Environment *_global_environment;
+
+void futures::Futures_Initialize(int &argc, char**& argv) {
+	Futures_Environment::Initialize(argc, argv, "MPI", "RR");
+};
+
+int futures::Futures_Id() {
+	return Futures_Environment::Instance()->get_procId();
+};
+
+void futures::Futures_Finalize() {
+	Futures_Environment::Instance()->Finalize();
+};
+
+/*** Future_Environment impelementation ***/
+Futures_Environment* Futures_Environment::pinstance = NULL;// initialize pointer
+
+Futures_Environment* Futures_Environment::Initialize(int &argc, char**& argv,
         const std::string& commInterfaceName,
         const std::string& schedulerName) {
     if (!pinstance) {
-        pinstance = new Futures_Enviroment(argc, argv, commInterfaceName, schedulerName);
+        pinstance = new Futures_Environment(argc, argv, commInterfaceName, schedulerName);
         int id = pinstance->get_procId();
         if(id != 0) {
             pinstance->wait_for_job();
@@ -31,9 +47,9 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv,
     return pinstance; // address of sole instance
 };
 
-Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv) {
+Futures_Environment* Futures_Environment::Initialize(int &argc, char**& argv) {
     if (!pinstance) {
-        pinstance = new Futures_Enviroment(argc, argv); // create sole instance
+        pinstance = new Futures_Environment(argc, argv); // create sole instance
         int id = pinstance->get_procId();
         if(id != 0) {
             pinstance->wait_for_job();
@@ -44,12 +60,11 @@ Futures_Enviroment* Futures_Enviroment::Initialize(int &argc, char**& argv) {
     return pinstance; // address of sole instance
 };
 
-Futures_Enviroment* Futures_Enviroment::Instance () {
-
+Futures_Environment* Futures_Environment::Instance () {
     return pinstance; // address of sole instance
 };
 
-Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
+Futures_Environment::Futures_Environment(int &argc, char**& argv,
                                        const std::string& commInterfaceName,
                                        const std::string& schedulerName) {
 		statManager = stats::StatManager::Instance();
@@ -68,7 +83,7 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv,
 		statManager->stop_timer("initialization_time");
 };
 
-Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
+Futures_Environment::Futures_Environment(int &argc, char**& argv) {
     //Initilize communication manager and register default interfaces
     commManager = communication::CommManager::Instance();
     commManager->registerCommInterface("MPI", communication::MPIComm::create);
@@ -78,9 +93,9 @@ Futures_Enviroment::Futures_Enviroment(int &argc, char**& argv) {
     sched = schedManager->createScheduler("RR", commInterface);
 };
 
-Futures_Enviroment::~Futures_Enviroment() {};
+Futures_Environment::~Futures_Environment() {};
 
-void Futures_Enviroment::Finalize() {
+void Futures_Environment::Finalize() {
 		statManager->start_timer("finalization_time");
     if(commInterface->get_procId() == 0) {
         /*maybe not necessary,
@@ -106,30 +121,30 @@ void Futures_Enviroment::Finalize() {
 };
 
 communication::SharedDataManager*
-Futures_Enviroment::new_SharedDataManager(int _src_id, int _dst_id,
+Futures_Environment::new_SharedDataManager(int _src_id, int _dst_id,
         int _data_size, int _type_size,
         MPI_Datatype _datatype) {
     return commInterface->new_sharedDataManager(_src_id, _dst_id,
             _data_size, _type_size, _datatype);
 };
 
-int Futures_Enviroment::get_procId() {
+int Futures_Environment::get_procId() {
     return commInterface->get_procId();
 };
 
-int Futures_Enviroment::get_avaibleWorker() {
+int Futures_Environment::get_avaibleWorker() {
     int worker_id = sched->nextAvaibleWorkerId();
     return worker_id;
 };
 
-void Futures_Enviroment::send_job(int dst_id, _stub *job) {
+void Futures_Environment::send_job(int dst_id, _stub *job) {
     boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
     _stub_wrapper tw(job);
     oa << tw;
     commInterface->send(dst_id, NEW_TASK, oa);
 };
 
-_stub *Futures_Enviroment::recv_job(int src_id) {
+_stub *Futures_Environment::recv_job(int src_id) {
     sched->set_status(scheduler::ProcStatus::RUNNING);
     boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
     commInterface->recv(src_id, NEW_TASK, ia);
@@ -138,7 +153,7 @@ _stub *Futures_Enviroment::recv_job(int src_id) {
     return tw.get_task();
 };
 
-void Futures_Enviroment::wait_for_job() {
+void Futures_Environment::wait_for_job() {
     while(sched->terminate()) {
         DPRINT_MESSAGE("ENVIROMENT: worker waiting for job");
 				statManager->start_timer("idle_time");

@@ -1,17 +1,12 @@
 
 #include "futures.hpp"
 #include <iostream>
-
 #define MASTER 0
 
 using namespace std;
 using namespace futures;
 
 class fib {
-private:
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /* file_version */) {};
 public:
 	fib() {};
 	~fib() {};
@@ -20,31 +15,25 @@ public:
      if(n == 1) return 1;
 		 fib f1;
 		 fib f2;
-		 Future<int> *fib1 = async(f1, n-1);
-		 Future<int> *fib2 = async(f2, n-2);
-     int result = fib1->get() + fib2->get();
-		 delete fib1;
-		 delete fib2;
+		 future<int> fib1 = async(f1, n-1);
+		 future<int> fib2 = async(f2, n-2);
+     int result = fib1.get() + fib2.get();
 		 return result;
 	};
 
 };
 
-typedef _async_stub<fib, int> fib_int;
-BOOST_CLASS_EXPORT(fib_int);
+FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
 
 int main(int argc, char* argv[]) {
-	Futures_Enviroment* env = Futures_Enviroment::Initialize(argc, argv, "MPI", "RR");
-	int id = env->get_procId();
+	Futures_Initialize(argc, argv);
 	
 	fib f = fib();
-	Future<int> *result = async(f, 10);
+	future<int> result = async(f, 3);
 
+	cout << "- Master :You say " <<result.get()<< "?" << endl;
 
-	if(id == MASTER) {
-		cout << "- Master :You say " <<result->get()<< "?" << endl;
-	}
-	delete result;
-	env->Finalize();
+	Futures_Finalize();
+	cout << "done!";
 };
 

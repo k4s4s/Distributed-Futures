@@ -3,7 +3,7 @@
 		since we have support now, just leave it as is
 * Add exceptions
 * Implement a much more sophisticated scheduler
-* Now worker will block until future gets value, in order to delete sharedData,
+* ISSUE: Now worker will block until future gets value, in order to delete sharedData,
 	need another mechanism to delete data without anyone blocking
 * ISSUE: cannot use function pointers, since they cannot be serialized.  Maybe we could
 	serialize an id or something and then reconstruct it on worker end.
@@ -11,3 +11,9 @@
 * Share scheduler variables
 * ISSUE: deadlock when running lots of async(if using more procs than avaible processors)...
 * FIXME: memory leak with singleton classes, just remember to delete them at the end
+* FIXME: specialize futures for void return type
+
+**** Minor code alterations ****
+- naming without capitals (done for visible api calls, except promises)
+- use functions instead of singleton for enviroment(interface done, but we still have singletons behind :P )
+

@@ -1,10 +1,10 @@
 
-#ifndef Future_H
-#define Future_H
+#ifndef future_H
+#define future_H
 
 #include <iostream>
 #include <cassert>
-#include "futures_enviroment.hpp"
+#include "futures_environment.hpp"
 #include "communication/communication.hpp"
 #include "communication/mpi_details.hpp"
 #include "details.hpp"
@@ -15,23 +15,24 @@
 namespace futures {
 
 template <class T>
-class Future {
+class future {
 private:
     int ready_status;
     T data;
     int src_id, dst_id;
     communication::SharedDataManager *sharedData;
 public:
-    Future(int _src_id, int _dst_id,
+		future();
+    future(int _src_id, int _dst_id,
            communication::SharedDataManager *_sharedData);
-		Future(int _src_id, int _dst_id, T _data);
-    ~Future();
+		future(int _src_id, int _dst_id, T _data);
+    ~future();
     bool is_ready();
     T get();
 };
 
 template<typename F, typename... Args>
-class _async_stub : public _stub {
+class async_function : public _stub {
 private:
     friend class boost::serialization::access;
     template<class Archive>
@@ -43,31 +44,31 @@ private:
   	std::tuple<Args...> args;
     typename std::result_of<F(Args...)>::type retVal;
 public:
-    _async_stub();
-    _async_stub(F& _f, Args... _args);
-    ~_async_stub();
+    async_function();
+    async_function(F& _f, Args... _args);
+    ~async_function();
     void run(int future_owner);
 };
 
 /** Implementation of async function **/
 template<typename F, typename... Args>
-Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_size, F& f, Args... args) {
+future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {
 		stats::StatManager *statManager = stats::StatManager::Instance();
 		statManager->increase_total_jobs();
 		statManager->start_timer("job_issue_time");
     DPRINT_MESSAGE("ASYNC:call to async");
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
+    Futures_Environment *env = Futures_Environment::Instance();
     int type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
                     (details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());
     int id = env->get_procId();
     //get worker id and wake him
-    _stub *job = new _async_stub<F, Args...>(f, args...);
-		Future<typename std::result_of<F(Args...)>::type> *future;
+    _stub *job = new async_function<F, Args...>(f, args...);
+		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
 		if(worker_id == id) {
 		  DPRINT_MESSAGE("\tASYNC:running on self");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
-			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
 		else {
 			env->send_data(worker_id, env->get_procId());
@@ -80,24 +81,26 @@ Future<typename std::result_of<F(Args...)>::type> *async_impl(unsigned int data_
 		  sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
 		                                          details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
 		                                                  details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
-			future = new Future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
+			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
 		}
 		statManager->stop_timer("job_issue_time");
-    return future;
+    return fut;
 };
 
 template<typename F, typename... Args>
-Future<typename std::result_of<F(Args...)>::type> *async(F& f, Args... args) {
+future<typename std::result_of<F(Args...)>::type> async(F& f, Args... args) {
     return async_impl(1, f, args...);
 };
 
 template<typename F, typename... Args>
-Future<typename std::result_of<F(Args...)>::type> *async(unsigned int data_size, F& f, Args... args) {
+future<typename std::result_of<F(Args...)>::type> async(unsigned int data_size, F& f, Args... args) {
     return async_impl(data_size, f, args...);
 };
 
-/*** Future implementation ***/
-template <class T> Future<T>::Future(int _src_id, int _dst_id,
+/*** future implementation ***/
+template <class T> future<T>::future() {};
+
+template <class T> future<T>::future(int _src_id, int _dst_id,
                                      communication::SharedDataManager *_sharedData) {
     ready_status = 0;
     src_id = _src_id;
@@ -105,7 +108,7 @@ template <class T> Future<T>::Future(int _src_id, int _dst_id,
     sharedData = _sharedData;
 };
 
-template <class T> Future<T>::Future(int _src_id, int _dst_id,
+template <class T> future<T>::future(int _src_id, int _dst_id,
                                      T _data) {
     ready_status = 1;
     src_id = _src_id;
@@ -113,23 +116,21 @@ template <class T> Future<T>::Future(int _src_id, int _dst_id,
     data = _data;
 };
 
-template <class T> Future<T>::~Future() {
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
-    int id = env->get_procId();
+template <class T> future<T>::~future() {
     /* shared data is deleted at get*/
 };
 
-template <class T> bool Future<T>::is_ready() {
+template <class T> bool future<T>::is_ready() {
     if(ready_status) return true;
-    Futures_Enviroment* env = Futures_Enviroment::Instance();
+    Futures_Environment* env = Futures_Environment::Instance();
     int id = env->get_procId();
     assert(id == dst_id);
     return sharedData->get_status(&ready_status);
 };
 
-template <class T> T Future<T>::get() {
+template <class T> T future<T>::get() {
     if(ready_status) return data;
-    Futures_Enviroment* env = Futures_Enviroment::Instance();
+    Futures_Environment* env = Futures_Environment::Instance();
     int id = env->get_procId();
     assert(id == dst_id);
 		stats::StatManager *statManager = stats::StatManager::Instance();
@@ -144,20 +145,20 @@ template <class T> T Future<T>::get() {
     return data;
 };
 
-/*** _async_stub Implementation ***/
+/*** async_function Implementation ***/
 template <class F, class... Args>
-_async_stub<F, Args...>::_async_stub() {};
+async_function<F, Args...>::async_function() {};
 
 template <class F, class... Args>
-_async_stub<F, Args...>::_async_stub(F& _f, Args... _args): f(_f), args(_args...) {};
+async_function<F, Args...>::async_function(F& _f, Args... _args): f(_f), args(_args...) {};
 
 template <class F, class... Args>
-_async_stub<F, Args...>::~_async_stub() {};
+async_function<F, Args...>::~async_function() {};
 
 template <class F, class... Args>
-void _async_stub<F, Args...>::run(int future_owner) {
+void async_function<F, Args...>::run(int future_owner) {
     DPRINT_MESSAGE("\tJOB:Running job on worker");
-    Futures_Enviroment *env = Futures_Enviroment::Instance();
+    Futures_Environment *env = Futures_Environment::Instance();
     //get ids, data_size, type_size
     int data_size = env->recv_data<int>(future_owner);
     int type_size = env->recv_data<int>(future_owner);
