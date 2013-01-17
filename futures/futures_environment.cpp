@@ -73,10 +73,10 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv,
     //Initilize communication manager and register default interfaces
     commManager = communication::CommManager::Instance();
     commManager->registerCommInterface("MPI", communication::MPIComm::create);
-    //commManager->registerCommInterface("ARMCI", communication::ARMCIComm::create);
-    //commManager->registerCommInterface("MPIAsync", communication::MPIAsyncComm::create);
     //Initilize communication Interface
     commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
+		//Create shared address space
+		sharedMemory = new communication::MPI_Shared_memory();
     schedManager = scheduler::SchedManager::Instance();
     schedManager->registerScheduler("RR", scheduler::RRScheduler::create);
     sched = schedManager->createScheduler(schedulerName, commInterface);
@@ -114,18 +114,21 @@ void Futures_Environment::Finalize() {
 		statManager->stop_timer("total_execution_time");
 		statManager->print_stats();	
     delete sched;
+		delete sharedMemory;
     delete commInterface;
     delete commManager;	
 		delete statManager;
     //delete pinstance;
 };
 
-communication::SharedDataManager*
-Futures_Environment::new_SharedDataManager(int _src_id, int _dst_id,
-        int _data_size, int _type_size,
-        MPI_Datatype _datatype) {
-    return commInterface->new_sharedDataManager(_src_id, _dst_id,
-            _data_size, _type_size, _datatype);
+communication::Shared_data*
+Futures_Environment::new_Shared_data(int _src_id, int _dst_id,
+																		unsigned int _base,
+                    								unsigned int _data_size, unsigned int _type_size,
+                    								MPI_Datatype _datatype, MPI_Win _data_win, 
+																		MPIMutex* _data_lock) {
+    return commInterface->new_Shared_data(_src_id, _dst_id, _base, _data_size, _type_size, 
+																					_datatype, _data_win, _data_lock);
 };
 
 int Futures_Environment::get_procId() {
@@ -135,6 +138,23 @@ int Futures_Environment::get_procId() {
 int Futures_Environment::get_avaibleWorker() {
     int worker_id = sched->nextAvaibleWorkerId();
     return worker_id;
+};
+
+MPI_Win Futures_Environment::get_data_window() {
+	return sharedMemory->get_data_window();
+};
+
+MPIMutex *Futures_Environment::get_data_lock() {
+	return sharedMemory->get_data_lock();
+};
+
+int Futures_Environment::alloc(int _size) {
+	int base_address = sharedMemory->allocate(_size);
+	return base_address;
+};
+
+void Futures_Environment::free(communication::Shared_data *sharedData) {
+	delete sharedData;
 };
 
 void Futures_Environment::send_job(int dst_id, _stub *job) {

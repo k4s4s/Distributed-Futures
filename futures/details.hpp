@@ -19,15 +19,15 @@ namespace details {
 
 template<typename TX>
 struct _get_data {
-    TX operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::true_) {
+    TX operator()(communication::Shared_data* Shared_data, boost::mpl::true_) {
         TX value;
-        sharedDataManager->get_data(&value);
+        Shared_data->get_data(&value);
         return value;
     };
-    TX operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
+    TX operator()(communication::Shared_data* Shared_data, boost::mpl::false_) {
         TX value;
-        boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
-        sharedDataManager->get_data(ia);
+        boost::mpi::packed_iarchive ia(Shared_data->get_comm());
+        Shared_data->get_data(ia);
         // Deserialize the data in the message
         ia >> value;
         return value;
@@ -36,15 +36,15 @@ struct _get_data {
 
 template<typename TX>
 struct _get_data<TX*> {
-    TX* operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::true_) {
-        TX* value = new TX[sharedDataManager->get_dataSize()];
-        sharedDataManager->get_data(value);
+    TX* operator()(communication::Shared_data* Shared_data, boost::mpl::true_) {
+        TX* value = new TX[Shared_data->get_dataSize()];
+        Shared_data->get_data(value);
         return value;
     };
-    TX* operator()(communication::SharedDataManager* sharedDataManager, boost::mpl::false_) {
-        TX* values = new TX[sharedDataManager->get_dataSize()];
-        boost::mpi::packed_iarchive ia(sharedDataManager->get_comm());
-        sharedDataManager->get_data(ia);
+    TX* operator()(communication::Shared_data* Shared_data, boost::mpl::false_) {
+        TX* values = new TX[Shared_data->get_dataSize()];
+        boost::mpi::packed_iarchive ia(Shared_data->get_comm());
+        Shared_data->get_data(ia);
         // Determine how much data we are going to receive
         int count;
         ia >> count;
@@ -57,30 +57,30 @@ struct _get_data<TX*> {
 
 template<typename TX>
 struct _set_data {
-    void operator()(communication::SharedDataManager* sharedDataManager,
+    void operator()(communication::Shared_data* Shared_data,
                     TX value, boost::mpl::true_) {
-        sharedDataManager->set_data(&value);
+        Shared_data->set_data(&value);
     };
-    void operator()(communication::SharedDataManager* sharedDataManager,
+    void operator()(communication::Shared_data* Shared_data,
                     TX value, boost::mpl::false_) {
-        boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
+        boost::mpi::packed_oarchive oa(Shared_data->get_comm());
         oa << value;
-        sharedDataManager->set_data(oa);
+        Shared_data->set_data(oa);
     };
 };
 
 template<typename TX>
 struct _set_data<TX*> {
-    void operator()(communication::SharedDataManager* sharedDataManager,
+    void operator()(communication::Shared_data* Shared_data,
                     TX* value, boost::mpl::true_) {
-        sharedDataManager->set_data(value);
+        Shared_data->set_data(value);
     };
-    void operator()(communication::SharedDataManager* sharedDataManager,
+    void operator()(communication::Shared_data* Shared_data,
                     TX* values, boost::mpl::false_) {
-        int n = sharedDataManager->get_dataSize();
-        boost::mpi::packed_oarchive oa(sharedDataManager->get_comm());
+        int n = Shared_data->get_dataSize();
+        boost::mpi::packed_oarchive oa(Shared_data->get_comm());
         oa << n << boost::serialization::make_array(values, n);
-        sharedDataManager->set_data(oa);
+        Shared_data->set_data(oa);
     };
 };
 

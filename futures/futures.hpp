@@ -8,7 +8,7 @@
 #include "future_fwd.hpp"
 #include "futures_environment.hpp"
 #include "future.hpp"
-#include "promise.hpp"
+//#include "promise.hpp"
 #include <boost/type_traits/function_traits.hpp>
 
 #define IDENTITY_TYPE(parenthesized_type) \

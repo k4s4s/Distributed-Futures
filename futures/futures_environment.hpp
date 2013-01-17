@@ -4,13 +4,16 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include "communication/communication.hpp"
 #include "communication/commManager.hpp"
+#include "communication/MPISharedMemory.hpp"
 #include "scheduler/scheduler.hpp"
 #include "scheduler/schedManager.hpp"
 #include "future_fwd.hpp"
 #include "details.hpp"
 #include "mpi.h"
+#include "MPIMutex.hpp"
 #include "common.hpp"
 
 #define TASK_DATA 2003
@@ -29,6 +32,7 @@ private:
     scheduler::SchedManager* schedManager;
     scheduler::Scheduler* sched;
 		stats::StatManager* statManager;
+		communication::MPI_Shared_memory *sharedMemory;
 protected:
     Futures_Environment(int &argc, char**& argv,
                        const std::string& commInterfaceName,
@@ -43,11 +47,17 @@ public:
 		void Finalize();
     static Futures_Environment* Instance();
     MPI_Comm get_communicator();
-    communication::SharedDataManager* new_SharedDataManager(int _src_id, int _dst_id,
-            int _data_size, int _type_size,
-            MPI_Datatype datatype);
+    communication::Shared_data* new_Shared_data(int _src_id, int _dst_id,
+																								unsigned int _base,
+																								unsigned int _data_size, unsigned int _type_size,
+																								MPI_Datatype _datatype, MPI_Win _data_win, 
+																								MPIMutex* _data_lock);
     int get_procId();
     int get_avaibleWorker();
+		int alloc(int _size);
+		void free(communication::Shared_data *sharedData);
+		MPI_Win get_data_window();
+		MPIMutex *get_data_lock();
     void send_job(int dst_id, _stub *job);
     _stub *recv_job(int src_id);
     template<typename T>

@@ -1,5 +1,8 @@
+
 #ifndef _PROCESS_H
 #define _PROCESS_H
+
+#define TQUEUE_SIZE 1000
 
 namespace futures {
 namespace scheduler {

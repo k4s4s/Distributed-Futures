@@ -20,11 +20,11 @@ private:
     int ready_status;
     T data;
     int src_id, dst_id;
-    communication::SharedDataManager *sharedData;
+    communication::Shared_data *sharedData;
 public:
 		future();
     future(int _src_id, int _dst_id,
-           communication::SharedDataManager *_sharedData);
+           communication::Shared_data *_sharedData);
 		future(int _src_id, int _dst_id, T _data);
     ~future();
     bool is_ready();
@@ -38,14 +38,21 @@ private:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* file_version */) {
         ar & boost::serialization::base_object<_stub>(*this);
-				ar & args;
+				ar & dst_id & src_id & base_address & data_size & type_size & args;
     };
+		int dst_id;
+		int src_id;
+		int base_address;
+		int data_size;
+		int type_size;
     F f;
   	std::tuple<Args...> args;
     typename std::result_of<F(Args...)>::type retVal;
 public:
     async_function();
-    async_function(F& _f, Args... _args);
+    async_function(int _src_id, int _dst_id, int _base_address, 
+									int _data_size, int _type_size, 
+									F& _f, Args... _args);
     ~async_function();
     void run(int future_owner);
 };
@@ -62,26 +69,26 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
                     (details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());
     int id = env->get_procId();
     //get worker id and wake him
-    _stub *job = new async_function<F, Args...>(f, args...);
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
+		communication::Shared_data *sharedData;
+		int base_address = env->alloc(type_size*data_size);		
+		sharedData = env->new_Shared_data(worker_id, id, base_address, data_size, type_size, 
+																			details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
+                                      	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
+																			env->get_data_window(), env->get_data_lock());
+    _stub *job = new async_function<F, Args...>(worker_id, id, base_address,
+																								data_size, type_size, 
+																								f, args...);
 		if(worker_id == id) {
 		  DPRINT_MESSAGE("\tASYNC:running on self");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
-		else {
-			env->send_data(worker_id, env->get_procId());
-		  env->send_job(worker_id, job);			
-		  delete job;
-		  //send function object, worker runs it, get to init phase
-		  env->send_data(worker_id, data_size);
-		  env->send_data(worker_id, type_size);
-			communication::SharedDataManager *sharedData;
-		  sharedData = env->new_SharedDataManager(worker_id, id, data_size, type_size,
-		                                          details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
-		                                                  details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
+		else {		
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
+			env->send_data(worker_id, env->get_procId());
+			env->send_job(worker_id, job);
 		}
 		statManager->stop_timer("job_issue_time");
     return fut;
@@ -101,7 +108,7 @@ future<typename std::result_of<F(Args...)>::type> async(unsigned int data_size, 
 template <class T> future<T>::future() {};
 
 template <class T> future<T>::future(int _src_id, int _dst_id,
-                                     communication::SharedDataManager *_sharedData) {
+                                     communication::Shared_data *_sharedData) {
     ready_status = 0;
     src_id = _src_id;
     dst_id = _dst_id;
@@ -141,7 +148,6 @@ template <class T> T future<T>::get() {
     }
 		statManager->stop_timer("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
-    delete sharedData;
     return data;
 };
 
@@ -150,7 +156,15 @@ template <class F, class... Args>
 async_function<F, Args...>::async_function() {};
 
 template <class F, class... Args>
-async_function<F, Args...>::async_function(F& _f, Args... _args): f(_f), args(_args...) {};
+async_function<F, Args...>::async_function(int _src_id, int _dst_id, int _base_address, 
+																					int _data_size, int _type_size, F& _f, Args... _args):
+	f(_f), args(_args...) {
+	src_id = _src_id;
+ 	dst_id = _dst_id;
+	base_address = _base_address;
+	data_size = _data_size;
+	type_size = _type_size;
+};
 
 template <class F, class... Args>
 async_function<F, Args...>::~async_function() {};
@@ -159,15 +173,12 @@ template <class F, class... Args>
 void async_function<F, Args...>::run(int future_owner) {
     DPRINT_MESSAGE("\tJOB:Running job on worker");
     Futures_Environment *env = Futures_Environment::Instance();
-    //get ids, data_size, type_size
-    int data_size = env->recv_data<int>(future_owner);
-    int type_size = env->recv_data<int>(future_owner);
     int id = env->get_procId();
-    //create shared data on both ends, initial comm is over global communicator(?)
-    communication::SharedDataManager *sharedData;
-    sharedData = env->new_SharedDataManager(id, future_owner, data_size, type_size,
-                                            details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
-                                                    details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()));
+    communication::Shared_data *sharedData;
+    sharedData = env->new_Shared_data(id, dst_id, base_address, data_size, type_size,
+                                      details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
+                                      	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
+																			env->get_data_window(), env->get_data_lock());
     //execute work
     stats::StatManager *statManager = stats::StatManager::Instance();
 		statManager->start_timer("job_execution_time");
