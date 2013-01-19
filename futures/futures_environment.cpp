@@ -36,6 +36,7 @@ Futures_Environment* Futures_Environment::Initialize(int &argc, char**& argv,
         const std::string& commInterfaceName,
         const std::string& schedulerName) {
     if (!pinstance) {
+        DPRINT_MESSAGE("ENVIROMENT: initializing");
         pinstance = new Futures_Environment(argc, argv, commInterfaceName, schedulerName);
         int id = pinstance->get_procId();
         if(id != 0) {
@@ -83,6 +84,7 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv,
 		statManager->stop_timer("initialization_time");
 };
 
+/*TODO: delete this... */
 Futures_Environment::Futures_Environment(int &argc, char**& argv) {
     //Initilize communication manager and register default interfaces
     commManager = communication::CommManager::Instance();
@@ -90,7 +92,6 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv) {
     commInterface = commManager->createCommInterface("MPI", argc, argv);
     schedManager = scheduler::SchedManager::Instance();
     schedManager->registerScheduler("RR", scheduler::RRScheduler::create);
-    sched = schedManager->createScheduler("RR", commInterface);
 };
 
 Futures_Environment::~Futures_Environment() {};
@@ -102,12 +103,7 @@ void Futures_Environment::Finalize() {
         															terminate would also return
         															correct value for workers
         															in order to terminate*/
-        do {
-            sched->set_status(scheduler::ProcStatus::TERMINATED);
-            for(int i=1; i < commInterface->size(); i++) {
-                this->send_data(i, EXIT);
-						}
-        } while(!sched->terminate());
+        while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
 		statManager->stop_timer("finalization_time");
@@ -122,12 +118,12 @@ void Futures_Environment::Finalize() {
 };
 
 communication::Shared_data*
-Futures_Environment::new_Shared_data(int _src_id, int _dst_id,
+Futures_Environment::new_Shared_data(int _dst_id,
 																		unsigned int _base,
                     								unsigned int _data_size, unsigned int _type_size,
                     								MPI_Datatype _datatype, MPI_Win _data_win, 
 																		MPIMutex* _data_lock) {
-    return commInterface->new_Shared_data(_src_id, _dst_id, _base, _data_size, _type_size, 
+    return commInterface->new_Shared_data(_dst_id, _base, _data_size, _type_size, 
 																					_datatype, _data_win, _data_lock);
 };
 
@@ -162,6 +158,7 @@ void Futures_Environment::send_job(int dst_id, _stub *job) {
     _stub_wrapper tw(job);
     oa << tw;
     commInterface->send(dst_id, NEW_TASK, oa);
+		
 };
 
 _stub *Futures_Environment::recv_job(int src_id) {
@@ -173,19 +170,13 @@ _stub *Futures_Environment::recv_job(int src_id) {
     return tw.get_task();
 };
 
+bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
+	return sched->schedule_job(dst_id, job);
+};
+
 void Futures_Environment::wait_for_job() {
-    while(sched->terminate()) {
-        DPRINT_MESSAGE("ENVIROMENT: worker waiting for job");
-				statManager->start_timer("idle_time");
-        int master_id = this->recv_data<int>(MPI_ANY_SOURCE);
-				statManager->stop_timer("idle_time");
-        if(master_id == EXIT) break;
-        _stub *job = this->recv_job(master_id);
-        job->run(master_id);
-        sched->set_status(scheduler::ProcStatus::IDLE);
-    }
+		sched->schedule_proc();
     DPRINT_MESSAGE("ENVIROMENT: worker exiting program");
-    sched->set_status(scheduler::ProcStatus::TERMINATED);
 		this->Finalize();
 };
 

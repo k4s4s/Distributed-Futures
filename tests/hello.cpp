@@ -31,9 +31,11 @@ FUTURES_EXPORT_FUNCTOR((async_function<helloWorld>));
 int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);
 	helloWorld f;
+	/*
 	boost::function<void()> foo;
 	foo = boost::bind(helloWorld_func);
 	foo();
+	*/
 	future<int> message = async(f);
 
 	cout << "- Master :Hello " << message.get() << endl;

@@ -47,7 +47,7 @@ public:
 		void Finalize();
     static Futures_Environment* Instance();
     MPI_Comm get_communicator();
-    communication::Shared_data* new_Shared_data(int _src_id, int _dst_id,
+    communication::Shared_data* new_Shared_data(int _dst_id,
 																								unsigned int _base,
 																								unsigned int _data_size, unsigned int _type_size,
 																								MPI_Datatype _datatype, MPI_Win _data_win, 
@@ -64,6 +64,7 @@ public:
     void send_data(int dst_id, T data);
     template<typename T>
     T recv_data(int src_id);
+		bool schedule_job(int dst_id, _stub *job);
     void wait_for_job();
 };
 

@@ -40,8 +40,8 @@ private:
         ar & boost::serialization::base_object<_stub>(*this);
 				ar & dst_id & src_id & base_address & data_size & type_size & args;
     };
-		int dst_id;
 		int src_id;
+		int dst_id;
 		int base_address;
 		int data_size;
 		int type_size;
@@ -54,7 +54,7 @@ public:
 									int _data_size, int _type_size, 
 									F& _f, Args... _args);
     ~async_function();
-    void run(int future_owner);
+    void run();
 };
 
 /** Implementation of async function **/
@@ -71,24 +71,28 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
     //get worker id and wake him
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
-		communication::Shared_data *sharedData;
-		int base_address = env->alloc(type_size*data_size);		
-		sharedData = env->new_Shared_data(worker_id, id, base_address, data_size, type_size, 
-																			details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
-                                      	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
-																			env->get_data_window(), env->get_data_lock());
-    _stub *job = new async_function<F, Args...>(worker_id, id, base_address,
-																								data_size, type_size, 
-																								f, args...);
 		if(worker_id == id) {
 		  DPRINT_MESSAGE("\tASYNC:running on self");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
-		else {		
+		else {
+			communication::Shared_data *sharedData;
+			int base_address = env->alloc(type_size*data_size);		
+			sharedData = env->new_Shared_data(id, base_address, data_size, type_size, 
+																				details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
+		                                    	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
+																				env->get_data_window(), env->get_data_lock());
+		  _stub *job = new async_function<F, Args...>(worker_id, id, base_address,
+																									data_size, type_size, 
+																									f, args...);		
+			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
-			env->send_data(worker_id, env->get_procId());
-			env->send_job(worker_id, job);
+			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
+		  	DPRINT_MESSAGE("\tASYNC:failed to schedule job, running on self");
+				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
+				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+			};
 		}
 		statManager->stop_timer("job_issue_time");
     return fut;
@@ -170,12 +174,12 @@ template <class F, class... Args>
 async_function<F, Args...>::~async_function() {};
 
 template <class F, class... Args>
-void async_function<F, Args...>::run(int future_owner) {
+void async_function<F, Args...>::run() {
     DPRINT_MESSAGE("\tJOB:Running job on worker");
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
     communication::Shared_data *sharedData;
-    sharedData = env->new_Shared_data(id, dst_id, base_address, data_size, type_size,
+    sharedData = env->new_Shared_data(dst_id, base_address, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
                                       	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
 																			env->get_data_window(), env->get_data_lock());

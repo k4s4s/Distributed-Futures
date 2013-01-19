@@ -27,24 +27,28 @@ static void futures::communication::details::lock_and_get(void *origin_addr,
         int origin_count, MPI_Datatype origin_datatype,
         int target_rank, MPI_Aint target_disp, int target_count,
         MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-    mutex->lock(target_rank);
+		if(mutex != NULL)
+    	mutex->lock(target_rank);
     MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
     MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
             target_datatype, win);
     MPI_Win_unlock(target_rank, win);
-    mutex->unlock(target_rank);
+		if(mutex != NULL)
+   		mutex->unlock(target_rank);
 };
 
 static void futures::communication::details::lock_and_put(void *origin_addr,
         int origin_count, MPI_Datatype origin_datatype,
         int target_rank, MPI_Aint target_disp, int target_count,
         MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-    mutex->lock(target_rank);
+		if(mutex != NULL)
+   		mutex->lock(target_rank);
     MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
     MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
             target_datatype, win);
     MPI_Win_unlock(target_rank, win);
-    mutex->unlock(target_rank);
+		if(mutex != NULL)    
+			mutex->unlock(target_rank);
 };
 
 static void futures::communication::details::group_create_comm(MPI_Group group,

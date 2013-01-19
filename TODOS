@@ -1,13 +1,4 @@
 * Add exceptions
-* Implement a much more sophisticated scheduler
-* ISSUE: Now worker will block until future gets value, in order to delete sharedData,
-	need another mechanism to delete data without anyone blocking
-* ISSUE: cannot use function pointers, since they cannot be serialized.  Maybe we could
-	serialize an id or something and then reconstruct it on worker end.
-* Fine tune locks on scheduler
-* Share scheduler variables
-/*** all the above are now obsolete since, we are developing new scheduler and memory management ***/
-
 * Find a way to delete array of objects...if you simply delete allocated data it causes an error in glibc
 	- preferably the interface should not work with pointers, but with objects, in any case
 		since we have support now, just leave it as is
@@ -15,8 +6,8 @@
 * FIXME: memory leak with singleton classes, just remember to delete them at the end
 * FIXME: specialize futures for void return type
 * TODO: acceptable technique to find enough free space for allocation?
-
-**** Minor code alterations ****
-- naming without capitals (done for visible api calls, except promises)
-- use functions instead of singleton for enviroment(interface done, but we still have singletons behind :P )
+* TODO: Maybe having multiple one-sided comms in the same "epoch" will be better for performance
+* ISSUE: cannot use function pointers, since they cannot be serialized.  Maybe we could
+	serialize an id or something and then reconstruct it on worker end.
+* TODO: maybe change how termination works, have workers look their local variable
 

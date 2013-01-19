@@ -16,7 +16,7 @@ private:
     void serialize(Archive & ar, const unsigned int /* file_version */) {};
 public:
     virtual ~_stub() {};
-    virtual void run(int future_owner) = 0;
+    virtual void run() = 0;
 };
 
 BOOST_SERIALIZATION_ASSUME_ABSTRACT(_stub);

@@ -32,7 +32,7 @@ public:
     //FIXME: need to pass type somehow to SharedDataManager
     virtual ~CommInterface() {};
     //User should also implement a create function for the CommInterface factory
-    virtual Shared_data* new_Shared_data(int _src_id, int _dst_id,
+    virtual Shared_data* new_Shared_data(int _dst_id,
 																				unsigned int _base,
                     										unsigned int _data_size, unsigned int _type_size,
                     										MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) = 0;

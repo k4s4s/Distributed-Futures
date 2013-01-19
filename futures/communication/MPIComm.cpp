@@ -15,11 +15,9 @@ using namespace futures;
 using namespace futures::communication;
 
 /*** MPI_Shared_data impelementation ***/
-MPI_Shared_data::MPI_Shared_data(int _src_id, int _dst_id, unsigned int _base,
+MPI_Shared_data::MPI_Shared_data(int _dst_id, unsigned int _base,
                     unsigned int _data_size, unsigned int _type_size,
                     MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) {
-		assert(_src_id != _dst_id);
-	  src_id = _src_id;
 	  dst_id = _dst_id;
 		base = _base;
 	  data_size = _data_size;
@@ -100,11 +98,11 @@ CommInterface* MPIComm::create(int &argc, char**& argv) {
     return new MPIComm(argc, argv);
 };
 
-Shared_data* MPIComm::new_Shared_data(int _src_id, int _dst_id,
-																									unsigned int _base,
+Shared_data* MPIComm::new_Shared_data(int _dst_id,
+																			unsigned int _base,
                     															unsigned int _data_size, unsigned int _type_size,
                     															MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) {
-    return new MPI_Shared_data(_src_id, _dst_id, _base, 
+    return new MPI_Shared_data(_dst_id, _base, 
 															_data_size, _type_size, _datatype,
 															_data_win, _data_lock);
 }

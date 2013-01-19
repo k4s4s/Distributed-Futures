@@ -25,7 +25,7 @@ private:
 		int status;
 		int ar_size;
 public:
-    MPI_Shared_data(int _src_id, int _dst_id,
+    MPI_Shared_data(int _dst_id,
 										unsigned int _base,
                     unsigned int _data_size, unsigned int _type_size,
                     MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock);
@@ -45,7 +45,7 @@ public:
     MPIComm(int &argc, char**& argv);
     ~MPIComm();
     static CommInterface* create(int &argc, char**& argv);
-    Shared_data* new_Shared_data(int _src_id, int _dst_id,
+    Shared_data* new_Shared_data(int _dst_id,
 																unsigned int _base,
             										unsigned int _data_size, unsigned int _type_size,
             										MPI_Datatype _datatype, MPI_Win _data_win, 

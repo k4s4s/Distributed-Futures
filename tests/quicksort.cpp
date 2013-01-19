@@ -137,7 +137,7 @@ FUTURES_EXPORT_FUNCTOR((async_function<quicksort, vector<long>, int>));
 int main(int argc, char** argv) {
  
 		Futures_Initialize(argc, argv);
-    const long Size = 1000;//600000000;
+    const long Size = 10000;//600000000;
     vector<long> array(Size);
  
     // Create array
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
     printf("Sorting %ld elements\n", Size);
     // Start sorting
 		quicksort qsort;
-    array = qsort(array, 2);
+    array = qsort(array, 1);
 		Futures_Finalize();
     // Test result
     if(isSorted(array,Size)){
