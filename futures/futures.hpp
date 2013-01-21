@@ -10,6 +10,7 @@
 #include "future.hpp"
 //#include "promise.hpp"
 #include <boost/type_traits/function_traits.hpp>
+#include "stats/stats.hpp"
 
 #define IDENTITY_TYPE(parenthesized_type) \
     /* must NOT prefix this with `::` to work with parenthesized syntax */ \

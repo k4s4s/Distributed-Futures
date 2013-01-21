@@ -17,7 +17,7 @@ private:
 		MPIMutex *data_lock;
     int src_id;
     int dst_id;
-		unsigned int base;
+		Shared_pointer ptr;
 		unsigned int limit;
     unsigned int data_size;
     unsigned int type_size;
@@ -26,7 +26,7 @@ private:
 		int ar_size;
 public:
     MPI_Shared_data(int _dst_id,
-										unsigned int _base,
+										Shared_pointer _ptr,
                     unsigned int _data_size, unsigned int _type_size,
                     MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock);
     ~MPI_Shared_data();
@@ -38,6 +38,7 @@ public:
     void get_status(int *val);
     void set_status(int *val);
     MPI_Comm get_comm();
+		Shared_pointer get_shared_pointer();
 };
 
 class MPIComm : public CommInterface {
@@ -46,7 +47,7 @@ public:
     ~MPIComm();
     static CommInterface* create(int &argc, char**& argv);
     Shared_data* new_Shared_data(int _dst_id,
-																unsigned int _base,
+																Shared_pointer _ptr,
             										unsigned int _data_size, unsigned int _type_size,
             										MPI_Datatype _datatype, MPI_Win _data_win, 
 																MPIMutex* _data_lock);

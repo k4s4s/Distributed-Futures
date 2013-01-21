@@ -21,14 +21,12 @@ public:
     else if (n>0)	{
 			power f;
 			future<int> p = async(f, a, n-1);
-			int retval = a*p.get();
-    	return retval;
+    	return a*p.get();
     }
     else	{
 			power f;
 			future<int> p = async(f, a, n+1);
-			int retval = (1/a)*p.get();
-      return retval;
+      return (1/a)*p.get();
     }
 	};
 };
@@ -41,7 +39,7 @@ int main(int argc, char* argv[]) {
 	power f;
 	future<int> message = async(f, 2, 4);
 
-	cout << "- Master :You say " <<message.get()<< "?" << endl;
+	cout << "- Master :Result is " <<message.get() << endl;
 	
 	Futures_Finalize();
 };

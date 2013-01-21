@@ -68,9 +68,8 @@ Futures_Environment* Futures_Environment::Instance () {
 Futures_Environment::Futures_Environment(int &argc, char**& argv,
                                        const std::string& commInterfaceName,
                                        const std::string& schedulerName) {
-		statManager = stats::StatManager::Instance();
-		statManager->start_timer("total_execution_time");
-		statManager->start_timer("initialization_time");
+		START_TIMER("total_execution_time");
+		START_TIMER("initialization_time");
     //Initilize communication manager and register default interfaces
     commManager = communication::CommManager::Instance();
     commManager->registerCommInterface("MPI", communication::MPIComm::create);
@@ -81,7 +80,7 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv,
     schedManager = scheduler::SchedManager::Instance();
     schedManager->registerScheduler("RR", scheduler::RRScheduler::create);
     sched = schedManager->createScheduler(schedulerName, commInterface);
-		statManager->stop_timer("initialization_time");
+		STOP_TIMER("initialization_time");
 };
 
 /*TODO: delete this... */
@@ -97,7 +96,7 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv) {
 Futures_Environment::~Futures_Environment() {};
 
 void Futures_Environment::Finalize() {
-		statManager->start_timer("finalization_time");
+		START_TIMER("finalization_time");
     if(commInterface->get_procId() == 0) {
         /*maybe not necessary,
         															terminate would also return
@@ -106,24 +105,23 @@ void Futures_Environment::Finalize() {
         while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
-		statManager->stop_timer("finalization_time");
-		statManager->stop_timer("total_execution_time");
-		statManager->print_stats();	
+		STOP_TIMER("finalization_time");
+		STOP_TIMER("total_execution_time");
+		PRINT_STATS();	
     delete sched;
 		delete sharedMemory;
     delete commInterface;
-    delete commManager;	
-		delete statManager;
+    delete commManager;
     //delete pinstance;
 };
 
 communication::Shared_data*
 Futures_Environment::new_Shared_data(int _dst_id,
-																		unsigned int _base,
+																		communication::Shared_pointer _ptr,
                     								unsigned int _data_size, unsigned int _type_size,
                     								MPI_Datatype _datatype, MPI_Win _data_win, 
 																		MPIMutex* _data_lock) {
-    return commInterface->new_Shared_data(_dst_id, _base, _data_size, _type_size, 
+    return commInterface->new_Shared_data(_dst_id, _ptr, _data_size, _type_size, 
 																					_datatype, _data_win, _data_lock);
 };
 
@@ -144,13 +142,13 @@ MPIMutex *Futures_Environment::get_data_lock() {
 	return sharedMemory->get_data_lock();
 };
 
-int Futures_Environment::alloc(int _size) {
-	int base_address = sharedMemory->allocate(_size);
-	return base_address;
+communication::Shared_pointer Futures_Environment::alloc(int size) {
+	communication::Shared_pointer ptr = sharedMemory->allocate(size);
+	return ptr;
 };
 
-void Futures_Environment::free(communication::Shared_data *sharedData) {
-	delete sharedData;
+void Futures_Environment::free(communication::Shared_pointer ptr) {
+	sharedMemory->free(ptr);
 };
 
 void Futures_Environment::send_job(int dst_id, _stub *job) {

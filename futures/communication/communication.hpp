@@ -5,11 +5,7 @@
 #include "mpi.h"
 #include "boost/mpi.hpp"
 #include "MPIMutex.hpp"
-
-#define SHARED_MEMORY_SIZE 1000000
-#define STATUS_OFFSET 0
-#define AR_SIZE_OFFSET sizeof(int)
-#define DATA_OFFSET sizeof(int)+sizeof(int)
+#include "communication/MPISharedMemory.hpp"
 
 namespace futures {
 namespace communication {
@@ -33,7 +29,7 @@ public:
     virtual ~CommInterface() {};
     //User should also implement a create function for the CommInterface factory
     virtual Shared_data* new_Shared_data(int _dst_id,
-																				unsigned int _base,
+																				Shared_pointer _ptr,
                     										unsigned int _data_size, unsigned int _type_size,
                     										MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) = 0;
     virtual void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data) = 0;

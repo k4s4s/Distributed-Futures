@@ -31,7 +31,6 @@ private:
     communication::CommInterface* commInterface;
     scheduler::SchedManager* schedManager;
     scheduler::Scheduler* sched;
-		stats::StatManager* statManager;
 		communication::MPI_Shared_memory *sharedMemory;
 protected:
     Futures_Environment(int &argc, char**& argv,
@@ -48,14 +47,14 @@ public:
     static Futures_Environment* Instance();
     MPI_Comm get_communicator();
     communication::Shared_data* new_Shared_data(int _dst_id,
-																								unsigned int _base,
+																								communication::Shared_pointer _ptr,
 																								unsigned int _data_size, unsigned int _type_size,
 																								MPI_Datatype _datatype, MPI_Win _data_win, 
 																								MPIMutex* _data_lock);
     int get_procId();
     int get_avaibleWorker();
-		int alloc(int _size);
-		void free(communication::Shared_data *sharedData);
+		communication::Shared_pointer alloc(int size);
+		void free(communication::Shared_pointer ptr);
 		MPI_Win get_data_window();
 		MPIMutex *get_data_lock();
     void send_job(int dst_id, _stub *job);

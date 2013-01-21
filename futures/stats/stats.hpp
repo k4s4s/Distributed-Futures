@@ -6,6 +6,21 @@
 #include <map>
 #include <string>
 
+#ifndef STATS
+
+#define START_TIMER(timer_n)
+#define STOP_TIMER(timer_n)
+#define INCREASE_JOB_COUNTER()
+#define PRINT_STATS()
+
+#else
+
+#define START_TIMER(timer_n) stats::StatManager::Instance()->start_timer(timer_n)
+#define STOP_TIMER(timer_n) stats::StatManager::Instance()->stop_timer(timer_n)
+#define INCREASE_JOB_COUNTER() stats::StatManager::Instance()->increase_total_jobs() 
+#define PRINT_STATS() stats::StatManager::Instance()->print_stats()
+
+#endif
 namespace futures {
 namespace stats {
 

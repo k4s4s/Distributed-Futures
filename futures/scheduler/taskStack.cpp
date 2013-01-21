@@ -29,7 +29,7 @@ taskStack::~taskStack() {
 };
 
 bool taskStack::push(int dst_id, _stub *job) {
-	DPRINT_VAR("\t\ttaskstack:Pushing job to ", dst_id);
+	//DPRINT_VAR("\t\ttaskstack:Pushing job to ", dst_id);
 	int curr_size, curr_head;
   boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
   _stub_wrapper tw(job);
@@ -54,13 +54,15 @@ bool taskStack::push(int dst_id, _stub *job) {
   communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
                           						1, MPI_INT, taskS_win, NULL);
 	taskS_lock->unlock(dst_id);
+	/*
 	DPRINT_VAR("\t\ttaskstack:Push:head ", curr_head);
 	DPRINT_VAR("\t\ttaskstack:Push:count ", oa.size());
+	*/
 	return true;
 };
 
 _stub *taskStack::pop(int dst_id) {
-	DPRINT_VAR("\t\ttaskstack:Pop job from ", dst_id);
+	//DPRINT_VAR("\t\ttaskstack:Pop job from ", dst_id);
 	int curr_head, curr_size;
   boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
 	taskS_lock->lock(dst_id);
@@ -76,9 +78,11 @@ _stub *taskStack::pop(int dst_id) {
   communication::details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, curr_head-ELEMENT_SIZE,
                           						1, MPI_INT, taskS_win, NULL);
   // Prepare input buffer and receive the message
+	/*
 	DPRINT_VAR("\t\ttaskstack:Pop:head ", curr_head);
 	DPRINT_VAR("\t\ttaskstack:Pop:size ", curr_size);
 	DPRINT_VAR("\t\ttaskstack:Pop:count ", count);  
+	*/
 	ia.resize(count);
   communication::details::lock_and_get(const_cast<void*>(ia.address()), ia.size(), MPI_PACKED, dst_id,
                           curr_head-ELEMENT_SIZE+TASK_OFFSET, ia.size(), MPI_PACKED, taskS_win, NULL);

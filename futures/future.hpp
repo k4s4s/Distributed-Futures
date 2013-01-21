@@ -38,11 +38,11 @@ private:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* file_version */) {
         ar & boost::serialization::base_object<_stub>(*this);
-				ar & dst_id & src_id & base_address & data_size & type_size & args;
+				ar & dst_id & src_id & ptr & data_size & type_size & args;
     };
 		int src_id;
 		int dst_id;
-		int base_address;
+		communication::Shared_pointer ptr;
 		int data_size;
 		int type_size;
     F f;
@@ -50,7 +50,8 @@ private:
     typename std::result_of<F(Args...)>::type retVal;
 public:
     async_function();
-    async_function(int _src_id, int _dst_id, int _base_address, 
+    async_function(int _src_id, int _dst_id, 
+									communication::Shared_pointer _ptr, 
 									int _data_size, int _type_size, 
 									F& _f, Args... _args);
     ~async_function();
@@ -60,9 +61,8 @@ public:
 /** Implementation of async function **/
 template<typename F, typename... Args>
 future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {
-		stats::StatManager *statManager = stats::StatManager::Instance();
-		statManager->increase_total_jobs();
-		statManager->start_timer("job_issue_time");
+		INCREASE_JOB_COUNTER();
+		START_TIMER("job_issue_time");
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
     DPRINT_VAR("ASYNC:call to async from ", id);
@@ -79,12 +79,12 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 		}
 		else {
 			communication::Shared_data *sharedData;
-			int base_address = env->alloc(type_size*data_size);		
-			sharedData = env->new_Shared_data(id, base_address, data_size, type_size, 
+			communication::Shared_pointer ptr = env->alloc(type_size*data_size);		
+			sharedData = env->new_Shared_data(id, ptr, data_size, type_size, 
 																				details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
 		                                    	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
 																				env->get_data_window(), env->get_data_lock());
-		  _stub *job = new async_function<F, Args...>(worker_id, id, base_address,
+		  _stub *job = new async_function<F, Args...>(worker_id, id, ptr,
 																									data_size, type_size, 
 																									f, args...);		
 			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
@@ -95,7 +95,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 			};
 		}
-		statManager->stop_timer("job_issue_time");
+		STOP_TIMER("job_issue_time");
     return fut;
 };
 
@@ -145,17 +145,18 @@ template <class T> T future<T>::get() {
     Futures_Environment* env = Futures_Environment::Instance();
     int id = env->get_procId();
 		//DPRINT_VAR("future.get():executing all pending jobs in queue:", id);
-		env->execute_pending_jobs();
 		//DPRINT_VAR("future.get():waiting...", id);
     //assert(id == dst_id);
-		stats::StatManager *statManager = stats::StatManager::Instance();
-		statManager->start_timer("idle_time");
+		START_TIMER("idle_time");
     while (1) {
 				//DPRINT_VAR("Future.get():waiting...", id);
         sharedData->get_status(&ready_status);
         if (ready_status) break;
+				STOP_TIMER("idle_time");
+				env->execute_pending_jobs(); //Maybe it's best to execute one job at a time
+				START_TIMER("idle_time");
     }
-		statManager->stop_timer("idle_time");
+		STOP_TIMER("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
     return data;
 };
@@ -165,12 +166,12 @@ template <class F, class... Args>
 async_function<F, Args...>::async_function() {};
 
 template <class F, class... Args>
-async_function<F, Args...>::async_function(int _src_id, int _dst_id, int _base_address, 
+async_function<F, Args...>::async_function(int _src_id, int _dst_id, communication::Shared_pointer _ptr, 
 																					int _data_size, int _type_size, F& _f, Args... _args):
 	f(_f), args(_args...) {
 	src_id = _src_id;
  	dst_id = _dst_id;
-	base_address = _base_address;
+	ptr = _ptr;
 	data_size = _data_size;
 	type_size = _type_size;
 };
@@ -184,7 +185,7 @@ void async_function<F, Args...>::run() {
     int id = env->get_procId();
     DPRINT_VAR("\tJOB:Running job on worker", id);
     communication::Shared_data *sharedData;
-    sharedData = env->new_Shared_data(dst_id, base_address, data_size, type_size,
+    sharedData = env->new_Shared_data(dst_id, ptr, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
                                       	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
 																			env->get_data_window(), env->get_data_lock());

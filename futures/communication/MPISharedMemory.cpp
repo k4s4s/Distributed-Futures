@@ -19,14 +19,16 @@ MPI_Shared_memory::~MPI_Shared_memory() {
 	delete data_lock;
 };
 
-unsigned int MPI_Shared_memory::allocate(unsigned int size) {
-	unsigned int base_address = curr_index;
-	assert(curr_index+size+sizeof(unsigned int)+sizeof(unsigned int) < SHARED_MEMORY_SIZE);
-	curr_index+=size+sizeof(unsigned int)+sizeof(unsigned int);
-	return base_address;
+Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
+	Shared_pointer ptr;
+	ptr.base_address = curr_index;
+	ptr.size = size+DATA_OFFSET;
+	assert(curr_index+size+DATA_OFFSET < SHARED_MEMORY_SIZE); //TODO: if this fails, run on self
+	curr_index+=size+DATA_OFFSET;
+	return ptr;
 };
 
-void MPI_Shared_memory::free(MPI_Shared_data *sharedData) {};
+void MPI_Shared_memory::free(Shared_pointer ptr) {};
 
 MPI_Win MPI_Shared_memory::get_data_window() {
 	return data_win;

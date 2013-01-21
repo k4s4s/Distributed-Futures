@@ -13,12 +13,10 @@ public:
 	int	operator()(int n) {
      if(n == 0) return 0;
      if(n == 1) return 1;
-		 fib f1;
-		 fib f2;
-		 future<int> fib1 = async(f1, n-1);
-		 future<int> fib2 = async(f2, n-2);
-     int result = fib1.get() + fib2.get();
-		 return result;
+		 fib f;
+		 future<int> fib1 = async(f, n-1);
+		 future<int> fib2 = async(f, n-2);
+		 return fib1.get() + fib2.get();;
 	};
 
 };
@@ -29,9 +27,9 @@ int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);
 	
 	fib f = fib();
-	future<int> result = async(f, 3);
+	future<int> result = async(f, 5);
 
-	cout << "- Master :You say " <<result.get()<< "?" << endl;
+	cout << "- Master :Result is " <<result.get() << endl;
 
 	Futures_Finalize();
 	cout << "done!";
