@@ -56,13 +56,13 @@ bool taskQueue::enqueue(int dst_id, _stub *job) {
   communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
                           						1, MPI_INT, taskQ_win, NULL);
 	taskQ_lock->unlock(dst_id);
-	DPRINT_VAR("\t\ttaskQueue:Dequeue:tail ", curr_tail);
-	DPRINT_VAR("\t\ttaskQueue:Dequeue:count ", oa.size());  
+	DPRINT_VAR("\t\ttaskQueue:Enqueue:tail ", curr_tail);
+	DPRINT_VAR("\t\ttaskQueue:Enqueue:count ", oa.size());
 	return true;
 };
 
 _stub *taskQueue::dequeue(int dst_id) {
-	DPRINT_VAR("\t\ttaskQueue:Dequeuing job from ", dst_id);
+	//DPRINT_VAR("\t\ttaskQueue:Dequeuing job from ", dst_id);
 	int curr_head, curr_size;
   boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
 	taskQ_lock->lock(dst_id);
@@ -78,9 +78,11 @@ _stub *taskQueue::dequeue(int dst_id) {
   communication::details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, curr_head,
                           						1, MPI_INT, taskQ_win, NULL);
   // Prepare input buffer and receive the message
+	/*
 	DPRINT_VAR("\t\ttaskQueue:Dequeue:head ", curr_head);
 	DPRINT_VAR("\t\ttaskQueue:Dequeue:size ", curr_size);
 	DPRINT_VAR("\t\ttaskQueue:Dequeue:count ", count);  
+	*/
 	ia.resize(count);
   communication::details::lock_and_get(const_cast<void*>(ia.address()), ia.size(), MPI_PACKED, dst_id,
                           curr_head+TASK_OFFSET, ia.size(), MPI_PACKED, taskQ_win, NULL);

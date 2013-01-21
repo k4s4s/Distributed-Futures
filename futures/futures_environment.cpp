@@ -175,8 +175,13 @@ bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
 };
 
 void Futures_Environment::wait_for_job() {
-		sched->schedule_proc();
+		while(!sched->terminate())
+			sched->schedule_proc();
     DPRINT_MESSAGE("ENVIROMENT: worker exiting program");
 		this->Finalize();
 };
+
+void Futures_Environment::execute_pending_jobs() {
+	sched->schedule_proc();
+}
 

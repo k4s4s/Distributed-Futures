@@ -14,7 +14,8 @@ private:
     MPI_Win status_win;
     MPIMutex *status_lock;
 		ProcStatus *status;
-		taskQueue *task_queue;
+		//taskQueue *task_queue;
+		taskStack *task_stack;
     int id;
 public:
     Worker();

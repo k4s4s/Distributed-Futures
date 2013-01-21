@@ -59,12 +59,12 @@ int RRScheduler::nextAvaibleWorkerId() {
 		//find the next idle or at least avaible proc
 		for(int i = curr_worker_id; i < total_workers; i++) {	
 			if(proc->available(i)) {
-				DPRINT_VAR("\tRRSched: worker is available", curr_worker_id);
+				DPRINT_VAR("\tRRSched:worker is available, ", curr_worker_id);
 				return i;	
 			}
 		}
 		//if we get here we didn't find any avaible procs, so run RR fashion
-		DPRINT_VAR("\tRRSched: No idle proc found, returning ", curr_worker_id);
+		DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
     return curr_worker_id;
 };
 
@@ -79,14 +79,12 @@ bool RRScheduler::terminate() {
 void RRScheduler::schedule_proc() {
 	int id;
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
-	while(!proc->terminate()) {
-		if(proc->has_job()) {
-			DPRINT_MESSAGE("\tRRScheduler:worker has job!");
-			proc->set_status(scheduler::ProcStatus::RUNNING);
-			_stub *job = proc->get_job();
-			job->run();
-			proc->set_status(scheduler::ProcStatus::IDLE);
-		}
+	while(proc->has_job()) {
+		//DPRINT_VAR("\tRRScheduler:worker has job! ", id);
+		proc->set_status(scheduler::ProcStatus::RUNNING);
+		_stub *job = proc->get_job();
+		job->run();
+		proc->set_status(scheduler::ProcStatus::IDLE);
 	}
 };
 

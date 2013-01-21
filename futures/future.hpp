@@ -63,16 +63,17 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 		stats::StatManager *statManager = stats::StatManager::Instance();
 		statManager->increase_total_jobs();
 		statManager->start_timer("job_issue_time");
-    DPRINT_MESSAGE("ASYNC:call to async");
     Futures_Environment *env = Futures_Environment::Instance();
+    int id = env->get_procId();
+    DPRINT_VAR("ASYNC:call to async from ", id);
     int type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
                     (details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());
-    int id = env->get_procId();
+
     //get worker id and wake him
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
-		if(worker_id == id) {
-		  DPRINT_MESSAGE("\tASYNC:running on self");
+		if(worker_id == id) { //FIXME: checking if things can work without this code, just for master
+		  DPRINT_VAR("\tASYNC:running on self", id);
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
@@ -89,7 +90,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
 			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
-		  	DPRINT_MESSAGE("\tASYNC:failed to schedule job, running on self");
+		  	DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
 				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 			};
@@ -143,10 +144,14 @@ template <class T> T future<T>::get() {
     if(ready_status) return data;
     Futures_Environment* env = Futures_Environment::Instance();
     int id = env->get_procId();
-    assert(id == dst_id);
+		//DPRINT_VAR("future.get():executing all pending jobs in queue:", id);
+		env->execute_pending_jobs();
+		//DPRINT_VAR("future.get():waiting...", id);
+    //assert(id == dst_id);
 		stats::StatManager *statManager = stats::StatManager::Instance();
 		statManager->start_timer("idle_time");
     while (1) {
+				//DPRINT_VAR("Future.get():waiting...", id);
         sharedData->get_status(&ready_status);
         if (ready_status) break;
     }
@@ -175,9 +180,9 @@ async_function<F, Args...>::~async_function() {};
 
 template <class F, class... Args>
 void async_function<F, Args...>::run() {
-    DPRINT_MESSAGE("\tJOB:Running job on worker");
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
+    DPRINT_VAR("\tJOB:Running job on worker", id);
     communication::Shared_data *sharedData;
     sharedData = env->new_Shared_data(dst_id, base_address, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(

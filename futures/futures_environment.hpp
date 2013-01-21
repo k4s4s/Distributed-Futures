@@ -66,6 +66,7 @@ public:
     T recv_data(int src_id);
 		bool schedule_job(int dst_id, _stub *job);
     void wait_for_job();
+		void execute_pending_jobs();
 };
 
 template<typename T>

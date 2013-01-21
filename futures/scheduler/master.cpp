@@ -16,7 +16,8 @@ Master::Master() {
     MPI_Alloc_mem(sizeof(ProcStatus), MPI_INFO_NULL, &status);
     MPI_Win_create(status, 1, sizeof(ProcStatus), MPI_INFO_NULL, comm, &status_win);
     status_lock = new MPIMutex(comm);
-		task_queue = new taskQueue();
+		//task_queue = new taskQueue();
+		task_stack = new taskStack();
     this->set_status(RUNNING);
 };
 
@@ -24,7 +25,8 @@ Master::~Master() {
     MPI_Win_free(&status_win);
 		MPI_Free_mem(status);
     delete status_lock;
-		delete task_queue;
+		//delete task_queue;
+		delete task_stack;
 };
 
 
@@ -62,19 +64,22 @@ bool Master::terminate() {
 };
 
 bool Master::available(int dst_id) {
-	return !task_queue->is_full(dst_id);
+	//return !task_queue->is_full(dst_id);
+	return !task_stack->is_full(dst_id);
 };
 
 bool Master::send_job(int dst_id, _stub *job) { 
-	return task_queue->enqueue(dst_id, job);
+	//return task_queue->enqueue(dst_id, job);
+	return task_stack->push(dst_id, job);
 };
 
 _stub *Master::get_job() { 
-	return task_queue->dequeue(id);
+	//return task_queue->dequeue(id);
+	return task_stack->pop(id);
 };
 
-
 bool Master::has_job() {
-	return !task_queue->is_empty(id);
+	//return !task_queue->is_empty(id);
+	return !task_stack->is_empty(id);
 };
 
