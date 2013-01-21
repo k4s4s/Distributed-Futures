@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt,twoside,openright]{book}
+%% For screen reading please replace documentclass with:
+%% \documentclass[a4paper,11pt]{report}
+
+\usepackage{graphicx}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{verbatim}
+\usepackage[numbers]{natbib}
+\usepackage[greek,english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{slantsc}
+\usepackage[T1]{fontenc}
+
+\hypersetup{
+    bookmarks=true,            % show bookmarks bar?
+    unicode=true,              % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,           % show Acrobat’s toolbar?
+    pdfmenubar=true,           % show Acrobat’s menu?
+    pdffitwindow=true,         % window fit to page when opened
+    pdftitle={Master Thesis},  % title
+    pdfborder={ 0 0 0 }        % uBorder tin links
+}
+
+\long\def\symbolfootnote[#1]#2  
+    {\begingroup
+    \def\thefootnote{\fnsymbol{footnote}}\footnote[#1]{#2}
+    \endgroup}
+\renewcommand{\baselinestretch}{1}\small\normalsize
+\textwidth=390pt
+\oddsidemargin = 50pt
+\evensidemargin = 0pt
+
+%% For screen reading please replace odd/even side margin with:
+%% \oddsidemargin = 25pt
+%% \evensidemargin = 25pt
+
+\newcommand{\worksupportedby}{\symbolfootnote[0]{
+Optionally: 
+This work was partially supported by {\bf fill in sponsor name}
+}}
+\newcommand{\thesisdate}{December 2012}
+
+\begin{document}
+\lstset{language=C++}
+\input {./frontpage.tex}
+\input{./signatures.tex}
+\input{./abstract_en.tex}
+\input{./abstract_gr.tex}
+\input{./ack.tex}
+\pagenumbering{Roman}
+\pagestyle{plain}
+\tableofcontents
+\listoffigures
+\listoftables
+\pagenumbering{arabic}
+\pagestyle{headings}
+\input{./introduction.tex}
+\input{./related.tex}
+\input{./implementation.tex}
+\input{./methodology.tex}
+\input{./results.tex}
+\input{./comparison.tex}
+\input {./conclusions.tex}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
