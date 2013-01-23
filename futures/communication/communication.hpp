@@ -21,6 +21,7 @@ public:
     virtual void get_status(int* val) = 0;
     virtual void set_status(int* val) = 0;
     virtual MPI_Comm get_comm() = 0;
+		virtual Shared_pointer get_shared_pointer() = 0;
 };
 
 class CommInterface {

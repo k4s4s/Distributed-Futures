@@ -7,7 +7,7 @@
 * TODO:Maybe having multiple one-sided comms in the same "epoch" will be better for performance
 * ISSUE:cannot use function pointers, since they cannot be serialized.  Maybe we could
 	serialize an id or something and then reconstruct it on worker end.
-* TODO:maybe change how termination works, have workers look their local variable
 * ISSUE:crashes if run for 1 proc
 * ISSUE:quicksort deadlocks for larger arrays 
+* TODO:fix shared memory allocator
 

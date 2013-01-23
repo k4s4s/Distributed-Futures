@@ -128,9 +128,7 @@ template <class T> future<T>::future(int _src_id, int _dst_id,
     data = _data;
 };
 
-template <class T> future<T>::~future() {
-    /* shared data is deleted at get*/
-};
+template <class T> future<T>::~future() {};
 
 template <class T> bool future<T>::is_ready() {
     if(ready_status) return true;
@@ -158,6 +156,8 @@ template <class T> T future<T>::get() {
     }
 		STOP_TIMER("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
+		//env->free(sharedData->get_shared_pointer());
+		delete sharedData;
     return data;
 };
 

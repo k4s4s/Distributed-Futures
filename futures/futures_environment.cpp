@@ -2,8 +2,6 @@
 #include "futures_environment.hpp"
 #include "scheduler/RR.hpp"
 #include "communication/MPIComm.hpp"
-//#include "communication/ARMCIComm.hpp"
-//#include "communication/MPIAsyncComm.hpp"
 #include "details.hpp"
 #include "boost/mpi.hpp"
 #include <iostream>

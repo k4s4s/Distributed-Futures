@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);
 	
 	power f;
-	future<int> message = async(f, 2, 4);
+	future<int> message = async(f, 2, 10);
 
 	cout << "- Master :Result is " <<message.get() << endl;
 	
