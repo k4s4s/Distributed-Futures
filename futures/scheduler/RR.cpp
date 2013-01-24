@@ -80,9 +80,12 @@ void RRScheduler::schedule_proc() {
 	int id;
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 	while(proc->has_job()) {
-		//DPRINT_VAR("\tRRScheduler:worker has job! ", id);
+		DPRINT_VAR("RRScheduler:worker has job! ", id);
+		DPRINT_VAR("\tRRScheduler:setting status to running ", id);
 		proc->set_status(scheduler::ProcStatus::RUNNING);
+		DPRINT_VAR("\tRRScheduler:receiving job ", id);
 		_stub *job = proc->get_job();
+		DPRINT_VAR("\tRRScheduler:running job! ", id);
 		job->run();
 		proc->set_status(scheduler::ProcStatus::IDLE);
 	}

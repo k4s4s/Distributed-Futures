@@ -6,9 +6,8 @@
 #include <MPIMutex.hpp>
 #include "../future_fwd.hpp"
 
-#define MAX_STACK_SIZE 1000
-#define ELEMENT_SIZE (sizeof(int)*sizeof(_stub_wrapper))
-#define TASKSTACK_SIZE MAX_STACK_SIZE*ELEMENT_SIZE+2*sizeof(int)
+#define MAX_STACK_SIZE 1000 //waste of space though...
+#define TASKSTACK_SIZE 4*1024*1024*8 //4MB
 #define STACK_START_OFFSET 2*sizeof(int)
 #define SIZE_OFFSET 0
 #define HEAD_OFFSET sizeof(int)

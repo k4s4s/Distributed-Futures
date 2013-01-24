@@ -50,6 +50,7 @@ private:
 	std::list<Shared_pointer> allocated_list;
 	/*insert in sorted fashion with binary search*/
 	void list_insert(std::list<Shared_pointer>& list, Shared_pointer& element);
+	void print_list(std::list<Shared_pointer>& list);
 public:
 	MPI_Shared_memory();
 	~MPI_Shared_memory();

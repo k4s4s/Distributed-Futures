@@ -27,7 +27,7 @@ private:
     _stub *task;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int /* file_version */) {
-        ar & task;
+        ar & BOOST_SERIALIZATION_NVP(task);
     };
 public:
     _stub_wrapper() {};
@@ -39,5 +39,7 @@ public:
 };
 
 }
+
+BOOST_CLASS_IS_WRAPPER(futures::_stub_wrapper);
 
 #endif

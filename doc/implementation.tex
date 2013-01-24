@@ -2,13 +2,32 @@
 
 	We have implemented the distributed futures using the one-sided mpi library.  
 
-\section{MPI one-sided communication}
-maybe should go to the intro
-
 \section{Futures Interface}
+We replicate the futures interface from the C++ std::future library, with the only difference being that 
+the the function being called must be a functor object.  Fiture (ref) shows a recursive implementation
+of the fibonacci function using our future library.  The user needs to create a functor, which must be
+serializable*(footnote here about boost::serialization), and use the macro 
+FUTURES\_ EXPORT\_ FUNCTOR(async\_ function<fib, int>) to expose the functor object to the serialization library.
+Note that the argument to the macro command is always async\_ function<F, Args...>, where F is functor class
+and Args are the argument types, of any arbitary number, that are required by the overloaded call method 
+of the functor F.  A call to the async(F, Args...) function, where F is a functor object and Args is any number of arguments,
+will send the functor object to an available process or execute 
+the functor directly, if no such process is found (see SECTION for details). The async function returnd a 
+Future object which can be used by the process that called the async function to retrieve the value.  
+In order to retrieve the value,
+the owner of the future needs to call the get() method.  This method is blocking, so calling it will cause the 
+process to block until the value of the future becomes available.  Alternatively, the future owner can call the
+is\_ ready() method, which is not blocking, to check if the value can be retrieved. 
 
 \section{Communication}
+Overall description of how stuff work, logic behind async and future value retrieval, more details of each module
+at each section. Figure of program flow
 
 \section{Memory allocation}
+Explain the implementation
+Maybe figures...hmmm check Modern operating systems book
 
 \section{Scheduler}
+Explain implementation
+Maybe say alternatives (will seem weak if we do not support why we do what we do)
+Keep in mind that scheduling and Memory allocator are pretty standard stuff, proof of concept

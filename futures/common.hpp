@@ -1,4 +1,10 @@
+
+#ifndef _COMMON_H
+#define _COMMON_H
+
 #include "stats/stats.hpp"
+#include <mpi.h>
+#include "logger/logger.hpp"
 
 #ifndef DEBUG
 #define DPRINT_VAR(m, x)
@@ -8,5 +14,7 @@
 	std::cout << m << #x << ":" << x << std::endl;
 #define DPRINT_MESSAGE(x) \
 	std::cout << x << std::endl;
+#endif
+
 #endif
 

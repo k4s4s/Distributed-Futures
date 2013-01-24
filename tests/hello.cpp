@@ -26,6 +26,7 @@ int helloWorld_func() {
 	return id;
 };
 
+FUTURES_SERIALIZE_CLASS(helloWorld);
 FUTURES_EXPORT_FUNCTOR((async_function<helloWorld>));
 
 int main(int argc, char* argv[]) {

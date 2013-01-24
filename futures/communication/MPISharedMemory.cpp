@@ -48,8 +48,22 @@ void MPI_Shared_memory::list_insert(std::list<Shared_pointer>& list, Shared_poin
 	return;
 }
 
+void MPI_Shared_memory::print_list(std::list<Shared_pointer> &list) {
+	std::list<Shared_pointer>::iterator it;
+	DPRINT_VAR("\t\t\tShare Mem:list:", list.size());
+	for(it = list.begin(); it != list.end(); ++it) {
+		DPRINT_VAR("\t\t\tShare Mem:list:", (*it).base_address);	
+		DPRINT_VAR("\t\t\tShare Mem:list:", (*it).size);
+		DPRINT_MESSAGE("\t\t\t============");
+	}
+	return;
+};
+
 Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 	size += DATA_OFFSET;
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	DPRINT_VAR("\t\t\tShared Memory:Trying to allocate memory on ", rank);
 	/*find a large enough space, with first fit*/
 	std::list<Shared_pointer>::iterator it;
 	Shared_pointer ptr;
@@ -57,7 +71,6 @@ Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 	for(it=free_list.begin(); it!=free_list.end(); ++it) {
 		if((*it).size >= size) {
 			DPRINT_VAR("\t\t\tShared Mem:Allocated ", size);
-			free_list.erase(it);
 			ptr.base_address = (*it).base_address;
 			ptr.size = size;
 			(*it).base_address += size+1;
@@ -68,6 +81,7 @@ Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 	if(ptr.base_address == ptr.size) {
 		DPRINT_VAR("\t\t\tShared Mem:Could not allocate ",size);	
 	}
+	//print_list(free_list);
 	assert(ptr.base_address != ptr.size); //TODO: if this fails, throw an exception and run on self
 	return ptr;
 };

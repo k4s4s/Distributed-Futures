@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  21 JAN 2013 01:33
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  24 JAN 2013 01:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -485,15 +485,19 @@ Underfull \hbox (badness 10000) in paragraph at lines 3--4
 
 ]
 Chapter 1.
-) (./related.tex) (./implementation.tex [3] [4
-
-]
+) (./related.tex [3]) (./implementation.tex [4]
 Chapter 2.
-) (./methodology.tex [5] [6
 
-]
+Underfull \vbox (badness 1337) has occurred while \output is active []
+
+ [5
+
+])
+(./methodology.tex [6]
 Chapter 3.
-) (./results.tex [7] [8
+) (./results.tex [7
+
+] [8
 
 ]
 Chapter 4.
@@ -513,16 +517,16 @@ Package atveryend Info: Empty hook `AfterLastShipout' on input line 73.
 Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 73.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 73.
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 169B9E5C5CB5DB0BFB9EED804341A3DD;3178.
+(rerunfilecheck)             Checksum: CD920FFD58A63A4EE61820136274EB04;3167.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 73.
  ) 
 Here is how much of TeX's memory you used:
- 9929 strings out of 494984
- 139289 string characters out of 3180431
- 248504 words of memory out of 3000000
- 12943 multiletter control sequences out of 15000+200000
- 25654 words of font info for 54 fonts, out of 3000000 for 9000
+ 9933 strings out of 494984
+ 139342 string characters out of 3180431
+ 248492 words of memory out of 3000000
+ 12945 multiletter control sequences out of 15000+200000
+ 27194 words of font info for 56 fonts, out of 3000000 for 9000
  59 hyphenation exceptions out of 8191
  32i,10n,58p,323b,491s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on thesis.dvi (26 pages, 44336 bytes).
+Output written on thesis.dvi (26 pages, 48268 bytes).

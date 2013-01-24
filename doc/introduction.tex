@@ -4,10 +4,26 @@ using MPI-2's one-sided communication.
 
 
 \section{Motivation}
+Parallel computing has been mpla mpla mpla.
+The two most dominant and widely used programming models are threads and message passing.
+Threads are used on shared memory machines and require locking (error prone) while message
+passing can be used on either shared or distributed memory. Describe message passing, say
+its tough, talk about one sided communication, refer to ARMCI, ARMI, Charm++, Global address
+space languages, MPI-2 etc.  Say that mpi is widely used and is implemented on most machines,
+thus we want to check out its one sided interface, which has not received acceptance due to (?)
+(check all that stuff I've read about how tought it is, mpla mpla).  Also need to mention the
+future interface, and why we use it. Ease o programming, exposing irregular patterns(?).
+
+Note:global arrays guys have already made arguments about one sided comm of mpi-2 
 
 \section{Background}
-stuff about mpi one sided comm
+\subsection{Futures}
+Background on futures, mention languages that implement it as well as std and boost in C++.
+Example code and explanation.
+\subsection{MPI one-sided communication}
+Maybe mention again thins from intro.  Explain the interface (windows, epochs, put, get).
+Maybe a small example.
 
-\section{Methodology}
+\section{Related Work}
+RMI, RMC, HPX, STAPL's comm library
 
-\section{Other section}

@@ -1,7 +1,7 @@
 CC=mpic++
 CCFLAGS=-g -DDEBUG -std=c++0x
 LDFLAGS=-lboost_mpi -lboost_serialization -L./lib/ -lfuture -lmutex -L/home/kasas/libs/armci_mpi/lib/ -larmci
-INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/ -I/home/kasas/libs/armci_mpi/include
+INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/
 LIB_DIR=lib
 BIN_DIR=bin
 
@@ -9,10 +9,12 @@ FUTURES_SOURCES = $(wildcard futures/*.cpp)
 FUTURES_SOURCES += $(wildcard futures/communication/*.cpp)
 FUTURES_SOURCES += $(wildcard futures/scheduler/*.cpp)
 FUTURES_SOURCES += $(wildcard futures/stats/*.cpp)
+FUTURES_SOURCES += $(wildcard futures/logger/*.cpp)
 FUTURES_HEADERS = $(wildcard futures/*.hpp)
 FUTURES_HEADERS += $(wildcard futures/communication/*.hpp)
 FUTURES_HEADERS += $(wildcard futures/scheduler/*.hpp)
 FUTURES_HEADERS += $(wildcard futures/stats/*.hpp)
+FUTURES_HEADERS += $(wildcard futures/logger/*.hpp)
 FUTURES_OBJECTS = $(FUTURES_SOURCES:.cpp=.o)
 FUTURES_LIB = $(LIB_DIR)/libfuture.a
 

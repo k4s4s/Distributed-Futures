@@ -18,6 +18,15 @@
 		
 
 #define FUTURES_EXPORT_FUNCTOR(F) BOOST_CLASS_EXPORT(IDENTITY_TYPE(F))
+
+#define FUTURES_SERIALIZE_CLASS(C) \
+	namespace boost { \
+	namespace serialization { \
+	template<class Archive> \
+	void serialize(Archive & ar, C c, const unsigned int version) {}; \
+	} \
+	}
+
 //#define FUTURES_EXPORT_FUNCTION(F) BOOST_CLASS_EXPORT()
 
 

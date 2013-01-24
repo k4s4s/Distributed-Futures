@@ -1,12 +1,14 @@
 
 #include "futures.hpp"
 #include <iostream>
+#include <cstdlib>
 #define MASTER 0
 
 using namespace std;
 using namespace futures;
 
 class fib {
+private:
 public:
 	fib() {};
 	~fib() {};
@@ -21,15 +23,30 @@ public:
 
 };
 
+FUTURES_SERIALIZE_CLASS(fib);
 FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
 
 int main(int argc, char* argv[]) {
+	
 	Futures_Initialize(argc, argv);
 	
-	fib f = fib();
-	future<int> result = async(f, 5);
+	int a;
+	char c;
 
-	cout << "- Master :Result is " <<result.get() << endl;
+	while ((c = getopt(argc, argv, "a:")) != -1)
+	switch (c)	{
+		case 'a':
+			a = atoi(optarg);	 
+		 	break;
+	 	default:
+			cout << "Master:No value for which to calculate the fibonacci number was given" << endl;
+			break;		
+	}
+
+	fib f = fib();
+	future<int> result = async(f, a);
+
+	cout << "- Master:Result is " <<result.get() << endl;
 
 	Futures_Finalize();
 	cout << "done!";

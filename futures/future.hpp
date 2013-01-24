@@ -36,10 +36,17 @@ class async_function : public _stub {
 private:
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */) {
-        ar & boost::serialization::base_object<_stub>(*this);
-				ar & dst_id & src_id & ptr & data_size & type_size & args;
+    void serialize(Archive & ar, const unsigned int) {
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(_stub);
+				ar & BOOST_SERIALIZATION_NVP(dst_id) 
+					& BOOST_SERIALIZATION_NVP(src_id) 
+					& BOOST_SERIALIZATION_NVP(ptr) 
+					& BOOST_SERIALIZATION_NVP(data_size)
+					& BOOST_SERIALIZATION_NVP(type_size)
+					&	BOOST_SERIALIZATION_NVP(f) 
+					& BOOST_SERIALIZATION_NVP(args);
     };
+public:
 		int src_id;
 		int dst_id;
 		communication::Shared_pointer ptr;
@@ -48,7 +55,6 @@ private:
     F f;
   	std::tuple<Args...> args;
     typename std::result_of<F(Args...)>::type retVal;
-public:
     async_function();
     async_function(int _src_id, int _dst_id, 
 									communication::Shared_pointer _ptr, 
@@ -72,7 +78,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
     //get worker id and wake him
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
-		if(worker_id == id) { //FIXME: checking if things can work without this code, just for master
+		if(worker_id == id && id ==  0) { //FIXME: checking if things can work without this code, just for master
 		  DPRINT_VAR("\tASYNC:running on self", id);
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
@@ -156,7 +162,7 @@ template <class T> T future<T>::get() {
     }
 		STOP_TIMER("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
-		//env->free(sharedData->get_shared_pointer());
+		env->free(sharedData->get_shared_pointer());
 		delete sharedData;
     return data;
 };
@@ -183,7 +189,7 @@ template <class F, class... Args>
 void async_function<F, Args...>::run() {
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
-    DPRINT_VAR("\tJOB:Running job on worker", id);
+    DPRINT_VAR("JOB:Running job on worker", id);
     communication::Shared_data *sharedData;
     sharedData = env->new_Shared_data(dst_id, ptr, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(

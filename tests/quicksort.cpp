@@ -127,7 +127,8 @@ public:
 		return array;
 	}
 };
- 
+
+FUTURES_SERIALIZE_CLASS(quicksort);
 FUTURES_EXPORT_FUNCTOR((async_function<quicksort, vector<long>, int>));
 
 ////////////////////////////////////////////////////////////

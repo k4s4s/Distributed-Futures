@@ -42,22 +42,23 @@ bool taskStack::push(int dst_id, _stub *job) {
                         							1, MPI_INT, taskS_win, NULL);
 	if(curr_size >= MAX_STACK_SIZE) return false;
 	/* add new task to list */
-  communication::details::lock_and_put((void*)(&oa.size()), 1, MPI_INT, dst_id, curr_head,
+	/*
+	DPRINT_VAR("\t\ttaskstack:Push:inserting at ", curr_head);
+	DPRINT_VAR("\t\ttaskstack:Push:till", curr_head+oa.size());
+	DPRINT_VAR("\t\ttaskstack:Push:count ", oa.size());
+	*/
+  communication::details::lock_and_put((void*)(&oa.size()), 1, MPI_INT, dst_id, curr_head+oa.size(),
                           1, MPI_INT, taskS_win, NULL);
   communication::details::lock_and_put(const_cast<void*>(oa.address()), oa.size(), MPI_PACKED, dst_id, 
-													curr_head+TASK_OFFSET, oa.size(), MPI_PACKED, taskS_win, NULL);
-	/* set new list tail */
-	curr_head += ELEMENT_SIZE;
+													curr_head, oa.size(), MPI_PACKED, taskS_win, NULL);
+	/* set new list head */
+	curr_head += TASK_OFFSET+oa.size();
 	curr_size++;
   communication::details::lock_and_put((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
                           						1, MPI_INT, taskS_win, NULL);
   communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
                           						1, MPI_INT, taskS_win, NULL);
 	taskS_lock->unlock(dst_id);
-	/*
-	DPRINT_VAR("\t\ttaskstack:Push:head ", curr_head);
-	DPRINT_VAR("\t\ttaskstack:Push:count ", oa.size());
-	*/
 	return true;
 };
 
@@ -75,21 +76,22 @@ _stub *taskStack::pop(int dst_id) {
 		return NULL;
 	/* get next task */
   int count;
-  communication::details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, curr_head-ELEMENT_SIZE,
+  communication::details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, curr_head-TASK_OFFSET,
                           						1, MPI_INT, taskS_win, NULL);
   // Prepare input buffer and receive the message
 	/*
-	DPRINT_VAR("\t\ttaskstack:Pop:head ", curr_head);
-	DPRINT_VAR("\t\ttaskstack:Pop:size ", curr_size);
+	DPRINT_VAR("\t\ttaskstack:Pop:actual head ", curr_head);
+	DPRINT_VAR("\t\ttaskstack:Pop:poping from ", curr_head-count-TASK_OFFSET);
 	DPRINT_VAR("\t\ttaskstack:Pop:count ", count);  
 	*/
 	ia.resize(count);
   communication::details::lock_and_get(const_cast<void*>(ia.address()), ia.size(), MPI_PACKED, dst_id,
-                          curr_head-ELEMENT_SIZE+TASK_OFFSET, ia.size(), MPI_PACKED, taskS_win, NULL);
+                          curr_head-count-TASK_OFFSET, ia.size(), MPI_PACKED, taskS_win, NULL);
   _stub_wrapper tw;
   ia >> tw;
 	/* set new list head */
-	curr_head -= ELEMENT_SIZE;
+	curr_head -= TASK_OFFSET+count;
+	//DPRINT_VAR("\t\ttaskstack:Pop:next head ", curr_head-count-TASK_OFFSET);
 	curr_size--;
   communication::details::lock_and_put((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
                           						1, MPI_INT, taskS_win, NULL);
