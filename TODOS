@@ -1,13 +1,8 @@
 * TODO:Allow futures to return exceptions
-* Find a way to delete array of objects...if you simply delete allocated data it causes an error in glibc
-	- preferably the interface should not work with pointers, but with objects, in any case
-		since we have support now, just leave it as is
+* TODO:Handle pointers(?)
 * FIXME:specialize futures for void return type
 * TODO:Maybe having multiple one-sided comms in the same "epoch" will be better for performance
-* ISSUE:cannot use function pointers, since they cannot be serialized.  Maybe we could
-	serialize an id or something and then reconstruct it on worker end.
-* ISSUE:crashes if run for 1 proc
-* ISSUE:quicksort deadlocks for larger arrays 
-* TODO:fix shared memory allocator
-*	ISSUE: serialization seems to crash for some types (e.g. for power:double->double->double)
+* FIXME:crashes if run for 1 proc
+* FIXME:quicksort still buggy 
+*	FIXME: serialization seems to crash for some types (e.g. for power = double->double->double)
 

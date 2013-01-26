@@ -71,7 +71,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 		START_TIMER("job_issue_time");
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
-    DPRINT_VAR("ASYNC:call to async from ", id);
+    //DPRINT_VAR("ASYNC:call to async from ", id);
     int type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
                     (details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());
 
@@ -79,7 +79,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
 		if(worker_id == id && id ==  0) { //FIXME: checking if things can work without this code, just for master
-		  DPRINT_VAR("\tASYNC:running on self", id);
+		  //DPRINT_VAR("\tASYNC:running on self", id);
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
@@ -93,10 +93,10 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 		  _stub *job = new async_function<F, Args...>(worker_id, id, ptr,
 																									data_size, type_size, 
 																									f, args...);		
-			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
+			//DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, sharedData);
 			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
-		  	DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
+		  	//DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
 				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 			};
@@ -162,6 +162,8 @@ template <class T> T future<T>::get() {
     }
 		STOP_TIMER("idle_time");
     data = details::_get_data<T>()(sharedData, details::_is_mpi_datatype<T>());
+		//int reset = 0;		
+		//sharedData->set_status(&reset);
 		env->free(sharedData->get_shared_pointer());
 		delete sharedData;
     return data;
@@ -189,7 +191,7 @@ template <class F, class... Args>
 void async_function<F, Args...>::run() {
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
-    DPRINT_VAR("JOB:Running job on worker", id);
+    //DPRINT_VAR("JOB:Running job on worker", id);
     communication::Shared_data *sharedData;
     sharedData = env->new_Shared_data(dst_id, ptr, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
@@ -197,9 +199,9 @@ void async_function<F, Args...>::run() {
 																			env->get_data_window(), env->get_data_lock());
     //execute work
     stats::StatManager *statManager = stats::StatManager::Instance();
-		statManager->start_timer("job_execution_time");
+		//statManager->start_timer("job_execution_time");
 		retVal = apply(f, args);
-		statManager->stop_timer("job_execution_time");
+		//statManager->stop_timer("job_execution_time");
     //return value to future
     details::_set_data<typename std::result_of<F(Args...)>::type>()(sharedData, retVal,
             details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>());

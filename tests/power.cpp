@@ -1,8 +1,11 @@
 
 #include "futures.hpp"
 #include <iostream>
+#include <cstdlib>
 
 #define MASTER 0
+#define DEFAULT_A 1
+#define DEFAULT_N 2
 
 using namespace std;
 using namespace futures;
@@ -35,7 +38,8 @@ int main(int argc, char* argv[]) {
 
 	Futures_Initialize(argc, argv);
 
-	int a, n;
+	int a = DEFAULT_A, n = DEFAULT_N;
+	char c;
 
 	while ((c = getopt(argc, argv, "a:n:")) != -1)
 	switch (c)	{
@@ -45,9 +49,7 @@ int main(int argc, char* argv[]) {
 		case 'n':
 			n = atoi(optarg);	 
 		 	break;
-
 	 	default:
-			cout << "Master:No value for which to calculate the fibonacci number was given" << endl;
 			break;		
 	}
 	

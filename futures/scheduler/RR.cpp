@@ -55,16 +55,16 @@ int RRScheduler::nextAvaibleWorkerId() {
 		curr_worker_id = (curr_worker_id==0)?curr_worker_id+1:curr_worker_id;
 	 	communication::details::lock_and_put((void*)&curr_worker_id, 1, MPI_INT, 0, 
 													0, 1, MPI_INT, sched_win, sched_lock);
-		DPRINT_VAR("\tRRSched:next proc in RR is ", curr_worker_id);
+		//DPRINT_VAR("\tRRSched:next proc in RR is ", curr_worker_id);
 		//find the next idle or at least avaible proc
 		for(int i = curr_worker_id; i < total_workers; i++) {	
 			if(proc->available(i)) {
-				DPRINT_VAR("\tRRSched:worker is available, ", curr_worker_id);
+				//DPRINT_VAR("\tRRSched:worker is available, ", curr_worker_id);
 				return i;	
 			}
 		}
 		//if we get here we didn't find any avaible procs, so run RR fashion
-		DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
+		//DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
     return curr_worker_id;
 };
 
@@ -80,12 +80,12 @@ void RRScheduler::schedule_proc() {
 	int id;
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 	while(proc->has_job()) {
-		DPRINT_VAR("RRScheduler:worker has job! ", id);
-		DPRINT_VAR("\tRRScheduler:setting status to running ", id);
+		//DPRINT_VAR("RRScheduler:worker has job! ", id);
+		//DPRINT_VAR("\tRRScheduler:setting status to running ", id);
 		proc->set_status(scheduler::ProcStatus::RUNNING);
-		DPRINT_VAR("\tRRScheduler:receiving job ", id);
+		//DPRINT_VAR("\tRRScheduler:receiving job ", id);
 		_stub *job = proc->get_job();
-		DPRINT_VAR("\tRRScheduler:running job! ", id);
+		//DPRINT_VAR("\tRRScheduler:running job! ", id);
 		job->run();
 		proc->set_status(scheduler::ProcStatus::IDLE);
 	}

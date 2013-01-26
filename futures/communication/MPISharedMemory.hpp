@@ -16,6 +16,7 @@
 #define STATUS_OFFSET 0
 #define AR_SIZE_OFFSET sizeof(int)
 #define DATA_OFFSET sizeof(int)+sizeof(int)
+#define NUM_OF_PAGES(x) ((x%PAGE_SIZE == 0)?(x/PAGE_SIZE):((x/PAGE_SIZE)+1)) 
 
 namespace futures {
 namespace communication {
@@ -30,6 +31,8 @@ private:
 public:
 	int base_address;
 	int size;
+	int num_of_pages;
+	int actual_size; //size*num_of_pages
 };
 
 struct compare : public std::binary_function<Shared_pointer, Shared_pointer, bool>

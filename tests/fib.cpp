@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #define MASTER 0
+#define DEFAULT_A 1
 
 using namespace std;
 using namespace futures;
@@ -30,7 +31,7 @@ int main(int argc, char* argv[]) {
 	
 	Futures_Initialize(argc, argv);
 	
-	int a;
+	int a = DEFAULT_A;
 	char c;
 
 	while ((c = getopt(argc, argv, "a:")) != -1)
@@ -39,7 +40,6 @@ int main(int argc, char* argv[]) {
 			a = atoi(optarg);	 
 		 	break;
 	 	default:
-			cout << "Master:No value for which to calculate the fibonacci number was given" << endl;
 			break;		
 	}
 
@@ -49,6 +49,6 @@ int main(int argc, char* argv[]) {
 	cout << "- Master:Result is " <<result.get() << endl;
 
 	Futures_Finalize();
-	cout << "done!";
+
 };
 
