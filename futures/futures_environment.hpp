@@ -55,7 +55,7 @@ public:
     int get_avaibleWorker();
 		communication::Shared_pointer alloc(int size);
 		void free(communication::Shared_pointer ptr);
-		MPI_Win get_data_window();
+		MPI_Win get_data_window(communication::Shared_pointer ptr);
 		MPIMutex *get_data_lock();
     void send_job(int dst_id, _stub *job);
     _stub *recv_job(int src_id);

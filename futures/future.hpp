@@ -89,7 +89,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 			sharedData = env->new_Shared_data(id, ptr, data_size, type_size, 
 																				details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
 		                                    	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
-																				env->get_data_window(), env->get_data_lock());
+																				env->get_data_window(ptr), env->get_data_lock());
 		  _stub *job = new async_function<F, Args...>(worker_id, id, ptr,
 																									data_size, type_size, 
 																									f, args...);		
@@ -196,7 +196,7 @@ void async_function<F, Args...>::run() {
     sharedData = env->new_Shared_data(dst_id, ptr, data_size, type_size,
                                       details::_get_mpi_datatype<typename std::result_of<F(Args...)>::type>()(
                                       	details::_is_mpi_datatype<typename std::result_of<F(Args...)>::type>()),
-																			env->get_data_window(), env->get_data_lock());
+																			env->get_data_window(ptr), env->get_data_lock());
     //execute work
     stats::StatManager *statManager = stats::StatManager::Instance();
 		//statManager->start_timer("job_execution_time");

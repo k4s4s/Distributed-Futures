@@ -132,8 +132,8 @@ int Futures_Environment::get_avaibleWorker() {
     return worker_id;
 };
 
-MPI_Win Futures_Environment::get_data_window() {
-	return sharedMemory->get_data_window();
+MPI_Win Futures_Environment::get_data_window(communication::Shared_pointer ptr) {
+	return sharedMemory->get_data_window(ptr);
 };
 
 MPIMutex *Futures_Environment::get_data_lock() {

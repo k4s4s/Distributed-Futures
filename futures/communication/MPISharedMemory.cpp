@@ -2,30 +2,70 @@
 #include "MPISharedMemory.hpp"
 #include "../common.hpp"
 #include <algorithm>
+#include <cstdlib>
 
 using namespace futures;
 using namespace communication;
 
-/*** MPI_Shared_memory implementation ***/
-MPI_Shared_memory::MPI_Shared_memory() {
-	MPI_Alloc_mem(SHARED_MEMORY_SIZE, MPI_INFO_NULL, &shared_memory);
-  MPI_Win_create(shared_memory, SHARED_MEMORY_SIZE, 1, MPI_INFO_NULL, 
+/*** memory pages implementation ***/
+memory_pages::memory_pages(int _page_size) {
+	page_size = _page_size;
+
+	if(page_size != PAGE_SIZE_OTHER) //attention!
+			total_size = SHARED_MEMORY_SIZE*page_size;
+	else
+			total_size = SHARED_MEMORY_SIZE*1024;
+	MPI_Alloc_mem(total_size, MPI_INFO_NULL, &shared_memory);
+  MPI_Win_create(shared_memory, total_size, 1, MPI_INFO_NULL, 
 								MPI_COMM_WORLD, &data_win);
-	data_lock = new MPIMutex(MPI_COMM_WORLD);
+
 	Shared_pointer free_mem;
 	free_mem.base_address = 0;
-	free_mem.size = free_mem.actual_size = SHARED_MEMORY_SIZE;
-	free_mem.num_of_pages = NUM_OF_PAGES(free_mem.size);
+	free_mem.size = free_mem.actual_size = total_size;
+	free_mem.num_of_pages = NUM_OF_PAGES(free_mem.size, page_size);
+	free_mem.page_size = page_size;
 	free_list.push_front(free_mem);
 };
 
-MPI_Shared_memory::~MPI_Shared_memory() {
+memory_pages::~memory_pages() {
   MPI_Win_free(&data_win);
   MPI_Free_mem(shared_memory);
+};
+
+/*** MPI_Shared_memory implementation ***/
+MPI_Shared_memory::MPI_Shared_memory() {
+
+	memory_pages* _8bpages = new memory_pages(PAGE_SIZE_8b);
+	memory_pages* _128bpages = new memory_pages(PAGE_SIZE_128b);
+	memory_pages* _1kbpages = new memory_pages(PAGE_SIZE_1kb);
+	memory_pages* _4kbpages = new memory_pages(PAGE_SIZE_4kb);
+	memory_pages* _otherpages = new memory_pages(PAGE_SIZE_OTHER);
+
+	freeLists.insert(
+		std::pair<int, memory_pages*>(PAGE_SIZE_8b, _8bpages));
+	freeLists.insert(
+		std::pair<int, memory_pages*>(PAGE_SIZE_128b, _128bpages));
+	freeLists.insert(
+		std::pair<int, memory_pages*>(PAGE_SIZE_1kb, _1kbpages));
+	freeLists.insert(
+		std::pair<int, memory_pages*>(PAGE_SIZE_4kb, _4kbpages));
+	freeLists.insert(
+		std::pair<int, memory_pages*>(PAGE_SIZE_OTHER, _otherpages));
+
+	data_lock = new MPIMutex(MPI_COMM_WORLD);
+};
+
+MPI_Shared_memory::~MPI_Shared_memory() {
+	//TODO:free list
+	std::map<int, memory_pages*>::iterator it;
+	for(it = freeLists.begin(); it != freeLists.end(); it++) {
+		delete it->second;
+	}
 	delete data_lock;
 };
 
-void MPI_Shared_memory::list_insert(std::list<Shared_pointer>& list, Shared_pointer& element) {
+void MPI_Shared_memory::list_insert(std::list<Shared_pointer>& list, 
+																	Shared_pointer& element) {
 	if(list.size() == 0) {
 		list.push_front(element);
 		return;
@@ -52,7 +92,7 @@ void MPI_Shared_memory::list_insert(std::list<Shared_pointer>& list, Shared_poin
 			list.erase(high);
 		}
 	} 
-	else if(high != free_list.end() && (*high).base_address == element.base_address+element.actual_size) {
+	else if(high != list.end() && (*high).base_address == element.base_address+element.actual_size) {
 		//merge two elements
 		//(*high).size += element.actual_size;
 		(*high).actual_size += element.actual_size;
@@ -60,7 +100,7 @@ void MPI_Shared_memory::list_insert(std::list<Shared_pointer>& list, Shared_poin
 		(*high).base_address = element.base_address;
 	}
 	else {
-		free_list.insert(it, element);	
+		list.insert(it, element);	
 	}
 	return;
 }
@@ -79,23 +119,28 @@ void MPI_Shared_memory::print_list(std::list<Shared_pointer> &list) {
 
 Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 	size += DATA_OFFSET;
+	int page_size;
+	PAGE_SIZE(page_size, size);
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	DPRINT_VAR("\t\t\tShared Memory:Trying to allocate memory on ", rank);
-	/*find a large enough space, with first fit*/
-	std::list<Shared_pointer>::iterator it;
+	DPRINT_VAR("\t\t\tShared Mem:Trying to allocate memory on ", rank);
+	std::map<int, memory_pages*>::iterator freeLists_it;
+	freeLists_it = freeLists.find(MAP_INDEX(page_size));
 	Shared_pointer ptr;
 	ptr.base_address = ptr.size = ptr.num_of_pages = 0;
-	int pages_needed = NUM_OF_PAGES(size);
-	for(it=free_list.begin(); it!=free_list.end(); ++it) {
+	ptr.page_size = page_size;
+	int pages_needed = NUM_OF_PAGES(size, page_size);
+	/*find a large enough space, with first fit*/
+	std::list<Shared_pointer>::iterator it;
+	for(it=freeLists_it->second->free_list.begin(); it!=freeLists_it->second->free_list.end(); ++it) {
 		if((*it).num_of_pages >= pages_needed) {
-			DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*PAGE_SIZE);
+			DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*page_size);
 			ptr.base_address = (*it).base_address;
 			ptr.size = size;
 			ptr.num_of_pages = pages_needed;
-			ptr.actual_size = pages_needed*PAGE_SIZE;
-			(*it).base_address += pages_needed*PAGE_SIZE;
-			(*it).size -= pages_needed*PAGE_SIZE;
+			ptr.actual_size = pages_needed*page_size;
+			(*it).base_address += pages_needed*page_size;
+			(*it).size -= pages_needed*page_size;
 			(*it).num_of_pages -= pages_needed;
 			(*it).actual_size -= ptr.actual_size;
 			break;
@@ -109,13 +154,19 @@ Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 };
 
 void MPI_Shared_memory::free(Shared_pointer ptr) {
-	char *_offset_address = static_cast<char*>(shared_memory)+ptr.base_address;
+	std::map<int, memory_pages*>::iterator freeLists_it;
+	freeLists_it = freeLists.find(MAP_INDEX(ptr.page_size));
+	char *_offset_address = 
+		static_cast<char*>(freeLists_it->second->shared_memory)+ptr.base_address;
 	bzero(_offset_address, sizeof(int));
-	list_insert(free_list, ptr);
+	list_insert(freeLists_it->second->free_list, ptr);
 };
 
-MPI_Win MPI_Shared_memory::get_data_window() {
-	return data_win;
+MPI_Win MPI_Shared_memory::get_data_window(Shared_pointer ptr) {
+	std::map<int, memory_pages*>::iterator freeLists_it;
+	freeLists_it = freeLists.find(MAP_INDEX(ptr.page_size));
+	int index = MAP_INDEX(ptr.page_size);
+	return freeLists_it->second->data_win;
 };
 	
 MPIMutex* MPI_Shared_memory::get_data_lock() {
