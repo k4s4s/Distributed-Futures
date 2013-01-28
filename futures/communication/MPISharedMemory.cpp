@@ -14,7 +14,7 @@ memory_pages::memory_pages(int _page_size) {
 	if(page_size != PAGE_SIZE_OTHER) //attention!
 			total_size = SHARED_MEMORY_SIZE*page_size;
 	else
-			total_size = SHARED_MEMORY_SIZE*1024;
+			total_size = SHARED_MEMORY_SIZE*1024*8;
 	MPI_Alloc_mem(total_size, MPI_INFO_NULL, &shared_memory);
   MPI_Win_create(shared_memory, total_size, 1, MPI_INFO_NULL, 
 								MPI_COMM_WORLD, &data_win);
@@ -133,7 +133,8 @@ Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 	/*find a large enough space, with first fit*/
 	std::list<Shared_pointer>::iterator it;
 	for(it=freeLists_it->second->free_list.begin(); it!=freeLists_it->second->free_list.end(); ++it) {
-		if((*it).num_of_pages >= pages_needed) {
+		DPRINT_VAR("\t\t\tShared Mem:Free Mem:", (*it).actual_size);
+		if((*it).actual_size >= pages_needed*page_size) {
 			DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*page_size);
 			ptr.base_address = (*it).base_address;
 			ptr.size = size;
@@ -147,7 +148,7 @@ Shared_pointer MPI_Shared_memory::allocate(unsigned int size) {
 		}
 	}
 	if(ptr.size == 0) {
-		DPRINT_VAR("\t\t\tShared Mem:Could not allocate ",size);	
+		DPRINT_VAR("\t\t\tShared Mem:Could not allocate ", pages_needed*page_size);	
 	}
 	assert(ptr.size != 0); //TODO: if this fails, throw an exception and run on self
 	return ptr;

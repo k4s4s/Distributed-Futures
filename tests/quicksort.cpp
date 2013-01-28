@@ -110,10 +110,10 @@ public:
  						vector<SortType> subarrA((right)-(part+1)+1), subarrB(part-1-left+1);
 						Copy(subarrA, array, part+1, right+1);
 						Copy(subarrB, array, left, part);
-						quicksort qsort1, qsort2;
+						quicksort qsort;
 						future<vector<SortType> > res1, res2;
-						res1 = async(qsort1, subarrA, deep-1);
-						res2 = async(qsort2, subarrB, deep-1);
+						res1 = async2(subarrA.size(), qsort, subarrA, deep-1);
+						res2 = async2(subarrB.size(), qsort, subarrB, deep-1);
             subarrA = res1.get();
             subarrB = res2.get();
 						Merge(array, subarrB, subarrA);
@@ -138,7 +138,7 @@ FUTURES_EXPORT_FUNCTOR((async_function<quicksort, vector<long>, int>));
 int main(int argc, char** argv) {
  
 		Futures_Initialize(argc, argv);
-    const long Size = 1000;//600000000;
+    const long Size = 100000;//600000000;
     vector<long> array(Size);
  
     // Create array

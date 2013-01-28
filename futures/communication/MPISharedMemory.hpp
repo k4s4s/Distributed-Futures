@@ -24,10 +24,10 @@
 #define DATA_OFFSET sizeof(int)+sizeof(int)
 #define NUM_OF_PAGES(x, n) ((x%n == 0)?(x/n):((x/n)+1)) 
 #define PAGE_SIZE(x, n) \
-	if(n <= PAGE_SIZE_8b) x = PAGE_SIZE_8b; \
-	else if(n <= PAGE_SIZE_128b) x = PAGE_SIZE_128b; \
-	else if(n <= PAGE_SIZE_1kb) x = PAGE_SIZE_128b; \
-	else if(n <= PAGE_SIZE_4kb) x = PAGE_SIZE_4kb; \
+	if(n < PAGE_SIZE_8b) x = PAGE_SIZE_8b; \
+	else if(n < PAGE_SIZE_128b) x = PAGE_SIZE_128b; \
+	else if(n < PAGE_SIZE_1kb) x = PAGE_SIZE_128b; \
+	else if(n < PAGE_SIZE_4kb) x = PAGE_SIZE_4kb; \
 	else x = size;
 
 #define MAP_INDEX(x) (x > PAGE_SIZE_4kb)?(-1):x
