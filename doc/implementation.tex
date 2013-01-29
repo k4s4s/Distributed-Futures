@@ -1,33 +1,199 @@
 \chapter{Design and Implementation}
 
-	We have implemented the distributed futures using the one-sided mpi library.  
+We have implemented the distributed futures to be modeled, as closely as possible, 
+to the shared memory futures from the C++ standard library.  Parallelism in the future
+model is extracted by issuing functions asynchronously, using a special async funtion
+that takes the function to be executed in parallel as an argument (see SECTION for more
+details on the futures Interface). In our library, functions called using the async function,
+refered as \emph{jobs} from now on, are send to be executed by other avaible processes.  
+The decision of who executes a \emph{job} is made by a scheduler.  The host process can retrieve
+the return value of a job using the future object associated with the corresponding async call.
+A process can only retrieve a future's value if the job has finished execution, else it will block.
+In our implementation, the blocked process will try to execute any pending \emph{jobs} it might have
+while it is beeing blocked.  In our design, different aspects of the runtime library, such as process
+communication, hide its underlying implementation (e.g. MPI),  thus achieving a modular design.
+Our system consists out of three main modules: 
+The communication module, which is the backbone of the system
+and used by all other components in order to exchange messages and create a shared address space. 
+The Shared Memory Manager, which is an allocator for the shared address space between the processes.
+The Scheduler, which is responsible of handling how \emph{jobs} are send/received between processes
+and also decides who will run which process.
+
+
+Figure /ref shows the program flow of the simple
+hello world example in figure /ref.  Before any call to the library is made, the futures
+environment must be initialized, which in turn initializes all other library modules 
+(e.g. communication, scheduler, memory manager).
+All processes execute the main function, but only
+the master process will return from it and continue with the user program execution.
+All other processes will run our runtime's scheduler code and wait to receive jobs, wich
+are issued by a call to the async function.  The async function can be called from any process 
+and within other async calls, thus allowing recursive algorithms to be expressed.     
+
+
+In the rest of this chapter, we will present the future interface and discuss our specific underlying
+implementations of the the three core modules.
 
 \section{Futures Interface}
 We replicate the futures interface from the C++ std::future library, with the only difference being that 
 the the function being called must be a functor object.  Fiture (ref) shows a recursive implementation
 of the fibonacci function using our future library.  The user needs to create a functor, which must be
 serializable*(footnote here about boost::serialization), and use the macro 
-FUTURES\_ EXPORT\_ FUNCTOR(async\_ function<fib, int>) to expose the functor object to the serialization library.
-Note that the argument to the macro command is always async\_ function<F, Args...>, where F is functor class
+FUTURES\_EXPORT\_FUNCTOR(async\_function<fib, int>) to expose the functor object to the serialization library.
+Moreover, the user can use the FUTURES\_SERIALIZE(F) macro, where F is a functor object, 
+which will create the necessary serialization routines automatically, but is not recommended if the 
+functor object has members (see BOOST serialization for more details).
+Note that the argument to the macro command is always async\_function<F, Args...>, where F is functor class
 and Args are the argument types, of any arbitary number, that are required by the overloaded call method 
-of the functor F.  A call to the async(F, Args...) function, where F is a functor object and Args is any number of arguments,
+of the functor F.  A call to the async(F, Args...) function, where F is a functor object and Args is any number of 
+arguments,
 will send the functor object to an available process or execute 
-the functor directly, if no such process is found (see SECTION for details). The async function returnd a 
-Future object which can be used by the process that called the async function to retrieve the value.  
-In order to retrieve the value,
+the functor directly, if no such process is found (see SECTION for details). The async function returns a 
+future object which can be used by the process that called the async function to retrieve the 
+functor's return value.  If the return value is an array, a pointer or any other form of container, the user
+should instead call a variation of the async function, async(N, F, Args...), where N is number of elements
+that will be returned. In order to retrieve the value,
 the owner of the future needs to call the get() method.  This method is blocking, so calling it will cause the 
 process to block until the value of the future becomes available.  Alternatively, the future owner can call the
-is\_ ready() method, which is not blocking, to check if the value can be retrieved. 
+is\_ready() method, which is not blocking, to check if the value can be retrieved. 
 
 \section{Communication}
-Overall description of how stuff work, logic behind async and future value retrieval, more details of each module
-at each section. Figure of program flow
+The communication module is responsible for message exchange between all the process in our runtime system,
+as well as providing a shared address space.
+In our implementation the communication module uses MPI-2'S one-sided communication libary and the boost.mpi's
+input and output archives, for object serialization. 
+
+The communication module acts as a layer of abstraction between our system and the MPI libary.  It acts as
+a simple wrapper for initializing, finalizing MPI and simple send/receive operations.
+It is also capable of providing information of the MPI environment to the other components of our system (e.g.
+number of processs, rank e.t.c.).  Moreover, it can be used to expose part of a process' address space to other 
+processes.  
+
+\subsection{Shared Address Space}
+In our implementation, the underlying message passing library used is MPI-2, thus we use MPI windows to
+expose such space.  Exposing part of process' address space in the MPI-2 schema, requires that the needed
+space will be locally allocated to a pointer using the MPI\_Alloc\_mem, and then exposed to other processes
+through creating a window that is related to the pointer with MPI\_Create\_Win (See SECTION). 
+A drawback in MPI is that a window can be created only collectively over a group of processes,
+and in turn, a group can be created, again, only collectively over a paretnt group. 
+This requires either all windows to be created a priori at initialization, since our system requires that when
+issuing a job, only the sender and receiver should take part in the communication.  
+In order to overcome this limitation, we used the algorithm presented in /ref, which
+enables us to create a process group only between the processes that will be part of that group.  This way we 
+can dynamically allocate windows between any two processes, if needed.
+NOTE:say about epochs here?
+
+
+The communication library also provides the routines needed to write and read data from a shared address space,
+using the special Shared\_pointer construct (see SECTION).  This pointer keeps information of where the data is
+located within an MPI window in addition to the total size of the data associated with this pointer during its 
+allocation. Figure /ref shows how shared address space is structured and accessed.  Note that at the end of 
+allocated space related with a pointer, there is a field that contains the size of the data stored in the 
+particular space.  This size, is the size of the archive class used to serialize a functor or any other C++
+serializable object.  Thus the starting location of the data is computed by ... (more details here, check
+implementation to refresh my memory). (Why two different sizes? explain)
+
+\subsection{Mutexes}
+In order to synchronize accesses to shared memory addresses and other critical sections in our system, designed
+a mutex library, whith the same interface as the standard C++ mutex library, which is implemented
+for shared memory.  The only difference is that a call to lock, unlock or try\_lock requires the user to specify
+the id of the tareget process. We have adopted MPICH's implementation of mutexes in our design.  (Say how it 
+works)      
+
 
 \section{Memory allocation}
-Explain the implementation
-Maybe figures...hmmm check Modern operating systems book
+The Memory Manager module manages shared memory. It uses the communication module to create address spaces that
+are visible by all processes in our system and use the Shared\_pointer construct to describe a location in such
+shared memory.  This modules provides the functionallity of allocating and freeing space, from the shared address 
+space among all processes.  Our allocator is implemented using free lists in order to track free space as 
+described in /refModern Operating Systems.  However, we keep different free lists for different page sizes to deal
+with memory segmentation.  Figure /ref shows how memory is organized.  The shared address space is allocated a priori
+using the communication module, to create MPI windows in our current implementation.  This is ofcourse transparent to
+the Memory Manager module, since it uses Shared\_pointers to describe memory location, size etc.  
+The Shared\_pointer is a tuple  ptr<ID, BA, SZ, PSZ, PN, ASZ>, where id is the id of the process
+whose address space we want to address, BA is the base address that the data is located in a shared address space,
+SZ is the size of the data we want to allocate, PSZ is the page size the allocator used to allocate for this data,
+PN is the number of pages used and ASZ is the the actual size, which is PN*PSZ.   
+So, each freeList in figure /ref is actually a list of Shared\_pointers and a corresponding MPI window.  We choose
+to keep seperate windows for each free list because when locking an epoch access to an MPI window, the whole 
+window is locked, since MPI cannot lock only part of it (see SECTION).  
+
+
+When a process issues an async function, it needs to allocate space in its shared address space, for the worker process to store the future's value.  To allocate such space, the host process uses the shared memory manager. 
+The shared memory allocator tries to find the best page size
+fit for the data size, and searches the corresponding free list, using a first fit algorithm to find a large 
+enough space for the new data. If no fitting page size is found then the allocator uses a special freeList, 
+which does not use a predefined page size, but instead uses the data size to find free space.  If not enough free
+space is found in the correct free list, then the allocator can try to find data in another free list, of different
+page size.  Figure /ref shows a free list, before and after allocating an object of X size.  The first fit algorithm
+will iterate the list from the start untill it finds a large enough space for the object.  Each node in the free list,
+is a Shared\_pointer, which describes how much continueous space there is avaible.  When the allocator finds a large
+enough node, it removes from that node the size and number of pages it needs and sets it base address value accoringly.
+It then returns a new Shared\_pointer, that describes the memory space that will be now occupied from the data object.
+In the example in figure /ref, the base address will be ...
+
+
+As soon as a process retrieves a future value, it makes a local copy of it, and frees any shared address space
+that is associated with the future.  In order to free shared space, a process needs to provide the Shared\_pointer
+that was returned by the allocator routine.  The Shared\_pointer keeps information of the page size used to 
+allocate space, thus finding the correct free list is trivial, we just need to use the page size as an index.
+We then insert the Shared\_pointer in the free list in a sorted fushion, using the base address for comparison.
+This way, all free lists are sorted lists of Shared\_pointers by base address, so that if we find continueous
+space, we merge the list elements, resulting in larger block of free space.  Figure /ref shows a free list, before
+and after freeing some shared memory.
+
+(Things I would like to mention: Shared\_pointer needs to be serializable)
 
 \section{Scheduler}
-Explain implementation
-Maybe say alternatives (will seem weak if we do not support why we do what we do)
-Keep in mind that scheduling and Memory allocator are pretty standard stuff, proof of concept
+In order to have a distributed memory interface similar to the shared memory one, we chose to implement 
+a scheduler, which is responsible for deciding who will execute which \emph{job}.  If the user was 
+responsible for distributing \emph{jobs} among the processes,  he would need to reason about dependencies
+between \emph{jobs} and retrieving future values, else the program could easily end up in a deadlock.
+To make our case clear, consider the fibonacci example in figure /ref.  In our example, let's say we have
+3 processes, one of them is the master process.  We need to run fib(3), thus, process 0, the master process 
+can issue async(f, 2) to process 1 and async(f, 1) to process 2.  Process 1 can issue async(f, 1) to 
+process 2 and run async(f, 0) on itself.  In this scenario the program will execute correctly without any
+problems, since when any of the processes call a get() will either retrieve or wait for the value.  But 
+consider we want to compute fib(5).  Process 1 may have to run async(f, 4) while process 2 will have to run
+async(f, 3).  At some point, process 1 issues async(f, 3) to process 2, while process 2 issues an async(f, 2)
+to process 1.  Both processes will return from the async calls and proceed calling get() to retrieve the value
+but will actually block forever, since neither process will run the pending fibonacci functions.  This scenario
+is not a problem if processes are dynamically spawned, but if we have a static number of process, which is
+common for mpi programs, we need to address such issues.  
+
+
+Since it is not always trivial to reason about such dependencies, we have implemented our own \emph{job} 
+scheduler.  We use MPI-2's one-sided communication library (via the communication module) to implement task
+stacks, similar to their shared memory counterparts. We choose to implement a stack because it suits better
+future logic, we need to execute the latest issued \emph{job} in order for the get() not to block indefinitely
+in recursive algorithms.  Using one-sided communication, only the issuer needs to copy the functor object to
+the workers stack, as in a shared memory environment.  Figure /ref, show how a tasks stack is structured.  
+Note that an entry is composed by the functor object and its arguments (they are considered on object) and the 
+size of it. This is neccessary since different funtors and/or different arguments result in varying entry sizes.
+Thus, the exact location of a task is calculated using the stack head and functor object size values \footnote{
+functors and arguments are send/received as outpur/input archives, using boost.serialize library.}.
+
+
+Figure /ref shows a control flow graph for the master and worker processes.  The master simply initializes
+the futures environment and issues async functions while executing user code.  At the end it finalizes 
+the futures environment and calls the terminate routine from the scheduler.  The workers initialize 
+the futures environment, which must happen collectively among all workers and master and then enter a
+loop, looking for pending jobs in their queues until ther terminate routine returns true, in which case
+they exit the loop, finalize again collectively with all other processes and exit the program, without ever
+returning to the main function.  The scheduler is responsible for providing the functionallity of the terminate
+routines.  In our implementation the workers poll a local variable which they expose through the communication
+module as a shared variable.  The master, when calling his terminate routine, will check the status of every 
+worker.  A process can be either idle, busy or terminated.  Process status is again exposed by a shared variable
+on each process.  The master will check the status of all the processes and if all of them are in idle status, he
+will set the terminated flag to true on all of them.  If a process is still busy, meaning executes some \emph{job}
+or has still pending \emph{jobs} in its stack, the master must wait till all jobs are finished and then set the 
+terminated flags.
+
+When running user code or a \emph{job} and an async call is made, the process will address the scheduler in order
+to get the id of the next avaible process and allocates enough space for the return value to be stored.
+Then it asks the scheduler to send the job to the worker process.  In our implementation the scheduler 
+pushes the job the processes stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
+(excluding the master process, which should run user code).       
+         
+Alternatives - Why we did this
+

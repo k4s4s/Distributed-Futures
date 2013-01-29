@@ -2,7 +2,7 @@ This is BibTeX, Version 0.99d (TeX Live 2012/Debian)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: thesis.aux
 I couldn't open style file IEEEtran.bst
----line 79 of file thesis.aux
+---line 81 of file thesis.aux
  : \bibstyle{IEEEtran
  :                   }
 I'm skipping whatever remains of this command
