@@ -1,3 +1,8 @@
-\select@language {english}
+\select@language {french}
 \select@language {greek}
 \select@language {english}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces A simple hello world implementation using the distributed futures interface. The output of the program on process 0 would be "- Master :Hello 1".\relax }}{6}{figure.caption.4}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{7}{figure.caption.5}
+\addvspace {10\p@ }

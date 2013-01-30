@@ -11,11 +11,18 @@
 \usepackage{setspace}
 \usepackage{verbatim}
 \usepackage[numbers]{natbib}
-\usepackage[greek,english]{babel}
+\usepackage[greek,english,french]{babel}
 \usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
 \usepackage{slantsc}
 \usepackage[T1]{fontenc}
+
+%my packages
+\usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{subfig}
 
 \hypersetup{
     bookmarks=true,            % show bookmarks bar?
@@ -44,10 +51,27 @@
 Optionally: 
 This work was partially supported by {\bf fill in sponsor name}
 }}
-\newcommand{\thesisdate}{December 2012}
+\newcommand{\thesisdate}{February 2013}
 
 \begin{document}
-\lstset{language=C++}
+\lstset{
+  language=C++,
+  basicstyle=\sffamily,
+  columns=flexible,
+  numbers=left,
+  showstringspaces=false,
+  alsoletter={-},
+  literate={-}{-}1,
+  numbersep=1em,
+  xleftmargin=2.5em,
+  xrightmargin=1em,
+  escapeinside={@}{@},
+  commentstyle=\color{gray},
+  keywordstyle=\bf\color{blue},
+	keywordstyle=[2]\bf\color{blue},
+	keywords=[2]{async, future, Futures_Initialize, Futures_Finalize},
+	tabsize=2,
+}
 \input {./frontpage.tex}
 \input{./signatures.tex}
 \input{./abstract_en.tex}
@@ -63,9 +87,6 @@ This work was partially supported by {\bf fill in sponsor name}
 \input{./introduction.tex}
 \input{./related.tex}
 \input{./implementation.tex}
-\input{./methodology.tex}
-\input{./results.tex}
-\input{./comparison.tex}
 \input {./conclusions.tex}
 \bibliographystyle{IEEEtran}
 \bibliography{references}

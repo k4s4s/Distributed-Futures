@@ -3,8 +3,8 @@
 We have implemented the distributed futures to be modeled, as closely as possible, 
 to the shared memory futures from the C++ standard library.  Parallelism in the future
 model is extracted by issuing functions asynchronously, using a special async funtion
-that takes the function to be executed in parallel as an argument (see SECTION for more
-details on the futures Interface). In our library, functions called using the async function,
+that takes the function to be executed in parallel as an argument (see section ~\ref{sect:futures-interface}).
+In our library, functions called using the async function,
 refered as \emph{jobs} from now on, are send to be executed by other avaible processes.  
 The decision of who executes a \emph{job} is made by a scheduler.  The host process can retrieve
 the return value of a job using the future object associated with the corresponding async call.
@@ -19,9 +19,40 @@ The Shared Memory Manager, which is an allocator for the shared address space be
 The Scheduler, which is responsible of handling how \emph{jobs} are send/received between processes
 and also decides who will run which process.
 
+\begin{figure}[here]
+\begin{lstlisting}
+class helloWorld {
+public:
+	helloWorld() {};
+	~helloWorld() {};
+	int operator()() { 
+		int id = Futures_Id();
+		cout << "- Worker" << id << ":Hello Master" << endl;
+		return id;
+	};
+};
+
+FUTURES_SERIALIZE_CLASS(helloWorld);
+FUTURES_EXPORT_FUNCTOR((async_function<helloWorld>));
+
+int main(int argc, char* argv[]) {
+	Futures_Initialize(argc, argv);
+	helloWorld f;
+	future<int> message = async(f);
+
+	cout << "- Master :Hello " << message.get() << endl;
+
+	Futures_Finalize();
+};
+\end{lstlisting}
+\caption{
+A simple hello world implementation using the distributed futures interface.  
+The output of the program on process 0 would be "- Master :Hello 1".}
+\label{lst:hello}
+\end{figure}
 
 Figure /ref shows the program flow of the simple
-hello world example in figure /ref.  Before any call to the library is made, the futures
+hello world example in figure ~\ref{lst:hello}.  Before any call to the library is made, the futures
 environment must be initialized, which in turn initializes all other library modules 
 (e.g. communication, scheduler, memory manager).
 All processes execute the main function, but only
@@ -35,8 +66,9 @@ In the rest of this chapter, we will present the future interface and discuss ou
 implementations of the the three core modules.
 
 \section{Futures Interface}
+\label{sect:futures-interface}
 We replicate the futures interface from the C++ std::future library, with the only difference being that 
-the the function being called must be a functor object.  Fiture (ref) shows a recursive implementation
+the the function being called must be a functor object.  Figure ~\ref{lst:fib} shows a recursive implementation
 of the fibonacci function using our future library.  The user needs to create a functor, which must be
 serializable*(footnote here about boost::serialization), and use the macro 
 FUTURES\_EXPORT\_FUNCTOR(async\_function<fib, int>) to expose the functor object to the serialization library.
@@ -57,6 +89,33 @@ the owner of the future needs to call the get() method.  This method is blocking
 process to block until the value of the future becomes available.  Alternatively, the future owner can call the
 is\_ready() method, which is not blocking, to check if the value can be retrieved. 
 
+\begin{figure}[here]
+\begin{lstlisting}
+class fib {
+public:
+	fib() {};
+	~fib() {};
+	int	operator()(int n) {
+		if(n == 0) return 0;
+		if(n == 1) return 1;
+		fib f;
+		future<int> fib1 = async(f, n-1);
+		future<int> fib2 = async(f, n-2);
+		return fib1.get() + fib2.get();;
+	};
+};
+
+FUTURES_SERIALIZE_CLASS(fib);
+FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
+
+\end{lstlisting}
+\caption{A fibonacci implementation using the distributed futures interface}
+\label{lst:fib}
+\end{figure}
+
+
+
+
 \section{Communication}
 The communication module is responsible for message exchange between all the process in our runtime system,
 as well as providing a shared address space.
@@ -73,19 +132,21 @@ processes.
 In our implementation, the underlying message passing library used is MPI-2, thus we use MPI windows to
 expose such space.  Exposing part of process' address space in the MPI-2 schema, requires that the needed
 space will be locally allocated to a pointer using the MPI\_Alloc\_mem, and then exposed to other processes
-through creating a window that is related to the pointer with MPI\_Create\_Win (See SECTION). 
+through creating a window that is related to the pointer with MPI\_Create\_Win 
+(See section ~\ref{sect:mpi-one-sided}). 
 A drawback in MPI is that a window can be created only collectively over a group of processes,
 and in turn, a group can be created, again, only collectively over a paretnt group. 
 This requires either all windows to be created a priori at initialization, since our system requires that when
 issuing a job, only the sender and receiver should take part in the communication.  
-In order to overcome this limitation, we used the algorithm presented in /ref, which
+In order to overcome this limitation, we used the algorithm presented in ~\ref{}, which
 enables us to create a process group only between the processes that will be part of that group.  This way we 
 can dynamically allocate windows between any two processes, if needed.
 NOTE:say about epochs here?
 
 
 The communication library also provides the routines needed to write and read data from a shared address space,
-using the special Shared\_pointer construct (see SECTION).  This pointer keeps information of where the data is
+using the special Shared\_pointer construct (see section ~\ref{sect:memory-manager}).  
+This pointer keeps information of where the data is
 located within an MPI window in addition to the total size of the data associated with this pointer during its 
 allocation. Figure /ref shows how shared address space is structured and accessed.  Note that at the end of 
 allocated space related with a pointer, there is a field that contains the size of the data stored in the 
@@ -97,10 +158,15 @@ implementation to refresh my memory). (Why two different sizes? explain)
 In order to synchronize accesses to shared memory addresses and other critical sections in our system, designed
 a mutex library, whith the same interface as the standard C++ mutex library, which is implemented
 for shared memory.  The only difference is that a call to lock, unlock or try\_lock requires the user to specify
-the id of the tareget process. We have adopted MPICH's implementation of mutexes in our design.  (Say how it 
-works)      
+the id of the tareget process. We have adopted MPICH's implementation of mutexes in our design.  A mutex is a
+shared vector through an MPI window.  Each vector element is a byte value corresponding to one process.  When
+a process wants to hold the mutex lock, it sets its vector value at one and iterates through the rest of the 
+vetor to check if another process wants or has acquired the lock.  If the lock is acquired or another process 
+waits for it, then the current process blocks until it receives a message.  When unlocking, a process sets its 
+vector value to zero and then iterates through the vector to find and send a message to next process that is 
+waiting to acquire the lock.  
 
-
+\label{sect:memory-manager}
 \section{Memory allocation}
 The Memory Manager module manages shared memory. It uses the communication module to create address spaces that
 are visible by all processes in our system and use the Shared\_pointer construct to describe a location in such
@@ -116,7 +182,7 @@ SZ is the size of the data we want to allocate, PSZ is the page size the allocat
 PN is the number of pages used and ASZ is the the actual size, which is PN*PSZ.   
 So, each freeList in figure /ref is actually a list of Shared\_pointers and a corresponding MPI window.  We choose
 to keep seperate windows for each free list because when locking an epoch access to an MPI window, the whole 
-window is locked, since MPI cannot lock only part of it (see SECTION).  
+window is locked, since MPI cannot lock only part of it (see section ~\ref{sect:mpi-one-sided}).  
 
 
 When a process issues an async function, it needs to allocate space in its shared address space, for the worker process to store the future's value.  To allocate such space, the host process uses the shared memory manager. 
@@ -142,14 +208,16 @@ This way, all free lists are sorted lists of Shared\_pointers by base address, s
 space, we merge the list elements, resulting in larger block of free space.  Figure /ref shows a free list, before
 and after freeing some shared memory.
 
-(Things I would like to mention: Shared\_pointer needs to be serializable)
+(mention: Shared\_pointer needs to be serializable)
 
+\label{scheduler}
 \section{Scheduler}
 In order to have a distributed memory interface similar to the shared memory one, we chose to implement 
 a scheduler, which is responsible for deciding who will execute which \emph{job}.  If the user was 
 responsible for distributing \emph{jobs} among the processes,  he would need to reason about dependencies
 between \emph{jobs} and retrieving future values, else the program could easily end up in a deadlock.
-To make our case clear, consider the fibonacci example in figure /ref.  In our example, let's say we have
+To make our case clear, consider the fibonacci example in figure ~\ref{lst:fib}.  
+In our example, let's say we have
 3 processes, one of them is the master process.  We need to run fib(3), thus, process 0, the master process 
 can issue async(f, 2) to process 1 and async(f, 1) to process 2.  Process 1 can issue async(f, 1) to 
 process 2 and run async(f, 0) on itself.  In this scenario the program will execute correctly without any
@@ -193,7 +261,10 @@ When running user code or a \emph{job} and an async call is made, the process wi
 to get the id of the next avaible process and allocates enough space for the return value to be stored.
 Then it asks the scheduler to send the job to the worker process.  In our implementation the scheduler 
 pushes the job the processes stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
-(excluding the master process, which should run user code).       
+(excluding the master process, which should run user code). 
+
+
+      
          
 Alternatives - Why we did this
 
