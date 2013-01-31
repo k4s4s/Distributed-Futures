@@ -57,32 +57,39 @@
 \citation{Ramey:2004:Boost:Serialization}
 \citation{Gregor:2005:Boost:MPI}
 \citation{Ramey:2004:Boost:Serialization}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  The control flow of the hello world program in figture ~\ref  {lst:hello}.\relax }}{7}{figure.caption.5}}
-\newlabel{fig:helloCF}{{2.2}{7}{The control flow of the hello world program in figture ~\ref {lst:hello}.\relax \relax }{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  The control flow of the hello world program in figture~\ref  {lst:hello}.\relax }}{7}{figure.caption.5}}
+\newlabel{fig:helloCF}{{2.2}{7}{The control flow of the hello world program in figture~\ref {lst:hello}.\relax \relax }{figure.caption.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.1}Futures Interface}{7}{section.2.1}}
 \newlabel{sect:futures-interface}{{2.1}{7}{Futures Interface\relax }{section.2.1}{}}
-\citation{Dinan:2011:NCC:2042476.2042508}
 \@writefile{toc}{\contentsline {section}{\numberline {2.2}Communication}{8}{section.2.2}}
 \newlabel{sect:communication}{{2.2}{8}{Communication\relax }{section.2.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{9}{figure.caption.6}}
-\newlabel{lst:fib}{{2.3}{9}{A fibonacci implementation using the distributed futures interface\relax \relax }{figure.caption.6}{}}
+\citation{Dinan:2011:NCC:2042476.2042508}
+\citation{Dinan:2011:NCC:2042476.2042508}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces The \emph  {async\_function} function class definition. All \emph  {jobs} in our system are instances of this class. The base class \emph  {\_job} is used for serialization purposes as well.\relax }}{9}{figure.caption.6}}
+\newlabel{lst:async_function}{{2.3}{9}{The \emph {async\_function} function class definition. All \emph {jobs} in our system are instances of this class. The base class \emph {\_job} is used for serialization purposes as well.\relax \relax }{figure.caption.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Shared Address Space}{9}{subsection.2.2.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{10}{figure.caption.7}}
+\newlabel{lst:fib}{{2.4}{10}{A fibonacci implementation using the distributed futures interface\relax \relax }{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces The function used to set a future's value. The first version is for primitive data types, where as the second is for serializable objects.\relax }}{11}{figure.caption.8}}
+\newlabel{lst:set_data}{{2.5}{11}{The function used to set a future's value. The first version is for primitive data types, where as the second is for serializable objects.\relax \relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Mutexes}{11}{subsection.2.2.2}}
 \citation{Tanenbaum:2007:MOS:1410217}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Mutexes}{10}{subsection.2.2.2}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Shared Memory Management}{10}{section.2.3}}
-\newlabel{sect:shared-memory-manager}{{2.3}{10}{Shared Memory Management\relax }{section.2.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph  {other} page size free list.\relax }}{11}{figure.caption.7}}
-\newlabel{fig:freeLists}{{2.4}{11}{Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph {other} page size free list.\relax \relax }{figure.caption.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{11}{subsection.2.3.1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces During allocation, when a large enough space is found, the allocated page is removed from the node.\relax }}{12}{figure.caption.8}}
-\newlabel{fig:alloc}{{2.5}{12}{During allocation, when a large enough space is found, the allocated page is removed from the node.\relax \relax }{figure.caption.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Scheduler}{12}{section.2.4}}
-\newlabel{sect:scheduler}{{2.4}{12}{Scheduler\relax }{section.2.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax }}{13}{figure.caption.9}}
-\newlabel{fig:free}{{2.6}{13}{By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax \relax }{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Shared Memory Management}{12}{section.2.3}}
+\newlabel{sect:shared-memory-manager}{{2.3}{12}{Shared Memory Management\relax }{section.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{12}{subsection.2.3.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph  {other} page size free list.\relax }}{13}{figure.caption.9}}
+\newlabel{fig:freeLists}{{2.6}{13}{Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph {other} page size free list.\relax \relax }{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces During allocation, when a large enough space is found, the allocated page is removed from the node.\relax }}{14}{figure.caption.10}}
+\newlabel{fig:alloc}{{2.7}{14}{During allocation, when a large enough space is found, the allocated page is removed from the node.\relax \relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Scheduler}{14}{section.2.4}}
+\newlabel{sect:scheduler}{{2.4}{14}{Scheduler\relax }{section.2.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.8}{\ignorespaces By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax }}{15}{figure.caption.11}}
+\newlabel{fig:free}{{2.8}{15}{By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax \relax }{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.9}{\ignorespaces Shared stack where a worker process keeps its pending jobs. Entries can have varied sizes, this size is stored at the beggining of the entry and can be used to retrieve the corresponding job. Information for the specific stack,like size and head, are stored at the beggining of the shared space, so that other processes can access them.\relax }}{16}{figure.caption.12}}
+\newlabel{fig:task_stack}{{2.9}{16}{Shared stack where a worker process keeps its pending jobs. Entries can have varied sizes, this size is stored at the beggining of the entry and can be used to retrieve the corresponding job. Information for the specific stack,like size and head, are stored at the beggining of the shared space, so that other processes can access them.\relax \relax }{figure.caption.12}{}}
 \bibstyle{IEEEtran}
 \bibdata{references}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{15}{chapter.3}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{17}{chapter.3}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \bibcite{Ramey:2004:Boost:Serialization}{{1}{}{{}}{{}}}

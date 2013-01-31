@@ -12,8 +12,8 @@
 \contentsline {section}{\numberline {2.1}Futures Interface}{7}{section.2.1}
 \contentsline {section}{\numberline {2.2}Communication}{8}{section.2.2}
 \contentsline {subsection}{\numberline {2.2.1}Shared Address Space}{9}{subsection.2.2.1}
-\contentsline {subsection}{\numberline {2.2.2}Mutexes}{10}{subsection.2.2.2}
-\contentsline {section}{\numberline {2.3}Shared Memory Management}{10}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{11}{subsection.2.3.1}
-\contentsline {section}{\numberline {2.4}Scheduler}{12}{section.2.4}
-\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{15}{chapter.3}
+\contentsline {subsection}{\numberline {2.2.2}Mutexes}{11}{subsection.2.2.2}
+\contentsline {section}{\numberline {2.3}Shared Memory Management}{12}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{12}{subsection.2.3.1}
+\contentsline {section}{\numberline {2.4}Scheduler}{14}{section.2.4}
+\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{17}{chapter.3}
