@@ -4,5 +4,9 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {2.1}{\ignorespaces A simple hello world implementation using the distributed futures interface. The output of the program on process 0 would be "- Master :Hello 1".\relax }}{6}{figure.caption.4}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{7}{figure.caption.5}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces The control flow of the hello world program in figture ~\ref {lst:hello}.\relax }}{7}{figure.caption.5}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{9}{figure.caption.6}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph {other} page size free list.\relax }}{11}{figure.caption.7}
+\contentsline {figure}{\numberline {2.5}{\ignorespaces During allocation, when a large enough space is found, the allocated page is removed from the node.\relax }}{12}{figure.caption.8}
+\contentsline {figure}{\numberline {2.6}{\ignorespaces By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax }}{13}{figure.caption.9}
 \addvspace {10\p@ }

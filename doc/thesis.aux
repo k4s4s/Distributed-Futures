@@ -54,19 +54,39 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces  A simple hello world implementation using the distributed futures interface. The output of the program on process 0 would be "- Master :Hello 1".\relax }}{6}{figure.caption.4}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{lst:hello}{{2.1}{6}{A simple hello world implementation using the distributed futures interface. The output of the program on process 0 would be "- Master :Hello 1".\relax \relax }{figure.caption.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Futures Interface}{6}{section.2.1}}
-\newlabel{sect:futures-interface}{{2.1}{6}{Futures Interface\relax }{section.2.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{7}{figure.caption.5}}
-\newlabel{lst:fib}{{2.2}{7}{A fibonacci implementation using the distributed futures interface\relax \relax }{figure.caption.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Communication}{7}{section.2.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Shared Address Space}{8}{subsection.2.2.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Mutexes}{8}{subsection.2.2.2}}
-\newlabel{sect:memory-manager}{{2.2.2}{8}{Mutexes\relax }{subsection.2.2.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Memory allocation}{9}{section.2.3}}
-\newlabel{scheduler}{{2.3}{10}{Memory allocation\relax }{section.2.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Scheduler}{10}{section.2.4}}
+\citation{Ramey:2004:Boost:Serialization}
+\citation{Gregor:2005:Boost:MPI}
+\citation{Ramey:2004:Boost:Serialization}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  The control flow of the hello world program in figture ~\ref  {lst:hello}.\relax }}{7}{figure.caption.5}}
+\newlabel{fig:helloCF}{{2.2}{7}{The control flow of the hello world program in figture ~\ref {lst:hello}.\relax \relax }{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Futures Interface}{7}{section.2.1}}
+\newlabel{sect:futures-interface}{{2.1}{7}{Futures Interface\relax }{section.2.1}{}}
+\citation{Dinan:2011:NCC:2042476.2042508}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Communication}{8}{section.2.2}}
+\newlabel{sect:communication}{{2.2}{8}{Communication\relax }{section.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces A fibonacci implementation using the distributed futures interface\relax }}{9}{figure.caption.6}}
+\newlabel{lst:fib}{{2.3}{9}{A fibonacci implementation using the distributed futures interface\relax \relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Shared Address Space}{9}{subsection.2.2.1}}
+\citation{Tanenbaum:2007:MOS:1410217}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Mutexes}{10}{subsection.2.2.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Shared Memory Management}{10}{section.2.3}}
+\newlabel{sect:shared-memory-manager}{{2.3}{10}{Shared Memory Management\relax }{section.2.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph  {other} page size free list.\relax }}{11}{figure.caption.7}}
+\newlabel{fig:freeLists}{{2.4}{11}{Shared Memory Manager keeps a map of free lists, indexed by the page size. For page size that do not match any predefined ones, we use the \emph {other} page size free list.\relax \relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{11}{subsection.2.3.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces During allocation, when a large enough space is found, the allocated page is removed from the node.\relax }}{12}{figure.caption.8}}
+\newlabel{fig:alloc}{{2.5}{12}{During allocation, when a large enough space is found, the allocated page is removed from the node.\relax \relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Scheduler}{12}{section.2.4}}
+\newlabel{sect:scheduler}{{2.4}{12}{Scheduler\relax }{section.2.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax }}{13}{figure.caption.9}}
+\newlabel{fig:free}{{2.6}{13}{By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax \relax }{figure.caption.9}{}}
 \bibstyle{IEEEtran}
 \bibdata{references}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{13}{chapter.3}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Conclusions and Future Work}{15}{chapter.3}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
+\bibcite{Ramey:2004:Boost:Serialization}{{1}{}{{}}{{}}}
+\bibcite{Gregor:2005:Boost:MPI}{{2}{}{{}}{{}}}
+\bibcite{Dinan:2011:NCC:2042476.2042508}{{3}{}{{}}{{}}}
+\bibcite{Tanenbaum:2007:MOS:1410217}{{4}{}{{}}{{}}}
+\providecommand\NAT@force@numbers{}\NAT@force@numbers
