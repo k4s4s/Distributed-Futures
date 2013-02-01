@@ -1,5 +1,12 @@
 \chapter{Design and Implementation}
 
+\begin{figure}[here]
+\center
+\includegraphics[width=0.7\columnwidth]{figures/system_overview}
+\caption{Overview of our futures library design.}
+\label{fig:system_overview}
+\end{figure}
+
 We have modeled the distributed futures, as closely as possible, 
 to the shared memory futures from the C++ standard library.  Parallelism in the future
 model is extracted by issuing functions asynchronously, using a \emph{special} async funtion
@@ -15,7 +22,8 @@ In our implementation, a blocked process will try to execute any pending \emph{j
 while it is beeing blocked.
 		We designed our system so that different aspects of the runtime library, such as process
 communication, hide its underlying implementation (e.g. MPI),  thus different implementations 
-of the same module should not interfere with other components of the library.\\
+of the same module should not interfere with other components of the library.
+Figure~\ref{fig:system_overview} shows the different component hierarchy.\\
 \\
 Our system consists out of three main modules:
 \begin{itemize}
@@ -411,11 +419,12 @@ Moreover, at the beggining of the shared space, the size and current head values
 can push \emph{jobs}.
 
 
-Figure~\ref{} shows a control flow graph for the master and worker processes.  The master simply initializes
+Figure~\ref{fig:hello_flow} shows a control flow graph for the master and worker processes.  
+The master simply initializes
 the futures environment and issues async functions while executing user code.  At the end it finalizes 
 the futures environment and calls the terminate routine from the scheduler.  The workers initialize 
 the futures environment, which must happen collectively among all workers and master and then enter a
-loop, looking for pending jobs in their queues until ther terminate routine returns true, in which case
+loop, looking for pending jobs in their stacks until their terminate routine returns true, in which case
 they exit the loop, finalize again collectively with all other processes and exit the program, without ever
 returning to the main function.  The scheduler is responsible for providing the functionallity of the terminate
 routines.  In our implementation the workers poll a local variable which they expose through the communication
@@ -432,5 +441,28 @@ Then it asks the scheduler to send the job to the worker process.  In our implem
 pushes the job int the process' stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
 (excluding the master process, which should run user code). 
 
+\subsection{Alternative Implementations/Design Versability}
 
+We have designed the system to be able to use alternative scheduler implementations.  However, all must meet the
+following interface requirments.\\
+
+\begin{itemize}
+
+ \item Implement routines to send and receive jobs.  The call to the \emph{async} function should be
+able to send a \emph{job} to the worker process without blocking.  The worker should be able to handle
+multiple \emph{jobs}, without breaking the asynchrous model.  Moreover, \emph{communication} should only
+require the process that issued the \emph{job} and the one that receives it to participate.
+
+
+ \item Implement a routine which returns a valid process id that is available to run a \emph{job}
+issued by call to \emph{async}.
+
+ \item Implement the terminate routine, which should return true for a process to exit and should
+also not block execution if it does not return true.
+
+\end{itemize}
+ 
+Remote Procedure Call (RMC) and Remote Method Invocation (RMI) libraries often have the above requirements as well.
+There are knows solutions as to how to implement such systems in the literature.  The two most commonly used methods
+are polling for work requests ~\cite{Beckman96tulip:a, Saunders:2003:AAP:966049.781534} and hardware interrupts .  Polling requires the 
 

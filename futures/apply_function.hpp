@@ -7,6 +7,9 @@
 #include <type_traits>
 #include <utility>
 
+namespace futures {
+namespace functor_utils {
+
 template<size_t N>
 struct Apply {
     template<typename F, typename T, typename... A>
@@ -41,6 +44,9 @@ inline auto apply(F && f, T && t)
         typename ::std::decay<T>::type
     >::value>::apply(f, ::std::forward<T>(t));
 };
+
+}
+}
 
 /*** serialization of tuples ***/
 namespace boost {

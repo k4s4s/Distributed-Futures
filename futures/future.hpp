@@ -203,7 +203,7 @@ void async_function<F, Args...>::run() {
     //execute work
     stats::StatManager *statManager = stats::StatManager::Instance();
 		statManager->start_timer("job_execution_time");
-		retVal = apply(f, args);
+		retVal = functor_utils::apply(f, args);
 		statManager->stop_timer("job_execution_time");
     //return value to future
     details::_set_data<typename std::result_of<F(Args...)>::type>()(sharedData, retVal,
