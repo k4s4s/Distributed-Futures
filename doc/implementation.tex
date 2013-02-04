@@ -419,7 +419,7 @@ Moreover, at the beggining of the shared space, the size and current head values
 can push \emph{jobs}.
 
 
-Figure~\ref{fig:hello_flow} shows a control flow graph for the master and worker processes.  
+Figure~\ref{fig:helloCF} shows a control flow graph for the master and worker processes.  
 The master simply initializes
 the futures environment and issues async functions while executing user code.  At the end it finalizes 
 the futures environment and calls the terminate routine from the scheduler.  The workers initialize 

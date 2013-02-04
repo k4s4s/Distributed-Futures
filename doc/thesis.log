@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  1 FEB 2013 04:15
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  4 FEB 2013 09:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -696,12 +696,7 @@ File: figures/task_stack.eps Graphic file (type eps)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[15]
-
-LaTeX Warning: Reference `fig:hello_flow' on page 16 undefined on input line 42
-2.
-
-[16]
+[15] [16]
 Underfull \hbox (badness 10000) in paragraph at lines 446--448
 
  []
@@ -736,12 +731,12 @@ LaTeX Warning: There were undefined references.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 94.
  ) 
 Here is how much of TeX's memory you used:
- 12668 strings out of 494984
- 180943 string characters out of 3180431
+ 12667 strings out of 494984
+ 180927 string characters out of 3180431
  299032 words of memory out of 3000000
- 15637 multiletter control sequences out of 15000+200000
+ 15636 multiletter control sequences out of 15000+200000
  27887 words of font info for 57 fonts, out of 3000000 for 9000
  59 hyphenation exceptions out of 8191
  44i,10n,58p,473b,1461s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on thesis.dvi (34 pages, 113612 bytes).
+Output written on thesis.dvi (34 pages, 113856 bytes).
