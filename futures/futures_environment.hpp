@@ -7,7 +7,7 @@
 #include <vector>
 #include "communication/communication.hpp"
 #include "communication/commManager.hpp"
-#include "communication/MPISharedMemory.hpp"
+#include "mem/SharedMemoryManager.hpp"
 #include "scheduler/scheduler.hpp"
 #include "scheduler/schedManager.hpp"
 #include "future_fwd.hpp"
@@ -15,8 +15,6 @@
 #include "mpi.h"
 #include "MPIMutex.hpp"
 #include "common.hpp"
-
-#define TASK_DATA 2003
 
 namespace futures {
 
@@ -28,10 +26,10 @@ class Futures_Environment { //singleton class
 private:
     static Futures_Environment* pinstance;
     communication::CommManager* commManager;
-    communication::CommInterface* commInterface;
     scheduler::SchedManager* schedManager;
+    communication::CommInterface* commInterface;
     scheduler::Scheduler* sched;
-		communication::MPI_Shared_memory *sharedMemory;
+		mem::Shared_Memory_manager* memManager;
 protected:
     Futures_Environment(int &argc, char**& argv,
                        const std::string& commInterfaceName,
@@ -42,27 +40,20 @@ public:
     static Futures_Environment* Initialize(int &argc, char**& argv,
                                           const std::string& commInterfaceName,
                                           const std::string& schedulerName);
-    static Futures_Environment* Initialize(int &argc, char**& argv);
 		void Finalize();
     static Futures_Environment* Instance();
-    MPI_Comm get_communicator();
-    communication::Shared_data* new_Shared_data(int _dst_id,
-																								communication::Shared_pointer _ptr,
-																								unsigned int _data_size, unsigned int _type_size,
-																								MPI_Datatype _datatype, MPI_Win _data_win, 
-																								MPIMutex* _data_lock);
     int get_procId();
     int get_avaibleWorker();
-		communication::Shared_pointer alloc(int size);
-		void free(communication::Shared_pointer ptr);
-		MPI_Win get_data_window(communication::Shared_pointer ptr);
-		MPIMutex *get_data_lock();
-    void send_job(int dst_id, _stub *job);
-    _stub *recv_job(int src_id);
+		mem::Shared_pointer alloc(int id, int size);
+		void free(int id,	mem::Shared_pointer ptr);
     template<typename T>
     void send_data(int dst_id, T data);
     template<typename T>
     T recv_data(int src_id);
+		template<typename T>
+		void set_data(T data, int dst_id, mem::Shared_pointer ptr, int size, int offset);
+		template<typename T>
+		T get_data(int dst_id, mem::Shared_pointer ptr, int size, int offset);	
 		bool schedule_job(int dst_id, _stub *job);
     void wait_for_job();
 		void execute_pending_jobs();
@@ -70,14 +61,24 @@ public:
 
 template<typename T>
 void Futures_Environment::send_data(int dst_id, T data) {
-    details::_send_data<T>()(commInterface, dst_id, TASK_DATA,
-                             data, details::_is_mpi_datatype<T>());
+    details::_send_data<T>()(commInterface, dst_id, 0,
+                             data, details::is_primitive_type<T>());
 };
 
 template<typename T>
 T Futures_Environment::recv_data(int src_id) {
-    return details::_recv_data<T>()(commInterface, src_id, TASK_DATA,
-                                    details::_is_mpi_datatype<T>());
+    return details::_recv_data<T>()(commInterface, src_id, 0,
+                                    details::is_primitive_type<T>());
+};
+
+template<typename T>
+void Futures_Environment::set_data(T data, int dst_id, mem::Shared_pointer ptr, int size, int offset) {
+	memManager->memset(data, dst_id, ptr, size, offset);
+};
+
+template<typename T>
+T Futures_Environment::get_data(int dst_id, mem::Shared_pointer ptr, int size, int offset) {
+	return memManager->memget<T>(dst_id, ptr, size, offset);
 };
 
 }//end of futures namespace

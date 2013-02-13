@@ -1,6 +1,5 @@
 
 #include "master.hpp"
-#include "../communication/mpi_details.hpp"
 #include "../common.hpp"
 #include <stdlib.h>
 
@@ -9,21 +8,19 @@
 using namespace futures;
 using namespace scheduler;
 
-Master::Master() {
-    comm = MPI_COMM_WORLD;
-    MPI_Comm_rank(comm, &id);
-    MPI_Comm_size(comm, &nprocs);
-    MPI_Alloc_mem(sizeof(ProcStatus), MPI_INFO_NULL, &status);
-    MPI_Win_create(status, 1, sizeof(ProcStatus), MPI_INFO_NULL, comm, &status_win);
-    status_lock = new MPIMutex(comm);
+Master::Master(communication::CommInterface *_comm) {
+    comm = _comm;
+    id = comm->get_procId();
+    nprocs = comm->size();
+		status_mem = comm->new_shared_space(sizeof(ProcStatus));
+		status_lock = comm->new_lock();
 		//task_queue = new taskQueue();
-		task_stack = new taskStack();
+		task_stack = new taskStack(comm);
     this->set_status(RUNNING);
 };
 
 Master::~Master() {
-    MPI_Win_free(&status_win);
-		MPI_Free_mem(status);
+		delete status_mem;
     delete status_lock;
 		//delete task_queue;
 		delete task_stack;
@@ -31,8 +28,7 @@ Master::~Master() {
 
 
 void Master::set_status(ProcStatus status) {
-    communication::details::lock_and_put(&status, status, MPI_INT, id, 0, 1,
-                                         MPI_INT, status_win, status_lock);
+		status_mem->put(&status, id, 1, 0, MPI_INT);
 };
 
 int Master::getId() {
@@ -41,8 +37,7 @@ int Master::getId() {
 
 ProcStatus Master::get_status(int _id) {
 		ProcStatus status;
-    communication::details::lock_and_get(&status, 1, MPI_INT, id, 0, 1,
-                                         MPI_INT, status_win, status_lock);		
+		status_mem->get(&status, id, 1, 0, MPI_INT);	
 		return status;
 };
 
@@ -50,13 +45,11 @@ bool Master::terminate() {
     ProcStatus worker_status;
 		if(nprocs == 1) return true; //only self to check, so just terminate
     for(int i=1; i < nprocs; i++) {
-        communication::details::lock_and_get(&worker_status, 1, MPI_INT, i, 0, 1,
-                                             MPI_INT, status_win, status_lock);
+				status_mem->get(&worker_status, i, 1, 0, MPI_INT);
         if(worker_status == RUNNING) break;
         else if(i == nprocs-1) { //set your status to terminated
             ProcStatus status = TERMINATED;
-            communication::details::lock_and_put(&status, 1, MPI_INT, MASTER, 0, 1,
-                                                 MPI_INT, status_win, status_lock);
+						status_mem->put(&status, id, 1, 0, MPI_INT);
             return true;
         }
     }

@@ -3,8 +3,6 @@
 #define _COMMON_H
 
 #include "stats/stats.hpp"
-#include <mpi.h>
-#include "logger/logger.hpp"
 
 #ifndef DEBUG
 #define DPRINT_VAR(m, x)

@@ -10,35 +10,17 @@
 namespace futures {
 namespace communication {
 
-class MPI_Shared_data : public Shared_data {
+class MPI_Shared_address_space : public Shared_Address_space {
 private:
-    MPI_Comm comm;
-		MPI_Win data_win;
-		MPIMutex *data_lock;
-    int src_id;
-    int dst_id;
-		Shared_pointer ptr;
-		unsigned int limit;
-    unsigned int data_size;
-    unsigned int type_size;
-    MPI_Datatype datatype;
-		int status;
-		int ar_size;
+	MPI_Win shared_memory_win;
+	void *shared_memory;
 public:
-    MPI_Shared_data(int _dst_id,
-										Shared_pointer _ptr,
-                    unsigned int _data_size, unsigned int _type_size,
-                    MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock);
-    ~MPI_Shared_data();
-    unsigned int get_dataSize();
-    void get_data(void* val);
-    void get_data(boost::mpi::packed_iarchive& ar);
-    void set_data(void* val);
-    void set_data(boost::mpi::packed_oarchive& ar);
-    void get_status(int *val);
-    void set_status(int *val);
-    MPI_Comm get_comm();
-		Shared_pointer get_shared_pointer();
+	MPI_Shared_address_space(unsigned int size);
+	~MPI_Shared_address_space();
+  void put(void* data, int dst_id, int count, int offset, MPI_Datatype datatype);
+  void put(boost::mpi::packed_oarchive& ar, int dst_id, int offset);
+  void get(void* data, int src_id, int count, int offset, MPI_Datatype datatype);
+  void get(boost::mpi::packed_iarchive& ar, int src_id, int offset);
 };
 
 class MPIComm : public CommInterface {
@@ -46,11 +28,8 @@ public:
     MPIComm(int &argc, char**& argv);
     ~MPIComm();
     static CommInterface* create(int &argc, char**& argv);
-    Shared_data* new_Shared_data(int _dst_id,
-																Shared_pointer _ptr,
-            										unsigned int _data_size, unsigned int _type_size,
-            										MPI_Datatype _datatype, MPI_Win _data_win, 
-																MPIMutex* _data_lock);
+		mutex* new_lock();
+		Shared_Address_space* new_shared_space(unsigned int size);
     void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data);
     void send(int dst_id, int tag, boost::mpi::packed_oarchive& ar);
     void recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data);

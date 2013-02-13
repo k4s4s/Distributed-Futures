@@ -1,6 +1,5 @@
 
 #include "worker.hpp"
-#include "../communication/mpi_details.hpp"
 #include "../common.hpp"
 
 #define MASTER 0
@@ -8,23 +7,20 @@
 using namespace futures;
 using namespace scheduler;
 
-Worker::Worker() {
+Worker::Worker(communication::CommInterface *_comm) {
     int nprocs;
-    id = details::mutex_count++;
-    comm = MPI_COMM_WORLD;
-    MPI_Comm_rank(comm, &id);
-    MPI_Comm_size(comm, &nprocs);
-    MPI_Alloc_mem(sizeof(ProcStatus), MPI_INFO_NULL, &status);
-    MPI_Win_create(status, 1, sizeof(ProcStatus), MPI_INFO_NULL, comm, &status_win);
-    status_lock = new MPIMutex(comm);
+    comm = _comm;
+    id = comm->get_procId();
+		nprocs = comm->size();
+		status_mem = comm->new_shared_space(sizeof(ProcStatus));
+    status_lock = comm->new_lock();
 		//task_queue = new taskQueue();
-		task_stack = new taskStack();
+		task_stack = new taskStack(comm);
     this->set_status(IDLE);
 };
 
 Worker::~Worker() {
-    MPI_Win_free(&status_win);
-		MPI_Free_mem(status);
+		delete status_mem;
     delete status_lock;
 		//delete task_queue; //this should be completely free of tasks by now
 		delete task_stack;
@@ -32,8 +28,7 @@ Worker::~Worker() {
 
 bool Worker::terminate() {
     ProcStatus master_status;
-    communication::details::lock_and_get(&master_status, 1, MPI_INT, MASTER, 0, 1,
-                                         MPI_INT, status_win, status_lock);
+		status_mem->get(&master_status, MASTER, 1, 0, MPI_INT);
     if(master_status != TERMINATED) return false;
     return true;
 };
@@ -43,14 +38,12 @@ int Worker::getId() {
 };
 
 void Worker::set_status(ProcStatus status) {
-    communication::details::lock_and_put(&status, 1, MPI_INT, id, 0, 1,
-                                         MPI_INT, status_win, status_lock);
+	status_mem->put(&status, id, 1, 0, MPI_INT);
 };
 
 ProcStatus Worker::get_status(int _id) {
 		ProcStatus status;
-    communication::details::lock_and_get(&status, 1, MPI_INT, _id, 0, 1,
-                                         MPI_INT, status_win, status_lock);		
+		status_mem->put(&status, _id, 1, 0, MPI_INT);	
 		return status;
 };
 

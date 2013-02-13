@@ -1,30 +1,24 @@
 
 #include "taskStack.hpp"
-#include "../communication/mpi_details.hpp"
 #include "../common.hpp"
 
 using namespace futures;
 using namespace scheduler;
 
-taskStack::taskStack() {
-	MPI_Alloc_mem(TASKSTACK_SIZE, MPI_INFO_NULL, &taskS);
-  MPI_Win_create(taskS, TASKSTACK_SIZE, 1, MPI_INFO_NULL, 
-								MPI_COMM_WORLD, &taskS_win);
-	taskS_lock = new MPIMutex(MPI_COMM_WORLD);
-	int id;
-	MPI_Comm_rank(MPI_COMM_WORLD, &id);
+taskStack::taskStack(communication::CommInterface *_comm) {
+	comm = _comm;
+	taskS = comm->new_shared_space(TASKSTACK_SIZE);
+	taskS_lock = comm->new_lock();
+	int id = comm->get_procId();
 	int curr_head, curr_size;
 	curr_head = STACK_START_OFFSET;
 	curr_size = 0;
-  communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, id, SIZE_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_put((void*)&curr_head, 1, MPI_INT, id, HEAD_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);	
+	taskS->put(&curr_size, id, 1, SIZE_OFFSET, MPI_INT);
+	taskS->put(&curr_head, id, 1, HEAD_OFFSET, MPI_INT);
 };
 
 taskStack::~taskStack() {
-	MPI_Win_free(&taskS_win);
-  MPI_Free_mem(taskS);
+	delete taskS;
 	delete taskS_lock;
 };
 
@@ -36,10 +30,8 @@ bool taskStack::push(int dst_id, _stub *job) {
   oa << tw;
 	taskS_lock->lock(dst_id);
 	/*read list tail*/
-  communication::details::lock_and_get((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_get((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
+	taskS->get(&curr_head, dst_id, 1, HEAD_OFFSET, MPI_INT);
+	taskS->get(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	if(curr_size >= MAX_STACK_SIZE) return false;
 	/* add new task to list */
 	/*
@@ -47,17 +39,13 @@ bool taskStack::push(int dst_id, _stub *job) {
 	DPRINT_VAR("\t\ttaskstack:Push:till", curr_head+oa.size());
 	DPRINT_VAR("\t\ttaskstack:Push:count ", oa.size());
 	*/
-  communication::details::lock_and_put((void*)(&oa.size()), 1, MPI_INT, dst_id, curr_head+oa.size(),
-                          1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_put(const_cast<void*>(oa.address()), oa.size(), MPI_PACKED, dst_id, 
-													curr_head, oa.size(), MPI_PACKED, taskS_win, NULL);
+	taskS->put((void*)(&oa.size()), dst_id, 1, curr_head+oa.size(), MPI_INT);
+	taskS->put(const_cast<void*>(oa.address()), dst_id, oa.size(), curr_head, MPI_PACKED);
 	/* set new list head */
 	curr_head += TASK_OFFSET+oa.size();
 	curr_size++;
-  communication::details::lock_and_put((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
+	taskS->put(&curr_head, dst_id, 1, HEAD_OFFSET, MPI_INT);
+	taskS->put(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	taskS_lock->unlock(dst_id);
 	return true;
 };
@@ -68,16 +56,13 @@ _stub *taskStack::pop(int dst_id) {
   boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
 	taskS_lock->lock(dst_id);
 	/*read list head*/
-	communication::details::lock_and_get((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_get((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
+	taskS->get(&curr_head, dst_id, 1, HEAD_OFFSET, MPI_INT);
+	taskS->get(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	if(curr_size == 0)
 		return NULL;
 	/* get next task */
   int count;
-  communication::details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, curr_head-TASK_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
+	taskS->get(&count, dst_id, 1, curr_head-TASK_OFFSET, MPI_INT);
   // Prepare input buffer and receive the message
 	/*
 	DPRINT_VAR("\t\ttaskstack:Pop:actual head ", curr_head);
@@ -85,18 +70,16 @@ _stub *taskStack::pop(int dst_id) {
 	DPRINT_VAR("\t\ttaskstack:Pop:count ", count);  
 	*/
 	ia.resize(count);
-  communication::details::lock_and_get(const_cast<void*>(ia.address()), ia.size(), MPI_PACKED, dst_id,
-                          curr_head-count-TASK_OFFSET, ia.size(), MPI_PACKED, taskS_win, NULL);
+	taskS->get(const_cast<void*>(ia.address()), dst_id, ia.size(), 
+						curr_head-count-TASK_OFFSET, MPI_PACKED);
   _stub_wrapper tw;
   ia >> tw;
 	/* set new list head */
 	curr_head -= TASK_OFFSET+count;
 	//DPRINT_VAR("\t\ttaskstack:Pop:next head ", curr_head-count-TASK_OFFSET);
 	curr_size--;
-  communication::details::lock_and_put((void*)&curr_head, 1, MPI_INT, dst_id, HEAD_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
-  communication::details::lock_and_put((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                          						1, MPI_INT, taskS_win, NULL);
+	taskS->put(&curr_head, dst_id, 1, HEAD_OFFSET, MPI_INT);
+	taskS->put(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	taskS_lock->unlock(dst_id);
 	return tw.get_task();
 };
@@ -104,8 +87,7 @@ _stub *taskStack::pop(int dst_id) {
 bool taskStack::is_empty(int dst_id) {
 	int curr_size;
 	taskS_lock->lock(dst_id);
-	communication::details::lock_and_get((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
+	taskS->get(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	taskS_lock->unlock(dst_id);
 	if(curr_size == 0) return true;
 	return false;
@@ -114,11 +96,9 @@ bool taskStack::is_empty(int dst_id) {
 bool taskStack::is_full(int dst_id) {
 	int curr_size;
 	taskS_lock->lock(dst_id);
-	communication::details::lock_and_get((void*)&curr_size, 1, MPI_INT, dst_id, SIZE_OFFSET,
-                        							1, MPI_INT, taskS_win, NULL);
+	taskS->get(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);
 	taskS_lock->unlock(dst_id);
 	if(curr_size == MAX_STACK_SIZE) return true;
 	return false;
 };
-
 

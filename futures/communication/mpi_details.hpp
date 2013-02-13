@@ -9,49 +9,41 @@ namespace futures {
 namespace communication {
 namespace details {
 //TODO:implement actual mutexes
-static void lock_and_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
+static void MPI_Exclusive_get(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
                          int target_rank, MPI_Aint target_disp, int target_count,
-                         MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex);
+                         MPI_Datatype target_datatype, MPI_Win win);
 
-static void lock_and_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
+static void MPI_Exclusive_put(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
                          int target_rank, MPI_Aint target_disp, int target_count,
-                         MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex);
+                         MPI_Datatype target_datatype, MPI_Win win);
 
-static void group_create_comm(MPI_Group group, MPI_Comm comm, MPI_Comm *comm_new, int tag);
+static void MPI_Group_create_comm(MPI_Group group, MPI_Comm comm, MPI_Comm *comm_new, int tag);
 
 }//end of details namespace
 }
 }
 
-static void futures::communication::details::lock_and_get(void *origin_addr,
+static void futures::communication::details::MPI_Exclusive_get(void *origin_addr,
         int origin_count, MPI_Datatype origin_datatype,
         int target_rank, MPI_Aint target_disp, int target_count,
-        MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-		if(mutex != NULL)
-    	mutex->lock(target_rank);
+        MPI_Datatype target_datatype, MPI_Win win) {
     MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
     MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
             target_datatype, win);
     MPI_Win_unlock(target_rank, win);
-		if(mutex != NULL)
-   		mutex->unlock(target_rank);
 };
 
-static void futures::communication::details::lock_and_put(void *origin_addr,
+static void futures::communication::details::MPI_Exclusive_put(void *origin_addr,
         int origin_count, MPI_Datatype origin_datatype,
         int target_rank, MPI_Aint target_disp, int target_count,
-        MPI_Datatype target_datatype, MPI_Win win, MPIMutex* mutex) {
-		if(mutex != NULL)
-   		mutex->lock(target_rank);
+        MPI_Datatype target_datatype, MPI_Win win) {
     MPI_Win_lock(MPI_LOCK_EXCLUSIVE, target_rank, 0, win);
     MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count,
             target_datatype, win);
     MPI_Win_unlock(target_rank, win);
-		if(mutex != NULL)    
-			mutex->unlock(target_rank);
 };
 
-static void futures::communication::details::group_create_comm(MPI_Group group,
+static void futures::communication::details::MPI_Group_create_comm(MPI_Group group,
         MPI_Comm comm, MPI_Comm *comm_new, int tag) {
     //REQUIRE: group is ordered by desired rank in comm and is identical on all callers
     int rank, grp_rank, grp_size;

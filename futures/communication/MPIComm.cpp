@@ -9,76 +9,60 @@
 #include <cassert>
 
 #define GROUP_COMM_CREATE_TAG 1001
-#define NEW_JOB	2001
+
+#define AR_SIZE_OFFSET 0
+#define DATA_OFFSET sizeof(int)
 
 using namespace futures;
 using namespace futures::communication;
 
-/*** MPI_Shared_data impelementation ***/
-MPI_Shared_data::MPI_Shared_data(int _dst_id, Shared_pointer _ptr,
-                    unsigned int _data_size, unsigned int _type_size,
-                    MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) {
-	  dst_id = _dst_id;
-		ptr = _ptr;
-	  data_size = _data_size;
-	  type_size = _type_size;
-	  datatype = _datatype;
-		data_win = _data_win;
-		data_lock = _data_lock;
-	  ar_size = 0;
-	  status = 0;
-		comm = MPI_COMM_WORLD;
+/*** MPI_Shared_address_space implementation ***/
+MPI_Shared_address_space::MPI_Shared_address_space(unsigned int size) {
+	
+	MPI_Alloc_mem(size, MPI_INFO_NULL, &shared_memory);
+  MPI_Win_create(shared_memory, size, 1, MPI_INFO_NULL, 
+								MPI_COMM_WORLD, &shared_memory_win);
 };
 
-MPI_Shared_data::~MPI_Shared_data() {};
+MPI_Shared_address_space::~MPI_Shared_address_space() {
 
-unsigned int MPI_Shared_data::get_dataSize() {
-    return data_size;
+	MPI_Win_free(&shared_memory_win);
+  MPI_Free_mem(shared_memory);
 };
 
-void MPI_Shared_data::get_data(void* val) {
-    details::lock_and_get(val, data_size, datatype, dst_id, ptr.base_address+DATA_OFFSET,
-                          data_size, datatype, data_win, data_lock);
+void MPI_Shared_address_space::put(void* data, int dst_id, int count, int offset, 
+																	MPI_Datatype datatype) {
+    communication::details::MPI_Exclusive_put(data, count, datatype, dst_id, 
+																							offset+DATA_OFFSET,
+                          										count, datatype, shared_memory_win);
 };
 
-void MPI_Shared_data::get_data(boost::mpi::packed_iarchive& ar) {
-    int count;
-    details::lock_and_get((void*)&count, 1, MPI_INT, dst_id, ptr.base_address+AR_SIZE_OFFSET,
-                          1, MPI_INT, data_win, data_lock);
+void MPI_Shared_address_space::put(boost::mpi::packed_oarchive& ar, int dst_id, int offset) {
+    communication::details::MPI_Exclusive_put((void*)(&ar.size()), 1, MPI_INT, dst_id, 
+																							offset+AR_SIZE_OFFSET,
+                          										1, MPI_INT, shared_memory_win);
+    communication::details::MPI_Exclusive_put(const_cast<void*>(ar.address()), ar.size(), 
+																							MPI_PACKED, dst_id,
+																							offset+DATA_OFFSET, ar.size(), 
+																							MPI_PACKED, shared_memory_win);
+};
+
+void MPI_Shared_address_space::get(void* data, int src_id, int count, int offset, MPI_Datatype datatype) {
+    communication::details::MPI_Exclusive_get(data, count, datatype, src_id, 
+																							offset+DATA_OFFSET,
+                          										count, datatype, shared_memory_win);
+};
+
+void MPI_Shared_address_space::get(boost::mpi::packed_iarchive& ar, int src_id, int offset) {
+		int count;
+    communication::details::MPI_Exclusive_get((void*)&count, 1, MPI_INT, src_id, 
+																							offset+AR_SIZE_OFFSET,
+		                          								1, MPI_INT, shared_memory_win);
     // Prepare input buffer and receive the message
     ar.resize(count);
-    details::lock_and_get(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id,
-                          ptr.base_address+DATA_OFFSET, ar.size(), MPI_PACKED, data_win, data_lock);
-};
-
-void MPI_Shared_data::set_data(void* val) {
-    details::lock_and_put(val, data_size, datatype, dst_id, ptr.base_address+DATA_OFFSET,
-                          data_size, datatype, data_win, data_lock);
-};
-
-void MPI_Shared_data::set_data(boost::mpi::packed_oarchive& ar) {
-    details::lock_and_put((void*)(&ar.size()), 1, MPI_INT, dst_id, ptr.base_address+AR_SIZE_OFFSET,
-                          1, MPI_INT, data_win, data_lock);
-    details::lock_and_put(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id, 
-													ptr.base_address+DATA_OFFSET, ar.size(), MPI_PACKED, data_win, data_lock);
-};
-
-void MPI_Shared_data::get_status(int* val) {
-    details::lock_and_get((void*)val, 1, MPI_INT, dst_id, ptr.base_address+STATUS_OFFSET, 1, 
-													MPI_INT, data_win, data_lock);
-};
-
-void MPI_Shared_data::set_status(int* val) {
-    details::lock_and_put((void*)val, 1, MPI_INT, dst_id, ptr.base_address+STATUS_OFFSET, 1, 
-													MPI_INT, data_win, data_lock);
-};
-
-MPI_Comm MPI_Shared_data::get_comm() {
-    return comm;
-};
-
-Shared_pointer MPI_Shared_data::get_shared_pointer() {
-	return ptr;
+    communication::details::MPI_Exclusive_get(const_cast<void*>(ar.address()), ar.size(), 
+																							MPI_PACKED, src_id,	offset+DATA_OFFSET,
+																							ar.size(), MPI_PACKED, shared_memory_win);
 };
 
 /*** MPIComm implementation ***/
@@ -102,14 +86,13 @@ CommInterface* MPIComm::create(int &argc, char**& argv) {
     return new MPIComm(argc, argv);
 };
 
-Shared_data* MPIComm::new_Shared_data(int _dst_id,
-																			Shared_pointer _ptr,
-                    									unsigned int _data_size, unsigned int _type_size,
-                    									MPI_Datatype _datatype, MPI_Win _data_win, MPIMutex* _data_lock) {
-    return new MPI_Shared_data(_dst_id, _ptr, 
-															_data_size, _type_size, _datatype,
-															_data_win, _data_lock);
-}
+mutex* MPIComm::new_lock() {
+	return new MPIMutex(MPI_COMM_WORLD);
+};
+
+Shared_Address_space* MPIComm::new_shared_space(unsigned int size) {
+	return new MPI_Shared_address_space(size);
+};
 
 void MPIComm::send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data) {
     MPI_Send(data, count, datatype, dst_id, tag, MPI_COMM_WORLD);

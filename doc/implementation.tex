@@ -465,6 +465,15 @@ also not block execution if it does not return true.
 \vfill
 
 Remote Procedure Call (RMC) and Remote Method Invocation (RMI) libraries often have the above requirements as well.
-There is a number of known solutions as to how to implement such systems in the literature.  The two most commonly used methods are polling for work requests ~\cite{Beckman96tulip:a, Saunders:2003:AAP:966049.781534} and hardware
- interrupts .  Polling requires the 
+There is a number of known solutions as to how to implement such systems in the literature.  The two most commonly used methods are polling for work requests
+~\cite{Beckman96tulip:a, Saunders:2003:AAP:966049.781534, Foster96thenexus, vonEicken:1992:AMM:146628.140382} 
+and hardware interrupts.
+In our system, polling would require a worker process to poll for incoming \emph{jobs} at certain
+time intervals.   Extra care must be taken to define the polling period, since if polling happens too often, it can
+dominate computation, but we also need a process to poll frequent enough to ensure timely responses
+~\cite{Saunders:2003:AAP:966049.781534, Shah:1998:PEL:876880.879642}.
+Alternatively, a hardware interrupt could be sent to notify a process of an incoming message.  This method however,
+is avoided because interrupts have to go through the OS, which has a significant cost. 
+~\cite{Saunders:2003:AAP:966049.781534, Shah:1998:PEL:876880.879642, Foster96thenexus, vonEicken:1992:AMM:146628.140382}.
+The Nexus system ~\cite{Foster96thenexus}, also suggests 
 

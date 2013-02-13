@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <map>
 #include <string>
+#include "../communication/communication.hpp"
 
 #ifndef STATS
 

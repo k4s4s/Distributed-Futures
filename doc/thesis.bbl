@@ -62,4 +62,28 @@ S.~Saunders and L.~Rauchwerger, ``Armi: an adaptive, platform independent
   \url{http://doi.acm.org/10.1145/966049.781534}
 \BIBentrySTDinterwordspacing
 
+\bibitem{Foster96thenexus}
+I.~Foster, C.~Kesselman, and S.~Tuecke, ``The nexus approach to integrating
+  multithreading and communication,'' \emph{Journal of Parallel and Distributed
+  Computing}, vol.~37, pp. 70--82, 1996.
+
+\bibitem{vonEicken:1992:AMM:146628.140382}
+\BIBentryALTinterwordspacing
+T.~von Eicken, D.~E. Culler, S.~C. Goldstein, and K.~E. Schauser, ``Active
+  messages: a mechanism for integrated communication and computation,''
+  \emph{SIGARCH Comput. Archit. News}, vol.~20, no.~2, pp. 256--266, Apr. 1992.
+  [Online]. Available: \url{http://doi.acm.org/10.1145/146628.140382}
+\BIBentrySTDinterwordspacing
+
+\bibitem{Shah:1998:PEL:876880.879642}
+\BIBentryALTinterwordspacing
+G.~Shah and C.~Bender, ``Performance and experience with lapi -- a new
+  high-performance communication library for the ibm rs/6000 sp,'' in
+  \emph{Proceedings of the 12th. International Parallel Processing Symposium on
+  International Parallel Processing Symposium}, ser. IPPS '98.\hskip 1em plus
+  0.5em minus 0.4em\relax Washington, DC, USA: IEEE Computer Society, 1998, pp.
+  260--. [Online]. Available:
+  \url{http://dl.acm.org/citation.cfm?id=876880.879642}
+\BIBentrySTDinterwordspacing
+
 \end{thebibliography}

@@ -2,9 +2,9 @@
 #ifndef _TASKSTACK_H
 #define _TASKSTACK_H
 
-#include <mpi.h>
-#include <MPIMutex.hpp>
+#include <mutex.hpp>
 #include "../future_fwd.hpp"
+#include "../communication/communication.hpp"
 
 #define MAX_STACK_SIZE 1000 //waste of space though...and a bug waiting to happen also!
 #define TASKSTACK_SIZE 4*1024*1024*8 //4MB
@@ -18,11 +18,12 @@ namespace scheduler {
 
 class taskStack {
 private:
-	MPI_Win taskS_win;
-	void *taskS; //stack head, tail and size are allocated in this space
-	MPIMutex *taskS_lock;
+	//stack head, tail and size are allocated in this space
+	communication::CommInterface *comm;
+	communication::Shared_Address_space *taskS; 
+	mutex *taskS_lock;
 public:
-	taskStack();
+	taskStack(communication::CommInterface *_comm);
 	~taskStack();
 	bool push(int dst_id, _stub *job);
 	_stub *pop(int dst_id);

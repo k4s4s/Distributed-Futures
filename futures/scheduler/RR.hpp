@@ -5,7 +5,7 @@
 #include "../communication/communication.hpp"
 #include <map>
 #include "taskQueue.hpp"
-#include "MPIMutex.hpp"
+#include <mutex.hpp>
 
 namespace futures {
 namespace scheduler {
@@ -14,9 +14,8 @@ class RRScheduler : public Scheduler {
 private:
     unsigned int master_id;
     unsigned int total_workers;
-		MPI_Win sched_win;
-    void *sched_mem;
-		MPIMutex *sched_lock;
+    communication::Shared_Address_space *sched_mem;
+		mutex *sched_lock;
     communication::CommInterface* comm;
     Process *proc;
 public:

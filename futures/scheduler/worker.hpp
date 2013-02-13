@@ -2,23 +2,23 @@
 #define _WORKER_H
 
 #include "process.hpp"
-#include "mpi.h"
-#include "MPIMutex.hpp"
+#include "../communication/communication.hpp"
+#include <mutex.hpp>
 
 namespace futures {
 namespace scheduler {
 
 class Worker : public Process {
 private:
-    MPI_Comm comm;
-    MPI_Win status_win;
-    MPIMutex *status_lock;
+		communication::CommInterface *comm;
+		communication::Shared_Address_space *status_mem;
+		mutex *status_lock;
 		ProcStatus *status;
 		//taskQueue *task_queue;
 		taskStack *task_stack;
     int id;
 public:
-    Worker();
+    Worker(communication::CommInterface *_comm);
     ~Worker();
 		int getId();
     void set_status(ProcStatus status);
