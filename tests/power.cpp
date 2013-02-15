@@ -14,7 +14,7 @@ class power {
 public:
 	power() {};
 	~power() {};
-	int	operator()(int a, int n) {
+	double	operator()(double a, double n) {
 		if(a == 0)	{
     	return 0;
 		}
@@ -23,7 +23,7 @@ public:
     }
     else {
 			power f;
-			future<int> p = async(f, a, n-1);
+			future<double> p = async(f, a, n-1);
     	return a*p.get();
     }
 	};
@@ -31,14 +31,14 @@ public:
 
 
 FUTURES_SERIALIZE_CLASS(power);
-FUTURES_EXPORT_FUNCTOR((async_function<power, int, int>));
+FUTURES_EXPORT_FUNCTOR((async_function<power, double, double>));
 
 
 int main(int argc, char* argv[]) {
 
 	Futures_Initialize(argc, argv);
 
-	int a = DEFAULT_A, n = DEFAULT_N;
+	double a = DEFAULT_A, n = DEFAULT_N;
 	char c;
 
 	while ((c = getopt(argc, argv, "a:n:")) != -1)
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	}
 	
 	power f;
-	future<int> message = async(f, a, n);
+	future<double> message = async(f, a, n);
 
 	cout << "- Master :Result is " <<message.get() << endl;
 	

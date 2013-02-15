@@ -13,25 +13,25 @@ private:
 public:
 	fib() {};
 	~fib() {};
-	int	operator()(int n) {
+	double	operator()(double n) {
      if(n == 0) return 0;
      if(n == 1) return 1;
 		 fib f;
-		 future<int> fib1 = async(f, n-1);
-		 future<int> fib2 = async(f, n-2);
+		 future<double> fib1 = async(f, n-1);
+		 future<double> fib2 = async(f, n-2);
 		 return fib1.get() + fib2.get();;
 	};
 
 };
 
 FUTURES_SERIALIZE_CLASS(fib);
-FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
+FUTURES_EXPORT_FUNCTOR((async_function<fib, double>));
 
 int main(int argc, char* argv[]) {
 	
 	Futures_Initialize(argc, argv);
 	
-	int a = DEFAULT_A;
+	double a = DEFAULT_A;
 	char c;
 
 	while ((c = getopt(argc, argv, "a:")) != -1)
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	fib f = fib();
-	future<int> result = async(f, a);
+	future<double> result = async(f, a);
 
 	cout << "- Master:Result is " <<result.get() << endl;
 
