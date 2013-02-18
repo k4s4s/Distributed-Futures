@@ -69,7 +69,7 @@ public:
 /** Implementation of async function **/
 template<typename F, typename... Args>
 future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {
-		INCREASE_JOB_COUNTER(); //FIXME: check if that's ok here
+		INCREASE_COUNTER("total_jobs", 1); //FIXME: check if that's ok here
 		START_TIMER("job_issue_time");
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
@@ -102,6 +102,7 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 			};
 		}
 		STOP_TIMER("job_issue_time");
+		DPRINT_VAR("ASYNC:returning future ", id);
     return fut;
 };
 

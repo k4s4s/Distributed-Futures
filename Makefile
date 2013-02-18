@@ -1,5 +1,5 @@
 CC=mpic++
-CCFLAGS=-g -std=c++0x
+CCFLAGS=-g -DSTATS -DDEBUG -std=c++0x
 LDFLAGS=-lboost_mpi -lboost_serialization -L./lib/ -lfuture -lmutex -L/home/kasas/libs/armci_mpi/lib/
 INCLUDES=-I./futures/ -I./futures/communication/ -I./mutex/
 LIB_DIR=lib

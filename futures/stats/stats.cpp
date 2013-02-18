@@ -35,17 +35,18 @@ unsigned long _timer::get_time() {
 StatManager* StatManager::pinstance;
 
 StatManager::StatManager() {
-	total_jobs = 0;
 	timerMap["initialization_time"] = _timer();
 	timerMap["job_issue_time"] = _timer();
 	timerMap["job_execution_time"] = _timer();
 	timerMap["idle_time"] = _timer();
 	timerMap["finalization_time"] = _timer();
 	timerMap["total_execution_time"] = _timer();
+	counterMap["total_jobs"] = 0;
 };
 
 StatManager::~StatManager() {
 	timerMap.clear();
+	counterMap.clear();
 };
 
 StatManager* StatManager::Instance() {
@@ -67,14 +68,44 @@ void StatManager::stop_timer(std::string const& timer_n) {
 	it->second.stop_timer();
 };
 
+void StatManager::increase_counter(std::string const& counter_n, long value) {
+	map<string, long>::iterator it;
+	it = counterMap.find(counter_n);
+	it->second += value;
+};
+
+void StatManager::decrease_counter(std::string const& counter_n, long value) {
+	map<string, long>::iterator it;
+	it = counterMap.find(counter_n);
+	it->second -= value;
+};
+
+void StatManager::register_timer(std::string const& timer_n) {
+	timerMap[timer_n] = _timer();
+}
+
+void StatManager::register_counter(std::string const& counter_n) {
+	counterMap[counter_n] = 0;
+}
+
 unsigned long StatManager::get_time(std::string const& timer_n) {
 	map<string, _timer>::iterator it;
 	it = timerMap.find(timer_n);
 	return it->second.get_time();
 };
 
-void StatManager::increase_total_jobs() {
-	total_jobs++;	
+long StatManager::get_count(std::string const& counter_n) {
+	map<string, long>::iterator it;
+	it = counterMap.find(counter_n);
+	return it->second;
+};
+
+void StatManager::print_timer(std::string const& timer_n) {
+	cout << timer_n<<":"<< ((double)this->get_time(timer_n)/1000.0) << "ms" << endl;	
+};
+
+void StatManager::print_counter(std::string const& counter_n) {
+	cout << counter_n<<":"<< this->get_count(counter_n) << endl;	
 };
 
 void StatManager::print_stats() {
@@ -83,12 +114,12 @@ void StatManager::print_stats() {
 	MPI_Comm_rank(MPI_COMM_WORLD, &id);
 	//FIXME: master should collect statistics over all workers
 	unsigned long total_job_issue_time = this->get_time("job_issue_time") ;
-	unsigned long total_total_jobs = total_jobs; //terrible name for a variable :P
+	long total_total_jobs = this->get_count("total_jobs"); //terrible name for a variable :P
 	unsigned long total_idle_time = this->get_time("idle_time");
 	if(id == 0) {
 
 			
-		unsigned long jobs_num = 0;
+		long jobs_num = 0;
 		for(int i = 1; i < nprocs; i++) {
 				MPI_Status status;
 				int go;
@@ -103,7 +134,9 @@ void StatManager::print_stats() {
 	
 		cout << "==== MASTER TIMING STATS ===" << endl;	 
 		cout << "    total job issue time:" << ((double)this->get_time("job_issue_time")/1000.0) << "ms" << endl;
-		cout << "  job issue time per job:" << ((double)this->get_time("job_issue_time")/1000.0)/((double)total_jobs) << "ms" << endl;
+		cout << "  job issue time per job:" 
+			<< ((double)this->get_time("job_issue_time")/1000.0)/((double)this->get_count("total_jobs")) 
+			<< "ms" << endl;
 		cout << "total job execution time:" << ((double)this->get_time("job_execution_time")/1000.0) << "ms" << endl;
 		cout << "         total idle time:" << ((double)this->get_time("idle_time")/1000.0) << "ms" << endl;
 
@@ -139,7 +172,9 @@ void StatManager::print_stats() {
 		MPI_Status status;
 		int go;
 		MPI_Recv(&go, 1, MPI_BYTE, 0, 0, MPI_COMM_WORLD, &status);
+		long total_jobs = this->get_count("total_jobs");
 		MPI_Send(&total_jobs, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		total_jobs = this->get_count("total_jobs");
 		MPI_Send(&total_jobs, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 		unsigned long job_issue_time = this->get_time("job_issue_time");
 		MPI_Send(&job_issue_time, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);

@@ -9,19 +9,30 @@
 
 #ifndef STATS
 
+#define REGISTER_TIMER(timer_n)
+#define REGISTER_COUNTER(counter_n);
 #define START_TIMER(timer_n)
 #define STOP_TIMER(timer_n)
-#define INCREASE_JOB_COUNTER()
+#define INCREASE_COUNTER(counter_n, val)
+#define DECREASE_COUNTER(counter_n, val)
+#define PRINT_TIMER(timer_n)
+#define PRINT_COUNTER(counter_n)
 #define PRINT_STATS()
 
 #else
 
+#define REGISTER_TIMER(timer_n) stats::StatManager::Instance()->register_timer(timer_n)
+#define REGISTER_COUNTER(counter_n) stats::StatManager::Instance()->register_counter(counter_n)
 #define START_TIMER(timer_n) stats::StatManager::Instance()->start_timer(timer_n)
 #define STOP_TIMER(timer_n) stats::StatManager::Instance()->stop_timer(timer_n)
-#define INCREASE_JOB_COUNTER() stats::StatManager::Instance()->increase_total_jobs() 
+#define INCREASE_COUNTER(counter_n, val) stats::StatManager::Instance()->increase_counter(counter_n, val)
+#define DECREASE_COUNTER(counter_n, val) stats::StatManager::Instance()->decrease_counter(counter_n, val) 
+#define PRINT_TIMER(timer_n) stats::StatManager::Instance()->print_timer(timer_n)
+#define PRINT_COUNTER(counter_n) stats::StatManager::Instance()->print_counter(counter_n)
 #define PRINT_STATS() stats::StatManager::Instance()->print_stats()
 
 #endif
+
 namespace futures {
 namespace stats {
 
@@ -43,15 +54,21 @@ private:
     StatManager();
     static StatManager *pinstance;
 		std::map<std::string, _timer> timerMap;
-		unsigned long total_jobs;
+		std::map<std::string, long> counterMap;
 public:
     ~StatManager();
     static StatManager* Instance();
+		void register_timer(std::string const& timer_n);
+		void register_counter(std::string const& counter_n);
 		void start_timer(std::string const& timer_n);
 		void stop_timer(std::string const& timer_n);
+		void increase_counter(std::string const& timer_n, long value);
+		void decrease_counter(std::string const& timer_n, long value);
 		unsigned long get_time(std::string const& timer_n);
+		long get_count(std::string const& counter_n);
+		void print_timer(std::string const& timer_n);
+		void print_counter(std::string const& counter_n);
 		void print_stats();
-		void increase_total_jobs();
 };
 
 }//end of stats namespace
