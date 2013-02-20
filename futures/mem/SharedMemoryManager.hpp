@@ -2,12 +2,12 @@
 #ifndef _SHAREDMEMORY_H
 #define _SHAREDMEMORY_H
 
+#include "../communication/communication.hpp"
+#include "../details.hpp"
 #include <cassert>
 #include <list>
 #include <map>
-#include "../communication/communication.hpp"
 #include <mutex.hpp>
-#include "../details.hpp"
 
 #define PAGE_SIZE_8b 8
 #define PAGE_SIZE_128b 128

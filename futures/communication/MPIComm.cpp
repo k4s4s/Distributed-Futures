@@ -1,11 +1,8 @@
 
-#include "communication.hpp"
+#include "MPIMutex.hpp"
 #include "MPIComm.hpp"
-#include <mpi.h>
-#include <boost/mpi.hpp>
-#include <iostream>
-#include "../common.hpp"
 #include "mpi_details.hpp"
+#include "../common.hpp"
 #include <cassert>
 
 #define GROUP_COMM_CREATE_TAG 1001

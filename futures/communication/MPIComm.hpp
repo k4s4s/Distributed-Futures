@@ -4,8 +4,6 @@
 
 #include <mpi.h>
 #include "communication.hpp"
-#include "MPIMutex.hpp"
-#include "mpi_details.hpp"
 
 namespace futures {
 namespace communication {

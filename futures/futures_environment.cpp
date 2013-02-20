@@ -3,7 +3,7 @@
 #include "scheduler/RR.hpp"
 #include "communication/MPIComm.hpp"
 #include "details.hpp"
-#include "boost/mpi.hpp"
+#include <boost/mpi.hpp>
 #include <iostream>
 #include "common.hpp"
 

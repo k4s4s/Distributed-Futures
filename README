@@ -1,0 +1,2 @@
+A future interface and a Mutex library for distributed memory.
+Current implementation use the MPI one sided communication library.

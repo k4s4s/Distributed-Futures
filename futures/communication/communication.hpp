@@ -17,16 +17,7 @@ public:
 		virtual void get(void* data, int src_id, int count, int offset, MPI_Datatype datatype) = 0;
 		virtual void get(boost::mpi::packed_iarchive& ar, int src_id, int offset) = 0;
 };
-/*
-class Shared_Variable {
-public:
-		virtual ~Shared_Variable() {};
-		virtual void put(void* data, int dst_id);
-		virtual void put(boost::mpi::packed_oarchive& ar, int dst_id);
-		virtual void get(void* data, int src_id);
-		virtual void get(boost::mpi::packed_iarchive& ar);
-};
-*/
+
 class CommInterface {
 public:
     virtual ~CommInterface() {};

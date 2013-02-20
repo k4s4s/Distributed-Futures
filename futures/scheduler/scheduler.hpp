@@ -3,8 +3,6 @@
 
 #include "../communication/communication.hpp"
 #include "process.hpp"
-#include "master.hpp"
-#include "worker.hpp"
 
 namespace futures {
 namespace scheduler {

@@ -12,8 +12,8 @@
 #include "scheduler/schedManager.hpp"
 #include "future_fwd.hpp"
 #include "details.hpp"
-#include "mpi.h"
-#include "MPIMutex.hpp"
+#include <mpi.h>
+#include <MPIMutex.hpp>
 #include "common.hpp"
 
 namespace futures {

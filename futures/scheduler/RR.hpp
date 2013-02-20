@@ -1,11 +1,11 @@
 #ifndef _RR_H
 #define _RR_H
 
-#include "scheduler.hpp"
 #include "../communication/communication.hpp"
-#include <map>
+#include "scheduler.hpp"
 #include "taskQueue.hpp"
 #include <mutex.hpp>
+#include <map>
 
 namespace futures {
 namespace scheduler {

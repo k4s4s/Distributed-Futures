@@ -1,9 +1,11 @@
 
 #include "RR.hpp"
+#include "master.hpp"
+#include "worker.hpp"
 #include "../communication/communication.hpp"
 #include "../communication/mpi_details.hpp"
-#include <cassert>
 #include "../common.hpp"
+#include <cassert>
 
 #define MASTER_ID 0
 
