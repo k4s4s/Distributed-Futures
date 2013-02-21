@@ -30,7 +30,7 @@ MPI_Shared_address_space::~MPI_Shared_address_space() {
 void MPI_Shared_address_space::put(void* data, int dst_id, int count, int offset, 
 																	MPI_Datatype datatype) {
     communication::details::MPI_Exclusive_put(data, count, datatype, dst_id, 
-																							offset+DATA_OFFSET,
+																							offset,
                           										count, datatype, shared_memory_win);
 };
 
@@ -46,7 +46,7 @@ void MPI_Shared_address_space::put(boost::mpi::packed_oarchive& ar, int dst_id, 
 
 void MPI_Shared_address_space::get(void* data, int src_id, int count, int offset, MPI_Datatype datatype) {
     communication::details::MPI_Exclusive_get(data, count, datatype, src_id, 
-																							offset+DATA_OFFSET,
+																							offset,
                           										count, datatype, shared_memory_win);
 };
 

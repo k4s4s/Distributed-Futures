@@ -156,13 +156,13 @@ template <class T> T future<T>::get() {
     //assert(id == dst_id);
 		START_TIMER("idle_time");
     while (1) {
-				//DPRINT_VAR("Future.get():waiting...", ready_status);
         ready_status = env->get_data<int>(dst_id, shared_ptr, 1, STATUS_OFFSET);
         if (ready_status) break;
 				STOP_TIMER("idle_time");
 				env->execute_pending_jobs(); //Maybe it's best to execute one job at a time
 				START_TIMER("idle_time");
     }
+		DPRINT_VAR("future.get():", ready_status);
 		STOP_TIMER("idle_time");
 		DPRINT_VAR("future.get():trying to retrieve data:", id);
     data = env->get_data<T>(dst_id, shared_ptr, data_size, DATA_OFFSET);
