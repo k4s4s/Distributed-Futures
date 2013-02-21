@@ -79,7 +79,7 @@ DPRINT_MESSAGE("\t\ttaskstack:created empty _stub_wrapper");
 DPRINT_MESSAGE("\t\ttaskstack:streamed data");
 	/* set new list head */
 	curr_head -= TASK_OFFSET+count;
-	DPRINT_VAR("\t\ttaskstack:Pop:next head ", curr_head-count-TASK_OFFSET);
+	DPRINT_VAR("\t\ttaskstack:Pop:next head ", curr_head);
 	curr_size--;
 	taskS->put(&curr_head, dst_id, 1, HEAD_OFFSET, MPI_INT);
 	taskS->put(&curr_size, dst_id, 1, SIZE_OFFSET, MPI_INT);

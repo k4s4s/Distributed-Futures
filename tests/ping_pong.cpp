@@ -1,6 +1,8 @@
 
 #include "futures.hpp"
 #include <iostream>
+#include <string>
+#include <boost/serialization/string.hpp>
 
 #define MASTER 0
 
@@ -11,14 +13,15 @@ class ping {
 public:
 	ping() {};
 	~ping() {};
-	int operator()() { 
-		cout << "PING!" << endl;
-		return 1;
+	string operator()(string message) { 
+		//cout << "PING!" << endl;
+		message.append(" PONG!");
+		return message;
 	};
 };
 
 FUTURES_SERIALIZE_CLASS(ping);
-FUTURES_EXPORT_FUNCTOR((async_function<ping>));
+FUTURES_EXPORT_FUNCTOR((async_function<ping, string>));
 
 int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);
@@ -26,11 +29,11 @@ int main(int argc, char* argv[]) {
 
 	REGISTER_TIMER("PING TIME");
 	START_TIMER("PING TIME");
-	future<int> pong = async(p);
+	future<string> pong = async(p, string("PING"));
 
-	pong.get();
+	string message = pong.get();
 	STOP_TIMER("PING TIME");
-	cout << "PONG!" << endl;
+	cout << message << endl;
 	PRINT_TIMER("PING TIME");
 	Futures_Finalize();
 };

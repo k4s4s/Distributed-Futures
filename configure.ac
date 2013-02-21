@@ -10,7 +10,31 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX([mpic++])
 LT_INIT([disable-static])
 
-CXXFLAGS="$CXXFLAGS -DSTATS -DDEBUG -std=c++0x"
+BOOST_REQUIRE([1.45])
+BOOST_SERIALIZATION
+
+CXXFLAGS="-O3 -std=c++0x"
+
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          Enable debugging information],
+              USE_DEBUG="$enableval", USE_DEBUG="no")
+
+if test $USE_DEBUG = yes ; then 
+	CXXFLAGS="$CXXFLAGS -g -DDEBUG"
+else
+  CXXFLAGS="$CXXFLAGS"
+fi
+
+
+AC_ARG_ENABLE(stats,
+              [  --enable-stats          Enable program statistics],
+              USE_STATS="$enableval", USE_STATS="no")
+
+if test $USE_STATS = yes ; then 
+	CXXFLAGS="$CXXFLAGS -DSTATS"
+else
+  CXXFLAGS="$CXXFLAGS"
+fi
 
 # Define these substitions here to keep all version information in one place.
 # For information on how to properly maintain the library version information,

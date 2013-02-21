@@ -195,10 +195,13 @@ void async_function<F, Args...>::run() {
 		START_TIMER("job_execution_time");
 		functor_utils::apply(f, &retVal, args);
 		STOP_TIMER("job_execution_time");
+		DPRINT_VAR("JOB:Completed execution, setting future data ",id);
     //return value to future
 		env->set_data(retVal, dst_id, shared_ptr, data_size, DATA_OFFSET);
+		DPRINT_VAR("JOB:Set future data, setting status ",id);
     int ready_status = 1;
     env->set_data(ready_status, dst_id, shared_ptr, 1, STATUS_OFFSET);
+		DPRINT_VAR("JOB:Set status, job completed ",id);
 };
 
 }//end of futures namespace
