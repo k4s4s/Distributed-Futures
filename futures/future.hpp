@@ -152,6 +152,7 @@ template <class T> T future<T>::get() {
     int id = env->get_procId();
 		//DPRINT_VAR("future.get():executing all pending jobs in queue:", id);
 		//DPRINT_VAR("future.get():waiting...", ready_status);
+		DPRINT_VAR("future.get():", id);
     //assert(id == dst_id);
 		START_TIMER("idle_time");
     while (1) {
@@ -163,8 +164,10 @@ template <class T> T future<T>::get() {
 				START_TIMER("idle_time");
     }
 		STOP_TIMER("idle_time");
+		DPRINT_VAR("future.get():trying to retrieve data:", id);
     data = env->get_data<T>(dst_id, shared_ptr, data_size, DATA_OFFSET);
 		env->free(id, shared_ptr);
+		DPRINT_VAR("future.get():got data, returning it locally:", id);
     return data;
 };
 
