@@ -42,6 +42,7 @@ StatManager::StatManager() {
 	timerMap["finalization_time"] = _timer();
 	timerMap["total_execution_time"] = _timer();
 	counterMap["total_jobs"] = 0;
+	counterMap["total_memory_needed"] = 0;
 };
 
 StatManager::~StatManager() {
@@ -68,14 +69,14 @@ void StatManager::stop_timer(std::string const& timer_n) {
 	it->second.stop_timer();
 };
 
-void StatManager::increase_counter(std::string const& counter_n, long value) {
-	map<string, long>::iterator it;
+void StatManager::increase_counter(std::string const& counter_n, std::size_t value) {
+	map<string, std::size_t>::iterator it;
 	it = counterMap.find(counter_n);
 	it->second += value;
 };
 
-void StatManager::decrease_counter(std::string const& counter_n, long value) {
-	map<string, long>::iterator it;
+void StatManager::decrease_counter(std::string const& counter_n, std::size_t value) {
+	map<string, std::size_t>::iterator it;
 	it = counterMap.find(counter_n);
 	it->second -= value;
 };
@@ -94,8 +95,8 @@ unsigned long StatManager::get_time(std::string const& timer_n) {
 	return it->second.get_time();
 };
 
-long StatManager::get_count(std::string const& counter_n) {
-	map<string, long>::iterator it;
+std::size_t StatManager::get_count(std::string const& counter_n) {
+	map<string, std::size_t>::iterator it;
 	it = counterMap.find(counter_n);
 	return it->second;
 };
@@ -156,6 +157,7 @@ void StatManager::print_stats() {
 				cout << "  job issue time per job:" << ((double)_job_issue_time/1000.0)/((double)jobs_num)<< "ms" << endl;
 				cout << "total job execution time:" << ((double)this->get_time("job_execution_time")/1000.0) << "ms" << endl;
 				cout << "         total idle time:" << ((double)_idle_time/1000.0) << "ms" << endl;	
+				cout << "			total memory needed:" << this->get_count("total_memory_needed") << "bytes" << endl;
 		}
 
 		cout << "==== TOTAL TIMING STATS ===" << endl;	 

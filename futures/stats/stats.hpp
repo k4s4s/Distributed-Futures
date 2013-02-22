@@ -54,7 +54,7 @@ private:
     StatManager();
     static StatManager *pinstance;
 		std::map<std::string, _timer> timerMap;
-		std::map<std::string, long> counterMap;
+		std::map<std::string, std::size_t> counterMap;
 public:
     ~StatManager();
     static StatManager* Instance();
@@ -62,10 +62,10 @@ public:
 		void register_counter(std::string const& counter_n);
 		void start_timer(std::string const& timer_n);
 		void stop_timer(std::string const& timer_n);
-		void increase_counter(std::string const& timer_n, long value);
-		void decrease_counter(std::string const& timer_n, long value);
+		void increase_counter(std::string const& timer_n, std::size_t value);
+		void decrease_counter(std::string const& timer_n, std::size_t value);
 		unsigned long get_time(std::string const& timer_n);
-		long get_count(std::string const& counter_n);
+		std::size_t get_count(std::string const& counter_n);
 		void print_timer(std::string const& timer_n);
 		void print_counter(std::string const& counter_n);
 		void print_stats();

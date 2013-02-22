@@ -1,10 +1,15 @@
-* TODO:Allow futures to return exceptions
+* TODO:allow futures to return exceptions
+* TODO:add doxygen
+* TODO:add jacobi and LU with futures implementation as well as mpi
+ 
+
+* FIXME:handle void return type
 * FIXME:crashes if run for 1 proc, need at least one worker
-* FIXME:quicksort still buggy 
+* FIXME:try to figure out what happens with f_args4+
+* FIXME:memory glitch when running fib with many workers on mini-titan
+
 *	NOTE: when calling async, user must be sure that arguments will be deducted correctly.
 	Example: consider the functor is double->double, async(f, 1) will result in unregistered
-	class, since when desirializing, it will consider a functor double->int.  Correct call
+	class, since when deserializing, it will consider a functor double->int.  Correct call
 	to async here is either async(f, 1.0) or async(f, (double)1).
-* FIXME:try to figure out what happens with f_args4+
-* TODO:add doxygen
 

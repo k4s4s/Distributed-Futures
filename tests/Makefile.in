@@ -35,7 +35,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = hello$(EXEEXT) power$(EXEEXT) fib$(EXEEXT) \
-	quicksort$(EXEEXT) ping_pong$(EXEEXT) benchmark1$(EXEEXT)
+	factorial$(EXEEXT) quicksort$(EXEEXT) ping_pong$(EXEEXT) \
+	benchmark1$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -54,6 +55,9 @@ PROGRAMS = $(bin_PROGRAMS)
 am_benchmark1_OBJECTS = benchmark1.$(OBJEXT)
 benchmark1_OBJECTS = $(am_benchmark1_OBJECTS)
 benchmark1_LDADD = $(LDADD)
+am_factorial_OBJECTS = factorial.$(OBJEXT)
+factorial_OBJECTS = $(am_factorial_OBJECTS)
+factorial_LDADD = $(LDADD)
 am_fib_OBJECTS = fib.$(OBJEXT)
 fib_OBJECTS = $(am_fib_OBJECTS)
 fib_LDADD = $(LDADD)
@@ -82,10 +86,12 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(benchmark1_SOURCES) $(fib_SOURCES) $(hello_SOURCES) \
-	$(ping_pong_SOURCES) $(power_SOURCES) $(quicksort_SOURCES)
-DIST_SOURCES = $(benchmark1_SOURCES) $(fib_SOURCES) $(hello_SOURCES) \
-	$(ping_pong_SOURCES) $(power_SOURCES) $(quicksort_SOURCES)
+SOURCES = $(benchmark1_SOURCES) $(factorial_SOURCES) $(fib_SOURCES) \
+	$(hello_SOURCES) $(ping_pong_SOURCES) $(power_SOURCES) \
+	$(quicksort_SOURCES)
+DIST_SOURCES = $(benchmark1_SOURCES) $(factorial_SOURCES) \
+	$(fib_SOURCES) $(hello_SOURCES) $(ping_pong_SOURCES) \
+	$(power_SOURCES) $(quicksort_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -226,6 +232,7 @@ AM_LDFLAGS = -L$(top_srcdir)/mutex/.libs -L$(top_srcdir)/futures/.libs \
 hello_SOURCES = hello.cpp
 power_SOURCES = power.cpp
 fib_SOURCES = fib.cpp
+factorial_SOURCES = factorial.cpp
 quicksort_SOURCES = quicksort.cpp
 ping_pong_SOURCES = ping_pong.cpp
 benchmark1_SOURCES = benchmark1.cpp
@@ -309,6 +316,9 @@ clean-binPROGRAMS:
 benchmark1$(EXEEXT): $(benchmark1_OBJECTS) $(benchmark1_DEPENDENCIES) $(EXTRA_benchmark1_DEPENDENCIES) 
 	@rm -f benchmark1$(EXEEXT)
 	$(CXXLINK) $(benchmark1_OBJECTS) $(benchmark1_LDADD) $(LIBS)
+factorial$(EXEEXT): $(factorial_OBJECTS) $(factorial_DEPENDENCIES) $(EXTRA_factorial_DEPENDENCIES) 
+	@rm -f factorial$(EXEEXT)
+	$(CXXLINK) $(factorial_OBJECTS) $(factorial_LDADD) $(LIBS)
 fib$(EXEEXT): $(fib_OBJECTS) $(fib_DEPENDENCIES) $(EXTRA_fib_DEPENDENCIES) 
 	@rm -f fib$(EXEEXT)
 	$(CXXLINK) $(fib_OBJECTS) $(fib_LDADD) $(LIBS)
@@ -332,6 +342,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/benchmark1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/factorial.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hello.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ping_pong.Po@am__quote@

@@ -23,7 +23,7 @@ public:
     virtual ~CommInterface() {};
     //User should also implement a create function for the CommInterface factory
 		virtual mutex* new_lock() = 0;
-		virtual Shared_Address_space* new_shared_space(unsigned int size) = 0;
+		virtual Shared_Address_space* new_shared_space(std::size_t size) = 0;
     virtual void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data) = 0;
     virtual void send(int dst_id, int tag, boost::mpi::packed_oarchive& ar) = 0;
     virtual void recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data) = 0;

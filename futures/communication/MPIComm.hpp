@@ -13,7 +13,7 @@ private:
 	MPI_Win shared_memory_win;
 	void *shared_memory;
 public:
-	MPI_Shared_address_space(unsigned int size);
+	MPI_Shared_address_space(std::size_t size);
 	~MPI_Shared_address_space();
   void put(void* data, int dst_id, int count, int offset, MPI_Datatype datatype);
   void put(boost::mpi::packed_oarchive& ar, int dst_id, int offset);
@@ -27,7 +27,7 @@ public:
     ~MPIComm();
     static CommInterface* create(int &argc, char**& argv);
 		mutex* new_lock();
-		Shared_Address_space* new_shared_space(unsigned int size);
+		Shared_Address_space* new_shared_space(std::size_t size);
     void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data);
     void send(int dst_id, int tag, boost::mpi::packed_oarchive& ar);
     void recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data);

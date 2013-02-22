@@ -5,6 +5,8 @@
 using namespace std;
 using namespace futures; 
 
+#define DEFAULT_SIZE 1000
+
 ////////////////////////////////////////////////////////////
 // Miscialenous functions
 ////////////////////////////////////////////////////////////
@@ -105,7 +107,7 @@ public:
 		const int left = 0;
 		const int right = array.size()-1;
     if(left < right){
-        if(array.size() > 1000) {
+        if(array.size() > 1) {
             const long part = QsPartition(array, left, right);
  						vector<SortType> subarrA((right)-(part+1)+1), subarrB(part-1-left+1);
 						Copy(subarrA, array, part+1, right+1);
@@ -137,31 +139,42 @@ FUTURES_EXPORT_FUNCTOR((async_function<quicksort, vector<long>, int>));
  
 int main(int argc, char** argv) {
  
-		Futures_Initialize(argc, argv);
-    const long Size = 100000;//600000000;
-    vector<long> array(Size);
- 
-    // Create array
-    srand(0);
-    for(long idx = 0 ; idx < Size ; ++idx){
-        array[idx] = int(Size*(float(rand())/RAND_MAX));
-    }
- 		//print(array,Size);
-    printf("Sorting %ld elements\n", Size);
-    // Start sorting
-		quicksort qsort;
-    array = qsort(array, 10);
-		Futures_Finalize();
-    // Test result
-    if(isSorted(array,Size)){
-        printf("Is sorted\n");
-    }
-    else{
-        printf("Error array is not sorted!\n");
-        if( Size <= 20) print(array,Size);
-        return -1;
-    }
- 
-    return 0;
+	Futures_Initialize(argc, argv);
+	long Size = DEFAULT_SIZE;
+
+	char c;
+
+	while ((c = getopt(argc, argv, "n:")) != -1)
+	switch (c)	{
+		case 'n':
+			Size = atoi(optarg);	 
+		 	break;
+	 	default:
+			break;		
+	}
+
+  vector<long> array(Size);
+   // Create array
+  srand(0);
+  for(long idx = 0 ; idx < Size ; ++idx){
+      array[idx] = int(Size*(float(rand())/RAND_MAX));
+  }
+	//print(array,Size);
+  printf("Sorting %ld elements\n", Size);
+  // Start sorting
+	quicksort qsort;
+  array = qsort(array, 10);
+	Futures_Finalize();
+  // Test result
+  if(isSorted(array,Size)){
+      printf("Is sorted\n");
+  }
+  else{
+      printf("Error array is not sorted!\n");
+      if( Size <= 20) print(array,Size);
+      return -1;
+  }
+
+  return 0;
 }
 

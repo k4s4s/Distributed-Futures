@@ -14,7 +14,7 @@ using namespace futures;
 using namespace futures::communication;
 
 /*** MPI_Shared_address_space implementation ***/
-MPI_Shared_address_space::MPI_Shared_address_space(unsigned int size) {
+MPI_Shared_address_space::MPI_Shared_address_space(std::size_t size) {
 	
 	MPI_Alloc_mem(size, MPI_INFO_NULL, &shared_memory);
   MPI_Win_create(shared_memory, size, 1, MPI_INFO_NULL, 
@@ -87,7 +87,7 @@ mutex* MPIComm::new_lock() {
 	return new MPIMutex(MPI_COMM_WORLD);
 };
 
-Shared_Address_space* MPIComm::new_shared_space(unsigned int size) {
+Shared_Address_space* MPIComm::new_shared_space(std::size_t size) {
 	return new MPI_Shared_address_space(size);
 };
 

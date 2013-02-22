@@ -15,7 +15,7 @@
 #define PAGE_SIZE_4kb 4096
 #define PAGE_SIZE_OTHER -1
 
-#define Shared_Memory_manager_SIZE 2*1024
+#define Shared_Memory_manager_SIZE 2*1024*10
 
 #define STATUS_OFFSET 0
 #define DATA_OFFSET sizeof(int)
@@ -43,9 +43,9 @@ private:
   };
 public:
 	int base_address;
-	int size;
+	std::size_t size;
 	int num_of_pages;
-	int actual_size; //size*num_of_pages
+	std::size_t actual_size; //size*num_of_pages
 	int page_size;
 };
 
@@ -63,7 +63,7 @@ public:
 	communication::Shared_Address_space *shared_address_space;
 	std::list<Shared_pointer> free_list;
 	int page_size;
-	int total_size;
+	std::size_t total_size;
 	memory_pages(communication::CommInterface *_comm, int _page_size);
 	~memory_pages();
 };

@@ -16,7 +16,7 @@ memory_pages::memory_pages(communication::CommInterface *_comm, int _page_size) 
 			total_size = Shared_Memory_manager_SIZE*page_size;
 	else
 			total_size = Shared_Memory_manager_SIZE*1024*8;
-
+	
 	shared_address_space = comm->new_shared_space(total_size);
 
 	Shared_pointer free_mem;
@@ -25,6 +25,8 @@ memory_pages::memory_pages(communication::CommInterface *_comm, int _page_size) 
 	free_mem.num_of_pages = NUM_OF_PAGES(free_mem.size, page_size);
 	free_mem.page_size = page_size;
 	free_list.push_front(free_mem);
+	DPRINT_VAR("\t\tShare Mem:created shared memory of ", total_size);
+	std::cout << "total_size:" << total_size << std::endl;
 };
 
 memory_pages::~memory_pages() {
@@ -123,35 +125,58 @@ void Shared_Memory_manager::print_list(std::list<Shared_pointer> &list) {
 Shared_pointer Shared_Memory_manager::allocate(int id, unsigned int size) {
 	size += DATA_OFFSET+sizeof(int);
 	int page_size;
-	PAGE_SIZE(page_size, size);
 	DPRINT_VAR("\t\t\tShared Mem:Trying to allocate memory on ", id);
-	std::map<int, memory_pages*>::iterator freeLists_it;
-	freeLists_it = freeLists.find(MAP_INDEX(page_size));
+	PAGE_SIZE(page_size, size);
+	std::map<int, memory_pages*>::iterator freeLists_it, best_fit_it;
+	best_fit_it = freeLists_it = freeLists.find(MAP_INDEX(page_size));
 	Shared_pointer ptr;
-	ptr.base_address = ptr.size = ptr.num_of_pages = 0;
-	ptr.page_size = page_size;
-	int pages_needed = NUM_OF_PAGES(size, page_size);
-	/*find a large enough space, with first fit*/
-	std::list<Shared_pointer>::iterator it;
-	for(it=freeLists_it->second->free_list.begin(); it!=freeLists_it->second->free_list.end(); ++it) {
-		DPRINT_VAR("\t\t\tShared Mem:Free Mem:", (*it).actual_size);
-		if((*it).actual_size >= pages_needed*page_size) {
-			DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*page_size);
-			ptr.base_address = (*it).base_address;
-			ptr.size = size;
-			ptr.num_of_pages = pages_needed;
-			ptr.actual_size = pages_needed*page_size;
-			(*it).base_address += pages_needed*page_size;
-			(*it).size -= pages_needed*page_size;
-			(*it).num_of_pages -= pages_needed;
-			(*it).actual_size -= ptr.actual_size;
-			break;
+	bool first_try = true;
+	while(freeLists_it != freeLists.end()) {
+		ptr.base_address = ptr.size = ptr.num_of_pages = 0;
+		ptr.page_size = page_size;
+		int pages_needed = NUM_OF_PAGES(size, page_size);
+		/*find a large enough space, with first fit*/
+		std::list<Shared_pointer>::iterator it;
+		for(it=freeLists_it->second->free_list.begin(); it!=freeLists_it->second->free_list.end(); ++it) {
+			DPRINT_VAR("\t\t\tShared Mem:Free Mem:", (*it).actual_size);
+			if((*it).actual_size >= pages_needed*page_size) {
+				DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*page_size);
+				ptr.base_address = (*it).base_address;
+				ptr.size = size;
+				ptr.num_of_pages = pages_needed;
+				ptr.actual_size = pages_needed*page_size;
+				(*it).base_address += pages_needed*page_size;
+				(*it).size -= pages_needed*page_size;
+				(*it).num_of_pages -= pages_needed;
+				(*it).actual_size -= ptr.actual_size;
+				break;
+			}
 		}
+		if(ptr.size == 0) {
+			DPRINT_VAR("\t\t\tShared Mem:Could not allocate ", pages_needed*page_size);
+			DPRINT_MESSAGE("\t\t\tShared Mem:Trying another page size");	
+			//try to allocate space in another page size space
+			if(first_try) {
+				freeLists_it = freeLists.begin();
+				first_try = false;
+			}
+			else {
+				freeLists_it++;
+			}
+			//skip best fit, we have already checked it
+			if(freeLists_it == best_fit_it)
+				freeLists_it++;
+			page_size = (*freeLists_it).first;
+			pages_needed = NUM_OF_PAGES(size, page_size);
+		}
+		else 
+			break; //memory allocated succesfully
 	}
 	if(ptr.size == 0) {
-		DPRINT_VAR("\t\t\tShared Mem:Could not allocate ", pages_needed*page_size);	
+		PRINT_COUNTER("total_memory_needed");
 	}
 	assert(ptr.size != 0); //TODO: if this fails, throw an exception and run on self
+	INCREASE_COUNTER("total_memory_needed", ptr.actual_size);
 	return ptr;
 };
 
