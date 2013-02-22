@@ -1,0 +1,2 @@
+/usr/bin/ar cr libmutex.a  CMakeFiles/mutex.dir/MPIMutex.cpp.o
+/usr/bin/ranlib libmutex.a

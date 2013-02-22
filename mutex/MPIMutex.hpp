@@ -2,7 +2,7 @@
 #ifndef _MPIMUTEX_H
 #define _MPIMUTEX_H
 
-#include "mutex.hpp"
+#include <mutex.hpp>
 #include <mpi.h>
 
 typedef unsigned char byte;

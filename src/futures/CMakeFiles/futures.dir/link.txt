@@ -1,0 +1,2 @@
+/usr/bin/ar cr libfutures.a  CMakeFiles/futures.dir/futures_environment.cpp.o CMakeFiles/futures.dir/communication/commManager.cpp.o CMakeFiles/futures.dir/communication/MPIComm.cpp.o CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o CMakeFiles/futures.dir/scheduler/schedManager.cpp.o CMakeFiles/futures.dir/scheduler/master.cpp.o CMakeFiles/futures.dir/scheduler/worker.cpp.o CMakeFiles/futures.dir/scheduler/RR.cpp.o CMakeFiles/futures.dir/scheduler/taskStack.cpp.o CMakeFiles/futures.dir/stats/stats.cpp.o
+/usr/bin/ranlib libfutures.a
