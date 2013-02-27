@@ -184,7 +184,7 @@ void Shared_Memory_manager::free(int id, Shared_pointer& ptr) {
 	int zero = 0;
 	std::map<int, memory_pages*>::iterator freeLists_it;
 	freeLists_it = freeLists.find(MAP_INDEX(ptr.page_size));
-	freeLists_it->second->shared_address_space->put(&zero, id, 1, ptr.base_address, MPI_INT);
+	freeLists_it->second->shared_address_space->put(zero, id, 1, ptr.base_address);
 	list_insert(freeLists_it->second->free_list, ptr);
 };
 

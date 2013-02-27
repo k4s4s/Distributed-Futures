@@ -3,7 +3,6 @@
 
 #include "../communication/communication.hpp"
 #include "scheduler.hpp"
-#include "taskQueue.hpp"
 #include <mutex.hpp>
 #include <map>
 

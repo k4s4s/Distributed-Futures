@@ -12,6 +12,25 @@ include_directories(${MPI_INCLUDE_PATH})
 find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Boost REQUIRED COMPONENTS mpi)
 
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile @ONLY)
+add_custom_target(doc
+  										COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
+  										SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
+endif(DOXYGEN_FOUND)
+
+option(debug "debug" OFF)
+option(stats "stats" OFF)
+
+if(debug MATCHES ON)
+add_definitions(-DDEBUG)
+endif(debug MATCHES ON)
+
+if(stats MATCHES ON)
+add_definitions(-DSTATS)
+endif(stats MATCHES ON)
+
 include_directories(mutex)
 include_directories(futures)
 include_directories(futures/communication)
@@ -20,27 +39,9 @@ include_directories(futures/scheduler)
 include_directories(futures/stats)
 
 add_definitions(-O3 -std=c++0x)
+add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)
 add_subdirectory(src/futures)
 add_subdirectory(tests)
-
-#clean-all command
-add_custom_target(clean-cmake-files
-   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
-)
-
-set(cmake_generated ${CMAKE_BINARY_DIR}/CMakeCache.txt
-                    ${CMAKE_BINARY_DIR}/cmake_install.cmake  
-                    ${CMAKE_BINARY_DIR}/Makefile
-                    ${CMAKE_BINARY_DIR}/CMakeFiles
-)
-
-foreach(file ${cmake_generated})
-
-  if (EXISTS ${file})
-     file(REMOVE_RECURSE ${file})
-  endif()
-
-endforeach(file)
 

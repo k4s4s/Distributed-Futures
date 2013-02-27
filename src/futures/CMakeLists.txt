@@ -1,6 +1,5 @@
 add_library(futures STATIC
 	futures_environment.cpp 
-	communication/commManager.cpp
 	communication/MPIComm.cpp
 	mem/SharedMemoryManager.cpp
 	scheduler/schedManager.cpp
@@ -27,7 +26,6 @@ endif()
 install(FILES 
 	${CMAKE_SOURCE_DIR}/futures/future_fwd.hpp
 	${CMAKE_SOURCE_DIR}/futures/communication/communication.hpp
-	${CMAKE_SOURCE_DIR}/futures/communication/commManager.hpp
 	${CMAKE_SOURCE_DIR}/futures/communication/MPIComm.hpp
 	${CMAKE_SOURCE_DIR}/futures/mem/SharedMemoryManager.hpp
 	${CMAKE_SOURCE_DIR}/futures/scheduler/process.hpp

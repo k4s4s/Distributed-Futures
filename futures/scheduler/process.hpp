@@ -10,7 +10,13 @@
 namespace futures {
 namespace scheduler {
 
-enum ProcStatus { IDLE=0, RUNNING=1, TERMINATED=2 };
+ enum ProcStatus { IDLE=0, RUNNING=1, TERMINATED=2 };
+/*
+typedef int ProcStatus; //easier to send over underlying communication library
+#define IDLDE 0
+#define RUNNING 1
+#define TERMINATED 2
+*/
 
 class Process {
 public:

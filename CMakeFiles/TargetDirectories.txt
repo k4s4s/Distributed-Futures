@@ -1,4 +1,0 @@
-/home/kasas/work/lri/Distributed-Futures/CMakeFiles/clean-cmake-files.dir
-/home/kasas/work/lri/Distributed-Futures/tests/CMakeFiles/fibonacci.dir
-/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir
-/home/kasas/work/lri/Distributed-Futures/src/mutex/CMakeFiles/mutex.dir

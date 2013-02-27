@@ -22,7 +22,7 @@ RRScheduler::RRScheduler(CommInterface* _comm) {
 			sched_mem = comm->new_shared_space(sizeof(int));
 			sched_lock = comm->new_lock();
 			int curr_worker_id = master_id;
-			sched_mem->put(&curr_worker_id, id, 1, 0, MPI_INT);
+			sched_mem->put(curr_worker_id, id, 1, 0);
 		}
     else {
       proc = new Worker(comm);
@@ -47,10 +47,10 @@ int RRScheduler::nextAvaibleWorkerId() {
     assert(total_workers != 0);
 		int curr_worker_id;
 		sched_lock->lock(MASTER_ID);
-		sched_mem->get(&curr_worker_id, MASTER_ID, 1, 0, MPI_INT);
+		curr_worker_id = sched_mem->get<int>(MASTER_ID, 1, 0);
     curr_worker_id = (curr_worker_id+1)%(total_workers);
 		curr_worker_id = (curr_worker_id==0)?curr_worker_id+1:curr_worker_id;
-		sched_mem->put(&curr_worker_id, MASTER_ID, 1, 0, MPI_INT);
+		sched_mem->put(curr_worker_id, MASTER_ID, 1, 0);
 		//DPRINT_VAR("\tRRSched:next proc in RR is ", curr_worker_id);
 		//find the next idle or at least avaible proc
 		for(int i = curr_worker_id; i < total_workers; i++) {	

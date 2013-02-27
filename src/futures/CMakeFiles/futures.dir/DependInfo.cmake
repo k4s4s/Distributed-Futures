@@ -5,7 +5,6 @@ SET(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
   "/home/kasas/work/lri/Distributed-Futures/src/futures/communication/MPIComm.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o"
-  "/home/kasas/work/lri/Distributed-Futures/src/futures/communication/commManager.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o"
   "/home/kasas/work/lri/Distributed-Futures/src/futures/futures_environment.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o"
   "/home/kasas/work/lri/Distributed-Futures/src/futures/mem/SharedMemoryManager.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o"
   "/home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/RR.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/scheduler/RR.cpp.o"
@@ -16,6 +15,11 @@ SET(CMAKE_DEPENDS_CHECK_CXX
   "/home/kasas/work/lri/Distributed-Futures/src/futures/stats/stats.cpp" "/home/kasas/work/lri/Distributed-Futures/src/futures/CMakeFiles/futures.dir/stats/stats.cpp.o"
   )
 SET(CMAKE_CXX_COMPILER_ID "GNU")
+
+# Preprocessor definitions for this target.
+SET(CMAKE_TARGET_DEFINITIONS
+  "V_MPI"
+  )
 
 # Targets to which this target links.
 SET(CMAKE_TARGET_LINKED_INFO_FILES

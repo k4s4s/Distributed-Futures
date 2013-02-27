@@ -58,11 +58,8 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv,
                                        const std::string& schedulerName) {
 		START_TIMER("total_execution_time");
 		START_TIMER("initialization_time");
-    //Initilize communication manager and register default interfaces
-    commManager = communication::CommManager::Instance();
-    commManager->registerCommInterface("MPI", communication::MPIComm::create);
     //Initilize communication Interface
-    commInterface = commManager->createCommInterface(commInterfaceName, argc, argv);
+    commInterface = new communication::CommInterface(argc, argv);
 		//Create shared address space
 		memManager = new mem::Shared_Memory_manager(commInterface);
     schedManager = scheduler::SchedManager::Instance();
@@ -89,7 +86,6 @@ void Futures_Environment::Finalize() {
     delete sched;
 		delete memManager;
     delete commInterface;
-    delete commManager;
     //delete pinstance;
 };
 

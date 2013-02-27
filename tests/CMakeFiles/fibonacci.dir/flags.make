@@ -4,5 +4,5 @@
 # compile CXX with /usr/bin/c++
 CXX_FLAGS = -I/usr/lib/openmpi/include -I/usr/lib/openmpi/include/openmpi -I/home/kasas/work/lri/Distributed-Futures/mutex -I/home/kasas/work/lri/Distributed-Futures/futures -I/home/kasas/work/lri/Distributed-Futures/futures/communication -I/home/kasas/work/lri/Distributed-Futures/futures/mem -I/home/kasas/work/lri/Distributed-Futures/futures/scheduler -I/home/kasas/work/lri/Distributed-Futures/futures/stats    -O3 -std=c++0x
 
-CXX_DEFINES = 
+CXX_DEFINES = -DV_MPI
 

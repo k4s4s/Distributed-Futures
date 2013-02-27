@@ -36,7 +36,7 @@ tests/CMakeFiles/fibonacci.dir/fib.cpp.o: /usr/lib/openmpi/include/openmpi/ompi/
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/win_inln.h
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/apply_function.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/common.hpp
-tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/communication/commManager.hpp
+tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/communication/MPIComm.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/communication/communication.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/communication/mpi_details.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/details.hpp
@@ -44,7 +44,6 @@ tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/future.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/future_fwd.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/futures.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/futures_environment.hpp
-tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/mem/../details.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/mem/SharedMemoryManager.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/scheduler/../future_fwd.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/scheduler/process.hpp
@@ -53,6 +52,5 @@ tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/scheduler/scheduler.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/scheduler/taskStack.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/stats/../communication/communication.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: futures/stats/stats.hpp
-tests/CMakeFiles/fibonacci.dir/fib.cpp.o: mutex/MPIMutex.hpp
 tests/CMakeFiles/fibonacci.dir/fib.cpp.o: mutex/mutex.hpp
 

@@ -1,6 +1,5 @@
 FILE(REMOVE_RECURSE
   "CMakeFiles/futures.dir/futures_environment.cpp.o"
-  "CMakeFiles/futures.dir/communication/commManager.cpp.o"
   "CMakeFiles/futures.dir/communication/MPIComm.cpp.o"
   "CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o"
   "CMakeFiles/futures.dir/scheduler/schedManager.cpp.o"

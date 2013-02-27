@@ -242,29 +242,25 @@ futures/common.hpp
 stats/stats.hpp
 futures/stats/stats.hpp
 
-futures/communication/commManager.hpp
-string
--
-map
--
-communication.hpp
-futures/communication/communication.hpp
-
-futures/communication/communication.hpp
+futures/communication/MPIComm.hpp
 mpi.h
 -
-boost/mpi.hpp
+boost/mpi/datatype.hpp
 -
+mpi_details.hpp
+-
+
+futures/communication/communication.hpp
 mutex.hpp
+-
+MPIComm.hpp
 -
 
 futures/communication/mpi_details.hpp
 mpi.h
 -
-MPIMutex.hpp
-futures/communication/MPIMutex.hpp
-
-futures/details.hpp
+boost/mpi.hpp
+-
 boost/mpi/datatype.hpp
 -
 boost/mpi/packed_oarchive.hpp
@@ -283,10 +279,12 @@ boost/serialization/assume_abstract.hpp
 -
 boost/serialization/export.hpp
 -
-communication/communication.hpp
-futures/communication/communication.hpp
+
+futures/details.hpp
 common.hpp
-futures/common.hpp
+-
+boost/mpi/datatype.hpp
+-
 
 futures/future.hpp
 iostream
@@ -315,7 +313,7 @@ boost/serialization/assume_abstract.hpp
 -
 boost/serialization/export.hpp
 -
-boost/mpi.hpp
+boost/serialization/nvp.hpp
 -
 
 futures/futures.hpp
@@ -345,8 +343,6 @@ vector
 -
 communication/communication.hpp
 futures/communication/communication.hpp
-communication/commManager.hpp
-futures/communication/commManager.hpp
 mem/SharedMemoryManager.hpp
 futures/mem/SharedMemoryManager.hpp
 scheduler/scheduler.hpp
@@ -357,42 +353,14 @@ future_fwd.hpp
 futures/future_fwd.hpp
 details.hpp
 futures/details.hpp
-mpi.h
--
-MPIMutex.hpp
--
 common.hpp
 futures/common.hpp
 
-futures/mem/../details.hpp
-boost/mpi/datatype.hpp
--
-boost/mpi/packed_oarchive.hpp
--
-boost/mpi/packed_iarchive.hpp
--
-boost/serialization/array.hpp
--
-boost/serialization/base_object.hpp
--
-boost/serialization/utility.hpp
--
-boost/serialization/list.hpp
--
-boost/serialization/assume_abstract.hpp
--
-boost/serialization/export.hpp
--
-communication/communication.hpp
-futures/mem/../communication/communication.hpp
-common.hpp
-futures/mem/../common.hpp
-
 futures/mem/SharedMemoryManager.hpp
-../communication/communication.hpp
-futures/mem/../communication/communication.hpp
-../details.hpp
-futures/mem/../details.hpp
+communication/communication.hpp
+-
+details.hpp
+-
 cassert
 -
 list
@@ -409,7 +377,7 @@ boost/serialization/assume_abstract.hpp
 -
 boost/serialization/export.hpp
 -
-boost/mpi.hpp
+boost/serialization/nvp.hpp
 -
 
 futures/scheduler/process.hpp
@@ -443,11 +411,9 @@ futures/scheduler/../future_fwd.hpp
 futures/scheduler/../communication/communication.hpp
 
 futures/stats/../communication/communication.hpp
-mpi.h
--
-boost/mpi.hpp
--
 mutex.hpp
+-
+MPIComm.hpp
 -
 
 futures/stats/stats.hpp
@@ -459,12 +425,6 @@ string
 -
 ../communication/communication.hpp
 futures/stats/../communication/communication.hpp
-
-mutex/MPIMutex.hpp
-mutex.hpp
--
-mpi.h
--
 
 mutex/mutex.hpp
 

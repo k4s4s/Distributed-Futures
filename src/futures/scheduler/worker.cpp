@@ -28,7 +28,7 @@ Worker::~Worker() {
 
 bool Worker::terminate() {
     ProcStatus master_status;
-		status_mem->get(&master_status, MASTER, 1, 0, MPI_INT);
+		master_status = status_mem->get<ProcStatus>(MASTER, 1, 0);
     if(master_status != TERMINATED) return false;
     return true;
 };
@@ -38,12 +38,12 @@ int Worker::getId() {
 };
 
 void Worker::set_status(ProcStatus status) {
-	status_mem->put(&status, id, 1, 0, MPI_INT);
+	status_mem->put(status, id, 1, 0);
 };
 
 ProcStatus Worker::get_status(int _id) {
 		ProcStatus status;
-		status_mem->put(&status, _id, 1, 0, MPI_INT);	
+		status_mem->put(status, _id, 1, 0);	
 		return status;
 };
 

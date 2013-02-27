@@ -177,30 +177,6 @@ communication/MPIComm.cpp.s:
 	cd /home/kasas/work/lri/Distributed-Futures && $(MAKE) -f src/futures/CMakeFiles/futures.dir/build.make src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.s
 .PHONY : communication/MPIComm.cpp.s
 
-communication/commManager.o: communication/commManager.cpp.o
-.PHONY : communication/commManager.o
-
-# target to build an object file
-communication/commManager.cpp.o:
-	cd /home/kasas/work/lri/Distributed-Futures && $(MAKE) -f src/futures/CMakeFiles/futures.dir/build.make src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o
-.PHONY : communication/commManager.cpp.o
-
-communication/commManager.i: communication/commManager.cpp.i
-.PHONY : communication/commManager.i
-
-# target to preprocess a source file
-communication/commManager.cpp.i:
-	cd /home/kasas/work/lri/Distributed-Futures && $(MAKE) -f src/futures/CMakeFiles/futures.dir/build.make src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.i
-.PHONY : communication/commManager.cpp.i
-
-communication/commManager.s: communication/commManager.cpp.s
-.PHONY : communication/commManager.s
-
-# target to generate assembly for a file
-communication/commManager.cpp.s:
-	cd /home/kasas/work/lri/Distributed-Futures && $(MAKE) -f src/futures/CMakeFiles/futures.dir/build.make src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.s
-.PHONY : communication/commManager.cpp.s
-
 futures_environment.o: futures_environment.cpp.o
 .PHONY : futures_environment.o
 
@@ -409,9 +385,6 @@ help:
 	@echo "... communication/MPIComm.o"
 	@echo "... communication/MPIComm.i"
 	@echo "... communication/MPIComm.s"
-	@echo "... communication/commManager.o"
-	@echo "... communication/commManager.i"
-	@echo "... communication/commManager.s"
 	@echo "... futures_environment.o"
 	@echo "... futures_environment.i"
 	@echo "... futures_environment.s"

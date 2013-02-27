@@ -72,32 +72,9 @@ src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o.provides: src/futur
 
 src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o.provides.build: src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o
 
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o: src/futures/communication/commManager.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_2)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o"
-	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/communication/commManager.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/communication/commManager.cpp
-
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/futures.dir/communication/commManager.cpp.i"
-	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/kasas/work/lri/Distributed-Futures/src/futures/communication/commManager.cpp > CMakeFiles/futures.dir/communication/commManager.cpp.i
-
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/futures.dir/communication/commManager.cpp.s"
-	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/kasas/work/lri/Distributed-Futures/src/futures/communication/commManager.cpp -o CMakeFiles/futures.dir/communication/commManager.cpp.s
-
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.requires:
-.PHONY : src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.requires
-
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.provides: src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.requires
-	$(MAKE) -f src/futures/CMakeFiles/futures.dir/build.make src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.provides.build
-.PHONY : src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.provides
-
-src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.provides.build: src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o
-
 src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o: src/futures/communication/MPIComm.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_3)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_2)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/communication/MPIComm.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/communication/MPIComm.cpp
 
@@ -120,7 +97,7 @@ src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o.provides.build: s
 
 src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o: src/futures/mem/SharedMemoryManager.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_4)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_3)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/mem/SharedMemoryManager.cpp
 
@@ -143,7 +120,7 @@ src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o.provides.build:
 
 src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o: src/futures/scheduler/schedManager.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_5)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_4)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/scheduler/schedManager.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/schedManager.cpp
 
@@ -166,7 +143,7 @@ src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o.provides.build: 
 
 src/futures/CMakeFiles/futures.dir/scheduler/master.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/scheduler/master.cpp.o: src/futures/scheduler/master.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_6)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_5)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/scheduler/master.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/scheduler/master.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/master.cpp
 
@@ -189,7 +166,7 @@ src/futures/CMakeFiles/futures.dir/scheduler/master.cpp.o.provides.build: src/fu
 
 src/futures/CMakeFiles/futures.dir/scheduler/worker.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/scheduler/worker.cpp.o: src/futures/scheduler/worker.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_7)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_6)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/scheduler/worker.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/scheduler/worker.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/worker.cpp
 
@@ -212,7 +189,7 @@ src/futures/CMakeFiles/futures.dir/scheduler/worker.cpp.o.provides.build: src/fu
 
 src/futures/CMakeFiles/futures.dir/scheduler/RR.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/scheduler/RR.cpp.o: src/futures/scheduler/RR.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_8)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_7)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/scheduler/RR.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/scheduler/RR.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/RR.cpp
 
@@ -235,7 +212,7 @@ src/futures/CMakeFiles/futures.dir/scheduler/RR.cpp.o.provides.build: src/future
 
 src/futures/CMakeFiles/futures.dir/scheduler/taskStack.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/scheduler/taskStack.cpp.o: src/futures/scheduler/taskStack.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_9)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_8)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/scheduler/taskStack.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/scheduler/taskStack.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/scheduler/taskStack.cpp
 
@@ -258,7 +235,7 @@ src/futures/CMakeFiles/futures.dir/scheduler/taskStack.cpp.o.provides.build: src
 
 src/futures/CMakeFiles/futures.dir/stats/stats.cpp.o: src/futures/CMakeFiles/futures.dir/flags.make
 src/futures/CMakeFiles/futures.dir/stats/stats.cpp.o: src/futures/stats/stats.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_10)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/kasas/work/lri/Distributed-Futures/CMakeFiles $(CMAKE_PROGRESS_9)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/futures/CMakeFiles/futures.dir/stats/stats.cpp.o"
 	cd /home/kasas/work/lri/Distributed-Futures/src/futures && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/futures.dir/stats/stats.cpp.o -c /home/kasas/work/lri/Distributed-Futures/src/futures/stats/stats.cpp
 
@@ -282,7 +259,6 @@ src/futures/CMakeFiles/futures.dir/stats/stats.cpp.o.provides.build: src/futures
 # Object files for target futures
 futures_OBJECTS = \
 "CMakeFiles/futures.dir/futures_environment.cpp.o" \
-"CMakeFiles/futures.dir/communication/commManager.cpp.o" \
 "CMakeFiles/futures.dir/communication/MPIComm.cpp.o" \
 "CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o" \
 "CMakeFiles/futures.dir/scheduler/schedManager.cpp.o" \
@@ -296,7 +272,6 @@ futures_OBJECTS = \
 futures_EXTERNAL_OBJECTS =
 
 src/futures/libfutures.a: src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o
-src/futures/libfutures.a: src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o
 src/futures/libfutures.a: src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o
 src/futures/libfutures.a: src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o
 src/futures/libfutures.a: src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o
@@ -316,7 +291,6 @@ src/futures/CMakeFiles/futures.dir/build: src/futures/libfutures.a
 .PHONY : src/futures/CMakeFiles/futures.dir/build
 
 src/futures/CMakeFiles/futures.dir/requires: src/futures/CMakeFiles/futures.dir/futures_environment.cpp.o.requires
-src/futures/CMakeFiles/futures.dir/requires: src/futures/CMakeFiles/futures.dir/communication/commManager.cpp.o.requires
 src/futures/CMakeFiles/futures.dir/requires: src/futures/CMakeFiles/futures.dir/communication/MPIComm.cpp.o.requires
 src/futures/CMakeFiles/futures.dir/requires: src/futures/CMakeFiles/futures.dir/mem/SharedMemoryManager.cpp.o.requires
 src/futures/CMakeFiles/futures.dir/requires: src/futures/CMakeFiles/futures.dir/scheduler/schedManager.cpp.o.requires

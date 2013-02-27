@@ -2,8 +2,9 @@
 #ifndef _SHAREDMEMORY_H
 #define _SHAREDMEMORY_H
 
-#include "../communication/communication.hpp"
-#include "../details.hpp"
+#include <communication/communication.hpp>
+#include <details.hpp>
+
 #include <cassert>
 #include <list>
 #include <map>
@@ -88,19 +89,17 @@ public:
 	T memget(int src_id, Shared_pointer& ptr, int size, int offset);
 };
 
-//FIXME: I think size is incLuded in ptr, have to check if it is consistent though, else fix it
+//FIXME: I think size is included in ptr, have to check if it is consistent though, else fix it
 template<typename T>
 void Shared_Memory_manager::memset(T& data, int dst_id, Shared_pointer& ptr, int size, int offset) {
 		communication::Shared_Address_space *shared_space = get_shared_space(ptr);
-    details::_put<T>()(shared_space, data, dst_id, size, ptr.base_address+offset,
-											details::is_primitive_type<T>());
+		shared_space->put(data, dst_id, size, ptr.base_address+offset);
 };
 
 template<typename T>
 T Shared_Memory_manager::memget(int src_id, Shared_pointer& ptr, int size, int offset) {
 		communication::Shared_Address_space *shared_space = get_shared_space(ptr);
-    return details::_get<T>()(shared_space, src_id, size, ptr.base_address+offset,
-															details::is_primitive_type<T>());
+		return shared_space->get<T>(src_id, size, ptr.base_address+offset);
 };
 
 }

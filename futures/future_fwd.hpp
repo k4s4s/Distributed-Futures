@@ -5,7 +5,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/serialization/export.hpp>
-#include <boost/mpi.hpp>
+#include <boost/serialization/nvp.hpp>
 
 namespace futures {
 

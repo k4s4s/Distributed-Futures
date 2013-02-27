@@ -2,7 +2,7 @@
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  SET(CMAKE_INSTALL_PREFIX "/home/kasas/libs")
+  SET(CMAKE_INSTALL_PREFIX "/usr/local")
 ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -36,7 +36,6 @@ IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
   FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES
     "/home/kasas/work/lri/Distributed-Futures/futures/future_fwd.hpp"
     "/home/kasas/work/lri/Distributed-Futures/futures/communication/communication.hpp"
-    "/home/kasas/work/lri/Distributed-Futures/futures/communication/commManager.hpp"
     "/home/kasas/work/lri/Distributed-Futures/futures/communication/MPIComm.hpp"
     "/home/kasas/work/lri/Distributed-Futures/futures/mem/SharedMemoryManager.hpp"
     "/home/kasas/work/lri/Distributed-Futures/futures/scheduler/process.hpp"

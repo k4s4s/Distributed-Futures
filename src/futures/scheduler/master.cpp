@@ -28,7 +28,7 @@ Master::~Master() {
 
 
 void Master::set_status(ProcStatus status) {
-		status_mem->put(&status, id, 1, 0, MPI_INT);
+		status_mem->put(status, id, 1, 0);
 };
 
 int Master::getId() {
@@ -37,7 +37,7 @@ int Master::getId() {
 
 ProcStatus Master::get_status(int _id) {
 		ProcStatus status;
-		status_mem->get(&status, id, 1, 0, MPI_INT);	
+		status = status_mem->get<ProcStatus>(id, 1, 0);
 		return status;
 };
 
@@ -45,11 +45,11 @@ bool Master::terminate() {
     ProcStatus worker_status;
 		if(nprocs == 1) return true; //only self to check, so just terminate
     for(int i=1; i < nprocs; i++) {
-				status_mem->get(&worker_status, i, 1, 0, MPI_INT);
+				worker_status = status_mem->get<ProcStatus>(i, 1, 0);
         if(worker_status == RUNNING) break;
         else if(i == nprocs-1) { //set your status to terminated
             ProcStatus status = TERMINATED;
-						status_mem->put(&status, id, 1, 0, MPI_INT);
+						status_mem->put(status, id, 1, 0);
             return true;
         }
     }
