@@ -32,6 +32,5 @@ int main(int argc, char* argv[]) {
 	cout << "- Master :Hello " << message.get() << endl;
 
 	Futures_Finalize();
-	cout << "done!!";
 };
 

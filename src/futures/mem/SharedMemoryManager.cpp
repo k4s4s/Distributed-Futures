@@ -26,7 +26,7 @@ memory_pages::memory_pages(communication::CommInterface *_comm, int _page_size) 
 	free_mem.page_size = page_size;
 	free_list.push_front(free_mem);
 	DPRINT_VAR("\t\tShare Mem:created shared memory of ", total_size);
-	std::cout << "total_size:" << total_size << std::endl;
+	//std::cout << "total_size:" << total_size << std::endl;
 };
 
 memory_pages::~memory_pages() {

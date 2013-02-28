@@ -7,6 +7,13 @@
 #include <string>
 #include "../communication/communication.hpp"
 
+/*
+#define timer(timer_n) stats::StatManager::Instance()->register_timer(timer_n)
+#define start_timer(timer_n) stats::StatManager::Instance()->start_timer(timer_n)
+#define stop_timer(timer_n) stats::StatManager::Instance()->stop_timer(timer_n)
+#define print_timer(timer_n) stats::StatManager::Instance()->print_timer(timer_n)
+*/
+
 #ifndef STATS
 
 #define REGISTER_TIMER(timer_n)

@@ -159,7 +159,8 @@ void StatManager::print_stats() {
 				cout << "         total idle time:" << ((double)_idle_time/1000.0) << "ms" << endl;	
 				cout << "			total memory needed:" << this->get_count("total_memory_needed") << "bytes" << endl;
 		}
-
+		double total_actual_execution_time = this->get_time("total_execution_time")
+			-this->get_time("initialization_time")-this->get_time("finalization_time");
 		cout << "==== TOTAL TIMING STATS ===" << endl;	 
 		cout << "     initialization time:" << ((double)this->get_time("initialization_time")/1000.0) << "ms" << endl;
 		cout << "    total job issue time:" << ((double)total_job_issue_time/1000.0) << "ms" << endl;
@@ -169,6 +170,7 @@ void StatManager::print_stats() {
 		cout << "         total idle time:" << ((double)total_idle_time/1000.0) << "ms" << endl;
 		cout << "       finalization time:" << ((double)this->get_time("finalization_time")/1000.0) << "ms" << endl;
 		cout << "    total execution time:" << ((double)this->get_time("total_execution_time")/1000.0) << "ms" << endl;
+		cout << "   actual execution time:" << ((double)total_actual_execution_time/1000.0) << "ms" << endl;
 	}
 	else {
 		MPI_Status status;
