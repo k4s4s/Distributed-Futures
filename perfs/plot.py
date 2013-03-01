@@ -10,7 +10,7 @@ f.write('set term png\n')
 
 for datafile in glob.iglob("*.dat"):
 	# Here, you can tweak the output png file name.
-	f.write('set output "{output}.png"\n'.format( output=datafile ))
+	f.write('set output "{output}.png"\n'.format( output=os.path.splitext(datafile)[0] ))
 	f.write('plot ')
 	f.write('"{file_name}" using 1:2 w l title "Graph title"\n'.format( file_name = datafile ))
 f.close()
