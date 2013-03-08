@@ -2,6 +2,11 @@
 #ifndef _FUTURES_H
 #define _FUTURES_H
 
+/*! \file futures.hpp
+ *	\brief The header file that must be included 
+ *				 by any program useing the futures librarys.
+*/
+
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/serialization/export.hpp>
@@ -16,9 +21,23 @@
     /* must NOT prefix this with `::` to work with parenthesized syntax */ \
     boost::function_traits< void parenthesized_type >::arg1_type
 		
-
+/**
+ *	MACRO used to expose a functor object to the boost::serialization
+ *	library.
+ *	@param F the functor object passed as a template argument to 
+ *				 async_function<F>.  Example:FUTURES_EXPORT_FUNCTOR(async_function<foo>)
+ *  			 If a functor call needs arguments, then f should be 
+ *				 async_function<foo, arg1::type, arg2::type, ..., argN::type>.  
+*/
 #define FUTURES_EXPORT_FUNCTOR(F) BOOST_CLASS_EXPORT(IDENTITY_TYPE(F))
 
+/**
+ *	MACRO used to implement the non-intrusive serialization routine
+ *  needed by the boost::serialization library.  It can only be used
+ *	for simple stateless functor objects that have no member variables
+ *  that need to be serialized.
+ *	@param C the functor object to be serialized
+*/
 #define FUTURES_SERIALIZE_CLASS(C) \
 	namespace boost { \
 	namespace serialization { \
@@ -27,10 +46,6 @@
 	} \
 	}
 
-//#define FUTURES_EXPORT_FUNCTION(F) BOOST_CLASS_EXPORT()
-
-
-		//BOOST_CLASS_EXPORT(_async_stub<TYPE_NAME>)
 //stupid fix...
 //if serialization is not used by user program, compiler
 //does not link some boost::serialization and mpl routines needed

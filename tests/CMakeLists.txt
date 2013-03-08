@@ -6,6 +6,7 @@ add_executable(quicksort quicksort.cpp)
 
 add_executable(ping_pong ping_pong.cpp)
 add_executable(benchmark1 benchmark1.cpp)
+add_executable(lu kernels.cpp lu.cpp)
 
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
@@ -26,6 +27,7 @@ target_link_libraries (quicksort ${EXTRA_LIBS})
 
 target_link_libraries (ping_pong ${EXTRA_LIBS})
 target_link_libraries (benchmark1 ${EXTRA_LIBS})
+target_link_libraries (lu ${EXTRA_LIBS} -llapacke -lblas -lm)
 
 if(MPI_COMPILE_FLAGS)
   set_target_properties(hello_world PROPERTIES
@@ -42,6 +44,8 @@ if(MPI_COMPILE_FLAGS)
   set_target_properties(ping_pong PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
   set_target_properties(benchmark1 PROPERTIES
+    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+  set_target_properties(lu PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 endif()
 
@@ -60,6 +64,8 @@ if(MPI_LINK_FLAGS)
   set_target_properties(ping_pong PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
   set_target_properties(benchmark1 PROPERTIES
+    LINK_FLAGS "${MPI_LINK_FLAGS}")
+  set_target_properties(lu PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 

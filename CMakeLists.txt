@@ -24,7 +24,7 @@ option(debug "debug" OFF)
 option(stats "stats" OFF)
 
 if(debug MATCHES ON)
-add_definitions(-DDEBUG)
+add_definitions(-g -DDEBUG)
 endif(debug MATCHES ON)
 
 if(stats MATCHES ON)
