@@ -38,7 +38,7 @@ include_directories(futures/mem)
 include_directories(futures/scheduler)
 include_directories(futures/stats)
 
-add_definitions(-O3 -std=c++0x)
+add_definitions(-I/home/kasas/libs/include -O3 -std=c++0x)
 add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)

@@ -27,7 +27,8 @@ target_link_libraries (quicksort ${EXTRA_LIBS})
 
 target_link_libraries (ping_pong ${EXTRA_LIBS})
 target_link_libraries (benchmark1 ${EXTRA_LIBS})
-target_link_libraries (lu ${EXTRA_LIBS} -llapacke -lblas -lm)
+target_link_libraries (lu ${EXTRA_LIBS} -L/home/kasas/libs/lib 
+-lplasma -lcoreblas -lplasma -lquark -llapack -llapacke -lblas -lm -lpthread -lgfortran)
 
 if(MPI_COMPILE_FLAGS)
   set_target_properties(hello_world PROPERTIES

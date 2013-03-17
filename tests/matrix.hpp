@@ -37,6 +37,10 @@ void serialize(Archive & ar, unsigned)
   :height(h),width(w),data(d)
   {}
   
+	~Matrix() {
+		std::cout << "Deleting matrix!" << std::endl;
+	}
+
   T& operator()(std::size_t i, std::size_t j)
   { return data[i+j*height]; }
   

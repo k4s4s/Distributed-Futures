@@ -6,7 +6,7 @@
 #include "kernels.hpp"
 #include <cblas.h>
 #include "lapacke.h"
-#include <cmath>
+#include <math.h>
 #include <cstring>
 #include <iostream>
 
