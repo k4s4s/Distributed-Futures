@@ -11,15 +11,20 @@
 #include <future>
 //#include <futures.hpp>
 
-#define DEFAULT_NB 2
+#define DEFAULT_NB 4
 #define DEFAULT_SIZE 8
+
+int SIZE;
+int NB;
 
 using namespace std;
 
-void print_array(int M, int N, double *A, int LDA) {
+template<typename T>
+void print_array(int M, int N, T *A, int LDA) {
 	std::cout << "----------" << std::endl;
 	for(int i=0; i < M; i++) {
 		for(int j=0; j < N; j++) {
+			//std::cout << std::setw(10) << "["<<i+j*LDA<<"]="<<A[i+j*LDA];
 			std::cout << std::setw(16) << A[i+j*LDA];
 		}
 		std::cout << std::endl;
@@ -31,8 +36,8 @@ template<typename T>
 vector<T> get_tile(int M, int N, T *A, int LDA) {
 	vector<T> tile(M*N);
 	for(int i=0; i < M; i++) {
-		for(int j=0; j < N; j++) {
-			 tile[i+j*N] = A[i+j*LDA];
+		for(int j=0; j < N; j++) {	
+			tile[i+j*M] = A[i+j*LDA];
 		}
 	}
 	return tile;
@@ -42,7 +47,7 @@ template<typename T>
 void copy_tile(int M, int N, vector<T> tile, T *A, int LDA) {
 	for(int i=0; i < M; i++) {
 		for(int j=0; j < N; j++) {
-			A[i+j*LDA] = tile[i+j*N];
+			A[i+j*LDA] = tile[i+j*M];
 		}
 	}
 }
@@ -101,11 +106,7 @@ public:
 								      int  	LDA,
 								      vector<double> L,
 								      int  	LDL,
-								      vector<int>	IPIV
-								      /*vector<double> WORK,
-								      int  	LDWORK,
-								      /*int *  	INFO*/
-											)
+								      vector<int>	IPIV	)
 	{
 		vector<double> work(M*N);
 		int info;
@@ -126,7 +127,7 @@ struct dssssm_RV {
 	vector<double> Amn;
 };
 
-class dsssm_action {
+class dssssm_action {
 public:
 	dssssm_RV operator()(int  M1,
 						          int  	N1,
@@ -155,82 +156,154 @@ public:
 };
 
 int dgetrf(int M, int N, vector<double>& A, int LDA, vector<double>& L, vector<int>& IPIV) { 
-    int NB = DEFAULT_NB;
 
 		int TILES = M/NB;
 		int m = M/TILES;
 		int n = N/TILES;
-
-		//std::cout << "TILES:" << TILES << std::endl;
-		vector<future<dgessm_RV>> dgessm_tiles(TILES*TILES);
+		int LDIPIV = NB*m;
+ 		vector<future<dgessm_RV>> dgessm_tiles(TILES*TILES);
+		vector<shared_future<dssssm_RV>> dssssm_tiles(TILES*TILES);
     for(int k=0; k < TILES; k++) {
-				//print_matrix(M, N, A, M);
         int info;
-				//std::cout << "dgetrf on tile A"<<k<<k<< std::endl;
-				//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
+				/*
+				cout << "dgetrf input:" << endl;
+				cout << "A"<<k<<k<<":" << endl;
+				print_array(m, n, &A[k*m+k*n*LDA], LDA);
+				cout << "IPIV"<<k<<k<<":" << endl;
+				print_array(m, 1, &IPIV[k*m+k*LDIPIV], LDIPIV);
+				*/
+				if(k != 0) { 
+					//unless we are in the firts iteration, we need to get updated block
+					//from dssssm
+					copy_tile(m, n, dssssm_tiles[k+k*TILES].get().Amn, &A[k*m+k*n*LDA], LDA);
+				}
         core_dgetrf(m, n, &A[k*m+k*n*LDA], 
-                    LDA, &IPIV[k*m+k*n*LDA], &info);
-				//std::cout << "dgetrf result" << std::endl;
-				//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
+                    LDA, &IPIV[k*m+k*LDIPIV], &info);
+				/*
+				cout << "dgetrf output:" << endl;
+				cout << "A"<<k<<k<<":" << endl;
+				print_array(m, n, &A[k*m+k*n*LDA], LDA);
+				cout << "IPIV"<<k<<k<<":" << endl;
+				print_array(m, 1, &IPIV[k*m+k*LDIPIV], LDIPIV);
+				*/
         if(info != 0)
             std::cout << "dgetrf failed with " << info << "." << std::endl;
         //second step
-
-        for(int mm = k+1; mm < TILES; mm++) {
-						//std::cout << "dtstrf on tiles A"<<k<<k<<" and A"<<mm<<k << std::endl;
-						//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
-						//print_matrix(m, n, &A[mm*m+k*n*LDA], LDA);
-						vector<double> Akk = get_tile(m, n, &A[k*m+k*n*LDA], LDA);
-						vector<double> Amk = get_tile(m, n, &A[mm*m+k*n*LDA], LDA);
-						vector<double> Lmk = get_tile(m, n, &L[mm*m+k*n*LDA], LDA);
-						vector<int> IPIVmk = get_tile(m, n, &IPIV[mm*m+k*n*LDA], LDA);
-						dtstrf_action dtstrf;
-						future<dtstrf_RV> fut = async(dtstrf, m, n, m, n, Akk, m, Amk, m, Lmk, n, IPIVmk);
-            //dtstrf_RV res =  dtstrf(m, n, m, n, Akk, m, Amk, m, Lmk, n, IPIVmk);
-						dtstrf_RV res = fut.get();
-						copy_tile(m, n, res.Akk, &A[k*m+k*n*LDA], LDA);
-						copy_tile(m, n, res.Amk, &A[mm*m+k*n*LDA], LDA);
-						copy_tile(m, n, res.Lmk, &L[mm*m+k*n*LDA], LDA);
-						copy_tile(m, n, res.IPIVmk, &IPIV[mm*m+k*n*LDA], LDA);
-						//std::cout << "dtstrf result" << std::endl;
-						//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
-						//print_matrix(m, n, &A[mm*m+k*n*LDA], LDA);
-           	if(res.info != 0)
-                std::cout << "dtstrf failed with " << info << "." << std::endl;
-        }
         for(int nn = k+1; nn < TILES; nn++) {
-						//std::cout << "dgessm on tiles A"<<k<<k<<" and A"<<k<<nn<< std::endl;
-						//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
-						//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
 						vector<double> Akk = get_tile(m, n, &A[k*m+k*n*LDA], LDA);
-						vector<double> Akn = get_tile(m, n, &A[k*m+nn*n*LDA], LDA);
-						vector<int> IPIVkk = get_tile(m, n, &IPIV[k*m+k*n*LDA], LDA);
+						vector<double> Akn;
+						if(k != 0) {
+							//unless we are in the first row of the matrix, we need to get
+							//the updated values from dssssm
+							Akn = dssssm_tiles[k+nn*TILES].get().Amn;
+						}	
+						else {
+							Akn = get_tile(m, n, &A[k*m+nn*n*LDA], LDA);
+						}	
+						vector<int> IPIVkk = get_tile(m, 1, &IPIV[k*m+k*LDIPIV], LDA);
+						/*
+						cout << "dgessm input:" << endl;
+						cout << "A"<<k<<k<<":" << endl;
+						print_array(m, n, &Akk[0], m);
+						cout << "A"<<k<<nn<<":" << endl;
+						print_array(m, n, &Akn[0], m);
+						cout << "IPIV"<<k<<k<<":" << endl;
+						print_array(m, 1, &IPIVkk[0], m);
+						*/
 						dgessm_action dgessm;
-						//dgessm_RV res = dgessm(m, n, m, n, IPIVkk, Akk, m, Akn, m);
 						dgessm_tiles[k+nn*TILES] = async(dgessm, m, n, m, n, IPIVkk, Akk, m, Akn, m);
-						//copy_tile(m, n, dgessm_tiles[k+nn*TILES].get().Akn, &A[k*m+nn*n*LDA], LDA);
-						//copy_tile(m, n, res.Akn, &A[k*m+nn*n*LDA], LDA);
-						//std::cout << "dgessm result" << std::endl;
-						//print_matrix(m, n, &A[k*m+k*n*LDA], LDA);
-						//print_matrix(m, n, &A[k*m+nn*n*LDA], LDA);
-					}
-					for(int nn = k+1; nn < TILES; nn++) {
-						vector<double> Akn = dgessm_tiles[k+nn*TILES].get().Akn;
-						copy_tile(m, n, Akn, &A[k*m+nn*n*LDA], LDA);
-						//vector<double> Akn = get_tile(m, n, &A[k*m+nn*n*LDA], LDA);
-            for(int mm=k+1; mm < TILES; mm++) {
-								dsssm_action dssssm;
-								//vector<double> Akn = get_tile(m, n, &A[k*m+nn*n*LDA], LDA);
-								vector<double> Amn = get_tile(m, n, &A[mm*m+nn*n*LDA], LDA);
+						/*
+						cout << "dgessm output:" << endl;
+						cout << "A"<<k<<nn<<":" << endl;
+						print_array(m, n, &A[k*m+nn*n*LDA], m);
+						*/
+				}
+        for(int mm = k+1; mm < TILES; mm++) {
+						int info;
+						if(k != 0) {
+							//unless we are in the first column of the matrix, we need to get
+							//the updated values from dssssm
+							copy_tile(m, n, dssssm_tiles[mm+k*TILES].get().Amn, &A[mm*m+k*n*LDA], LDA);
+						}
+						vector<double> work(m*n);
+						/*
+						cout << "dtstrf input:" << endl;
+						cout << "A"<<k<<k<<":" << endl;
+						print_array(m, n, &Akk[0], m);
+						cout << "A"<<mm<<k<<":" << endl;
+						print_array(m, n, &Amk[0], m);
+						cout << "L"<<mm<<k<<":" << endl;
+						print_array(m, n, &Lmk[0], m);
+						cout << "IPIV"<<mm<<k<<":" << endl;
+						print_array(m, 1, &IPIVmk[0], m);
+						*/
+						core_dtstrf(m, n, m, n, &A[k*m+k*n*LDA], LDA, &A[mm*m+k*n*LDA], LDA, 
+												&L[mm*m+k*n*LDA], LDA, &IPIV[mm*m+k*LDIPIV], 
+												&work[0], m, &info);
+						/*
+						cout << "dtstrf output:" << endl;
+						cout << "A"<<k<<k<<":" << endl;
+						print_array(m, n, &A[k*m+k*n*LDA], LDA);
+						cout << "A"<<mm<<k<<":" << endl;
+						print_array(m, n, &A[mm*m+k*n*LDA], LDA);
+						cout << "L"<<mm<<k<<":" << endl;
+						print_array(m, n, &L[mm*m+k*n*LDA], LDA);
+						cout << "IPIV"<<mm<<k<<":" << endl;
+						print_array(m, 1, &IPIV[mm*m+k*LDIPIV], LDIPIV);
+						*/
+           	if(info != 0)
+                std::cout << "dtstrf failed with " << info << "." << std::endl;
+
+            for(int nn=k+1; nn < TILES; nn++) {
+								/*
+								cout << "dssssm input:" << endl;
+								print_array(M, N, &A[0], LDA);
+								cout << "A"<<k<<nn<<":" << endl;
+								print_array(m, n, &A[k*m+nn*n*LDA], LDA);
+								cout << "A"<<mm<<nn<<":" << endl;
+								print_array(m, n, &A[mm*m+nn*n*LDA], LDA);
+								cout << "L"<<mm<<k<<":" << endl;
+								print_array(m, n, &L[mm*m+k*n*LDA], LDA);
+								cout << "A"<<mm<<k<<":" << endl;
+								print_array(m, n, &A[mm*m+k*n*LDA], LDA);
+								cout << "IPIV"<<mm<<k<<":" << endl;
+								print_array(m, 1, &IPIV[mm*m+k*LDIPIV], LDIPIV);
+								*/
+								vector<double> Akn;
+								if(mm == k+1) {
+									//if we are on the top of the column get dgessm result
+									Akn = dgessm_tiles[k+nn*TILES].get().Akn;
+								}
+								else { 
+									//else get the value of dssssm applied on the above tile
+									Akn = dssssm_tiles[(mm-1)+nn*TILES].get().Akn;
+								}
+								vector<double> Amn;		
+								if(k != 0) {
+									//unless we are in the first iteration, we need to get
+									//the updated values from dssssm from previous iteration
+									Amn = dssssm_tiles[mm+nn*TILES].get().Amn;
+								}	
+								else {
+									Amn = get_tile(m, n, &A[mm*m+nn*n*LDA], LDA);
+								}	
 								vector<double> Lmk = get_tile(m, n, &L[mm*m+k*n*LDA], LDA);
 								vector<double> Amk = get_tile(m, n, &A[mm*m+k*n*LDA], LDA);
-								vector<int> IPIVmk = get_tile(m, n, &IPIV[mm*m+k*n*LDA], LDA);
-								future<dssssm_RV> fut = async(dssssm, m, n, m, n, m, m, Akn, m, Amn, m, Lmk, m, Amk, m, IPIVmk);
-								//dssssm_RV res = dssssm(m, n, m, n, m, m, Akn, m, Amn, m, Lmk, m, Amk, m, IPIVmk);
-								dssssm_RV res = fut.get();
-								copy_tile(m, n, res.Akn, &A[k*m+nn*n*LDA], LDA);
-								copy_tile(m, n, res.Amn, &A[mm*m+nn*n*LDA], LDA);
-								Akn = get_tile(m, n, &A[k*m+nn*n*LDA], LDA); //FIXME:needs to get updated Akn at every step
+								vector<int> IPIVmk = get_tile(m, 1, &IPIV[mm*m+k*LDIPIV], LDIPIV);
+								dssssm_action dssssm;
+								dssssm_tiles[mm+nn*TILES] = async(dssssm, m, n, m, n, m, m, 
+																									Akn, m, Amn, m,
+																									Lmk, m, Amk, m, IPIVmk);
+								if(mm == TILES-1) 
+									//if we reach bottom, update tile of gdessm step
+									copy_tile(m, n, dssssm_tiles[mm+nn*TILES].get().Akn, &A[k*m+nn*n*LDA], LDA);
+								/*
+								cout << "dssssm output:" << endl;
+								cout << "A"<<k<<nn<<":" << endl;
+								print_array(m, n, &A[k*m+nn*n*LDA], LDA);
+								cout << "A"<<mm<<nn<<":" << endl;
+								print_array(m, n, &A[mm*m+nn*n*LDA], LDA);
+								*/
             }
         }
     }
@@ -250,14 +323,26 @@ void init_ipiv(int M, int N, std::vector<int>& IPIV) {
 
 int main(int argc, char* argv[]) {
 
+		SIZE = DEFAULT_SIZE;
+		NB = DEFAULT_NB;
+		char c;
+
+		while ((c = getopt(argc, argv, "n:b:")) != -1)
+		switch (c)	{
+			case 'n':
+				SIZE = atoi(optarg); 
+			case 'b':
+				NB = atoi(optarg);	 
+			 	break;
+		 	default:
+				break;		
+		}
+
     int cores = 1;
-    int N     = 8;
-    int LDA   = 8;
-    int NRHS  = 4;
-    int LDB   = 8;
+    int N     = SIZE;
+    int LDA   = N;
     int info;
     int LDAxN = LDA*N;
-    int LDBxNRHS = LDB*NRHS;
 /*
     double *_A = (double *)malloc(LDA*N*(sizeof*_A));
     PLASMA_desc *_L;
@@ -283,6 +368,9 @@ int main(int argc, char* argv[]) {
             _A[LDA*j+i] = A[i+LDA*j];
 */
 		print_array(N, N, &A[0], N);
+		int tiles = N/DEFAULT_NB;
+		int m = N/tiles;
+		int n = N/tiles;
 /*
     // Allocate L and IPIV
     info = PLASMA_Alloc_Workspace_dgetrf_incpiv(N, N, &_L, &_IPIV);
