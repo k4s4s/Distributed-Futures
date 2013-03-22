@@ -1,13 +1,15 @@
 * TODO:allow futures to return exceptions
 * TODO:add doxygen
-* TODO:add jacobi and LU with futures implementation as well as mpi
+* TODO:add jacobi futures implementation
 * TODO:make commInterface a singleton class
-* TODO:find an alternative for async2(...)
+* TODO:find an alternative for async2(...) - allocation on worker instead of master
 * TODO:add debug levels
  
 * FIXME:handle void return type
 * FIXME:crashes if run for 1 proc, need at least one worker
-* FIXME:try to figure out what happens with f_args4+
+* FIXME:if functor takes more than 2 or 3 arguments like vector (probably for all dynamic containers),
+				poping the task on worker causes a stack smash! 
+				-workaround, create a struct/class to pack arguments (!remember to serialize it!)
 
 *	NOTE: when calling async, user must be sure that arguments will be deducted correctly.
 	Example: consider the functor is double->double, async(f, 1) will result in unregistered

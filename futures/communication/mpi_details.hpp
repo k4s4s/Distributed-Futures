@@ -13,6 +13,7 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/serialization/export.hpp>
+#include "../common.hpp"
 
 #define AR_SIZE_OFFSET 0
 #define DATA_OFFSET sizeof(int)

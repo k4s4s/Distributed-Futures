@@ -28,7 +28,6 @@ private:
 		int type_size;
 		int data_size;
 public:
-		
 		future();
     future(int _src_id, int _dst_id, int _type_size, int _data_size,
 					mem::Shared_pointer _shared_ptr);

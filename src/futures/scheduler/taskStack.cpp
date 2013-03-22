@@ -35,7 +35,7 @@ bool taskStack::push(int dst_id, _stub *job) {
 	
 	DPRINT_VAR("\t\ttaskstack:Push:inserting at ", curr_head);
 	int task_size = taskS->put(tw, dst_id, 1, curr_head);
-	DPRINT_VAR("\t\ttaskstack:Push:till", curr_head+task_size);
+	DPRINT_VAR("\t\ttaskstack:Push:till ", curr_head+TASK_OFFSET+task_size);
 	DPRINT_VAR("\t\ttaskstack:Push:", task_size);
 	taskS->put(task_size, dst_id, 1, curr_head+task_size);
 	/* set new list head */
@@ -62,7 +62,7 @@ _stub *taskStack::pop(int dst_id) {
 	
 	DPRINT_VAR("\t\ttaskstack:Pop:actual head ", curr_head);
 	DPRINT_VAR("\t\ttaskstack:Pop:poping from ", curr_head-task_size-TASK_OFFSET);
-	DPRINT_VAR("\t\ttaskstack:Pop:", task_size);  
+	DPRINT_VAR("\t\ttaskstack:Pop:", task_size);
 	
 	_stub_wrapper tw = taskS->get<_stub_wrapper>(dst_id, task_size, 
 																							curr_head-task_size-TASK_OFFSET);
