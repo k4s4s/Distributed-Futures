@@ -104,7 +104,7 @@ public:
 	vector<double> Akn;
 };
 
-struct dgessm_ARGS {
+class dgessm_action {
 private:
   friend class boost::serialization::access;
 	template<class Archive>
@@ -120,7 +120,6 @@ private:
 			ar & A;
 			ar & LDA;
   }
-public:
 	int M;
 	int  	N;
 	int  	K;
@@ -130,21 +129,39 @@ public:
 	int  	LDL;
 	vector<double> A;
 	int  	LDA;
-};
-
-class dgessm_action {
 public:
-	dgessm_RV operator()(dgessm_ARGS arg)
+	dgessm_action() {};
+	dgessm_action(int _M,
+								int _N,
+								int _K,
+								int _IB,
+								vector<int>& _IPIV,
+								vector<double>& _L,
+								int _LDL,
+								vector<double>& _A,
+								int _LDA)
 	{
-		core_dgessm(arg.M, arg.N, arg.K, arg.IB, &arg.IPIV[0], &arg.L[0], arg.LDL, &arg.A[0], arg.LDA);
+		M = _M;
+		N = _N;
+		K = _K;
+		IB = _IB;
+		IPIV = _IPIV;
+		L = _L;
+		LDL = _LDL;
+		A = _A;
+		LDA = _LDA;
+	}
+
+	dgessm_RV operator()()
+	{
+		core_dgessm(M, N, K, IB, &IPIV[0], &L[0], LDL, &A[0], LDA);
 		dgessm_RV retVal;
-		retVal.Akn = arg.A;
+		retVal.Akn = A;
 		return retVal;	
 	}
 };
 
-FUTURES_SERIALIZE_CLASS(dgessm_action);
-FUTURES_EXPORT_FUNCTOR((futures::async_function<dgessm_action, dgessm_ARGS>));
+FUTURES_EXPORT_FUNCTOR((futures::async_function<dgessm_action>));
 
 struct dtstrf_RV {
 	vector<double> Akk;
@@ -196,7 +213,7 @@ public:
 	vector<double> Amn;
 };
 
-struct dssssm_ARGS {
+class dssssm_action {
 private:
   friend class boost::serialization::access;
 	template<class Archive>
@@ -218,7 +235,6 @@ private:
 			ar & LDL2;
       ar & IPIV;
   }
-public:
 	int  M1;
 	int  N1;
 	int  M2;
@@ -234,24 +250,54 @@ public:
 	vector<double> L2;
 	int  	LDL2;
 	vector<int>	IPIV;
-};
-
-class dssssm_action {
 public:
-	dssssm_RV operator()(dssssm_ARGS arg)
+	dssssm_action() {};
+	dssssm_action(int  _M1,
+								int  _N1,
+								int  _M2,
+								int  _N2,
+								int  _K,
+								int  _IB,
+								vector<double>& _A1,
+								int  _LDA1,
+								vector<double>& _A2,
+								int  _LDA2,
+								vector<double>& _L1,
+								int  	_LDL1,
+								vector<double>& _L2,
+								int  	_LDL2,
+								vector<int>&	_IPIV) 
 	{
-		core_dssssm(arg.M1, arg.N1, arg.M2, arg.N2, arg.K, arg.IB, 
-								&arg.A1[0], arg.LDA1, &arg.A2[0], arg.LDA2,
-		            &arg.L1[0], arg.LDL1, &arg.L2[0], arg.LDL2, &arg.IPIV[0]);
+		M1 = _M1;
+		N1 = _N1;
+		M2 = _M2;
+		N2 = _N2;
+		K = _K;
+		IB = _IB;
+		A1 = _A1;
+		LDA1 = _LDA1;
+		A2 = _A2;
+		LDA2 = _LDA2;
+		L1 = _L1;
+		LDL1 = _LDL1;
+		L2 = _L2;
+		LDL2 = _LDL2;
+		IPIV = _IPIV;	
+	}
+
+	dssssm_RV operator()()
+	{
+		core_dssssm(M1, N1, M2, N2, K, IB, 
+								&A1[0], LDA1, &A2[0], LDA2,
+		            &L1[0], LDL1, &L2[0], LDL2, &IPIV[0]);
 		dssssm_RV retVal;
-		retVal.Akn = arg.A1;
-		retVal.Amn = arg.A2;
+		retVal.Akn = A1;
+		retVal.Amn = A2;
 		return retVal;
 	}
 };
 
-FUTURES_SERIALIZE_CLASS(dssssm_action);
-FUTURES_EXPORT_FUNCTOR((futures::async_function<dssssm_action, dssssm_ARGS>));
+FUTURES_EXPORT_FUNCTOR((futures::async_function<dssssm_action>));
 
 int dgetrf(int M, int N, vector<vector<double>>& A, int LDA, 
 					vector<vector<double>>& L, vector<vector<int>>& IPIV) {
@@ -307,18 +353,9 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 						cout << "IPIV"<<k<<k<<":" << endl;
 						print_array(m, 1, &IPIV[k+k*TILES][0], m);
 #endif						
-						dgessm_action dgessm;
-						dgessm_ARGS arg;
-						arg.M = m;
-						arg.N = n;
-						arg.K = m;
-						arg.IB = n;
-						arg.IPIV = IPIV[k+k*TILES];
-						arg.L = A[k+k*TILES];
-						arg.LDL = m;
-						arg.A = A[k+nn*TILES];
-						arg.LDA = m;
-						dgessm_tiles[k+nn*TILES] = futures::async2(m*n ,dgessm, arg);
+						dgessm_action dgessm(m, n, m, n, IPIV[k+k*TILES], A[k+k*TILES], m,
+																A[k+nn*TILES], m);
+						dgessm_tiles[k+nn*TILES] = futures::async2(m*n ,dgessm);
 #if 0						
 						cout << "dgessm output:" << endl;
 						cout << "A"<<k<<nn<<":" << endl;
@@ -388,24 +425,9 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 									//the updated values from dssssm from previous iteration
 									A[mm+nn*TILES] = dssssm_tiles[mm+nn*TILES].get().Amn;
 								}	
-								dssssm_action dssssm;
-								dssssm_ARGS arg;
-								arg.M1 = m;
-								arg.N1 = n;
-								arg.M2 = m;
-								arg.N2 = n;
-								arg.K = m;
-								arg.IB = m;
-								arg.A1 = A[k+nn*TILES];
-								arg.LDA1 = m;
-								arg.A2 = A[mm+nn*TILES];
-								arg.LDA2 = m;
-								arg.L1 = L[mm+k*TILES];
-								arg.LDL1 = m;
-								arg.L2 = A[mm+k*TILES];
-								arg.LDL2 = m;
-								arg.IPIV = IPIV[mm+k*TILES];
-								dssssm_tiles[mm+nn*TILES] = futures::async2(m*n*2, dssssm, arg);
+								dssssm_action dssssm(m, n, m, n, m, m, A[k+nn*TILES], m, A[mm+nn*TILES], m,
+																		L[mm+k*TILES], m, A[mm+k*TILES], m, IPIV[mm+k*TILES]);
+								dssssm_tiles[mm+nn*TILES] = futures::async2(m*n*2, dssssm);
 								if(mm == TILES-1) 
 									//if we reach bottom, update tile of gdessm step
 									A[k+nn*TILES] = dssssm_tiles[mm+nn*TILES].get().Akn;
