@@ -13,6 +13,8 @@ public:
 	factorial() {};
 	~factorial() {};
 	double operator()(double n) {
+    if (0 >= n)
+        return 1;
 		factorial f;
 		future<double> n1 = async(f, n-1);
 		return n * n1.get();

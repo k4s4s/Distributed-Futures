@@ -7,7 +7,8 @@ add_executable(quicksort quicksort.cpp)
 add_executable(ping_pong ping_pong.cpp)
 add_executable(benchmark1 benchmark1.cpp)
 add_executable(lu kernels.cpp lu.cpp)
-
+add_executable(lu_plasma lu_plasma.cpp)
+add_executable(lu_threads kernels.cpp lu_threads.cpp)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
 	-lboost_serialization 
@@ -27,9 +28,19 @@ target_link_libraries (quicksort ${EXTRA_LIBS})
 
 target_link_libraries (ping_pong ${EXTRA_LIBS})
 target_link_libraries (benchmark1 ${EXTRA_LIBS})
-target_link_libraries (lu ${EXTRA_LIBS} -L/home/kasas/libs/lib 
+target_link_libraries (lu ${EXTRA_LIBS}
+													-L/opt/intel/mkl/lib/intel64
+    											-L/opt/intel/lib/intel64
+-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread)
+target_link_libraries (lu_plasma ${EXTRA_LIBS} -L/users/parall/falcou/dimitrios/libs/plasma/lib 
+																				-L/opt/intel/mkl/lib/intel64
+    																		-L/opt/intel/lib/intel64
+-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lhwloc
 -lplasma -lcoreblas -lplasma -lquark -llapack -llapacke -lblas -lm -lpthread -lgfortran)
-
+target_link_libraries (lu_threads ${EXTRA_LIBS}
+																				-L/opt/intel/mkl/lib/intel64
+    																		-L/opt/intel/lib/intel64
+-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lhwloc -lpthread)
 if(MPI_COMPILE_FLAGS)
   set_target_properties(hello_world PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
@@ -47,6 +58,10 @@ if(MPI_COMPILE_FLAGS)
   set_target_properties(benchmark1 PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
   set_target_properties(lu PROPERTIES
+    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+  set_target_properties(lu_plasma PROPERTIES
+    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+  set_target_properties(lu_threads PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 endif()
 
@@ -67,6 +82,10 @@ if(MPI_LINK_FLAGS)
   set_target_properties(benchmark1 PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
   set_target_properties(lu PROPERTIES
+    LINK_FLAGS "${MPI_LINK_FLAGS}")
+  set_target_properties(lu_plasma PROPERTIES
+    LINK_FLAGS "${MPI_LINK_FLAGS}")
+  set_target_properties(lu_threads PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 

@@ -6,7 +6,7 @@
 #include "../future_fwd.hpp"
 #include "../communication/communication.hpp"
 
-#define MAX_STACK_SIZE 1000 //waste of space though...and a bug waiting to happen also!
+#define MAX_STACK_SIZE 10000 //waste of space though...and a bug waiting to happen also!
 #define TASKSTACK_SIZE 4*1024*1024*8 //4MB
 #define STACK_START_OFFSET 2*sizeof(int)
 #define SIZE_OFFSET 0

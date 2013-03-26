@@ -4,7 +4,7 @@ import os;
 
 procs_range = [3, 5, 7, 9, 11]
 #tests = ["hello_world", "power\ -a2\ -n10"];
-tests = ["fibonacci\ -a15"]
+tests = ["power\ -a2 -n10000"]
 
 for test in tests:
 	test_name = test.partition('\\')[0]
