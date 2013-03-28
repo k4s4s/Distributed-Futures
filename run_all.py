@@ -14,11 +14,11 @@ for test in tests:
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 			
-	#delete any files in it	
+#delete any files in it	
 #	filelist = [ f for f in os.listdir(directory) if f.endswith(".dump") ]
 #	for f in filelist:
 #		os.remove(directory+"/"+f)
 		
 	for procs in procs_range:
-		output = directory+'/'+test_name+args+'_{0}'.format(procs)+'.dump'
-		os.system("python run.py -r "+test+" -n {0}".format(procs)+" -o "+output);
+			output = directory+'/'+test_name+args+'_{0}'.format(procs)+'_{}.dump'.format(it)
+			os.system("python run.py -p "+test+" -n {0}".format(procs)+" -o "+output+" -r 1");
