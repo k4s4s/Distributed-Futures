@@ -5,6 +5,14 @@ import os;
 #import mmap;
 import re;
 
+#finds the median value given a list of values
+def median(mylist):
+    sorts = sorted(mylist)
+    length = len(sorts)
+    if not length % 2:
+        return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
+    return sorts[length / 2]
+
 def main(argv):
 
 	#we just keep the argument configuration here
@@ -14,9 +22,10 @@ def main(argv):
 	psize = 'test';
 	nproc_range = [3, 5, 7, 9, 11];
 	iterations = 1;
+	value_v = [];
 
 	try:
-		opts, args = getopt.getopt(argv,"hr:s:",["pname=","problem_size="])
+		opts, args = getopt.getopt(argv,"hp:s:r:",["pname=","problem_size=","repeats"])
 	except getopt.GetoptError:
 		print 'run.py -r <program name> -s <problem size>'
 		sys.exit(2)
@@ -28,6 +37,8 @@ def main(argv):
 			application = arg
 		elif opt in ("-s", "--problem size"):
 			psize = arg		
+		elif opt in ("-r", "--repeats"):
+			iterations = int(arg);			
 
 	directory = 'perfs/'+application
 	if not os.path.exists(directory):
@@ -47,10 +58,10 @@ def main(argv):
 			for item in items:
 				value_s = item.partition(':')[2];
 				value_s = value_s.partition('ms')[0];
-				total_time += float(value_s);
+				value_v.append(float(value_s));
 			#write value to cvs file
-			total_time = total_time/iterations;
-			dat_file.write("{0} {1}".format(nproc, total_time));
+			total_time = median(value_v);
+			dat_file.write("{0} {1}".format(nproc-1, total_time));
 		dat_file.write("\n");
 	#create gnuplot script
 	os.system("python perfs/plot.py -d "+datafile);

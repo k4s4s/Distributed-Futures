@@ -12,7 +12,7 @@
 
 #define DEFAULT_NB 4
 #define DEFAULT_SIZE 8
-#define DEFAULT_CORES 1
+#define DEFAULT_CORES 6
 
 int SIZE;
 int NB;

@@ -9,6 +9,7 @@ add_executable(benchmark1 benchmark1.cpp)
 add_executable(lu kernels.cpp lu.cpp)
 add_executable(lu_plasma lu_plasma.cpp)
 add_executable(lu_threads kernels.cpp lu_threads.cpp)
+add_executable(lu_boost kernels.cpp lu_boost.cpp)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
 	-lboost_serialization 
@@ -41,6 +42,10 @@ target_link_libraries (lu_threads ${EXTRA_LIBS}
 																				-L/opt/intel/mkl/lib/intel64
     																		-L/opt/intel/lib/intel64
 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lhwloc -lpthread)
+target_link_libraries (lu_boost ${EXTRA_LIBS}
+																				-L/opt/intel/mkl/lib/intel64
+    																		-L/opt/intel/lib/intel64
+-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -L/usr/local/lib/ -lpthread -lboost_thread -lboost_system)
 if(MPI_COMPILE_FLAGS)
   set_target_properties(hello_world PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
@@ -58,10 +63,6 @@ if(MPI_COMPILE_FLAGS)
   set_target_properties(benchmark1 PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
   set_target_properties(lu PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(lu_plasma PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(lu_threads PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 endif()
 
@@ -82,10 +83,6 @@ if(MPI_LINK_FLAGS)
   set_target_properties(benchmark1 PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
   set_target_properties(lu PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(lu_plasma PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(lu_threads PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
