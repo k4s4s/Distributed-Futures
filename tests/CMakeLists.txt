@@ -10,6 +10,7 @@ add_executable(lu kernels.cpp lu.cpp)
 add_executable(lu_plasma lu_plasma.cpp)
 add_executable(lu_threads kernels.cpp lu_threads.cpp)
 add_executable(lu_boost kernels.cpp lu_boost.cpp)
+add_executable(lu_seq kernels.cpp lu_seq.cpp)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
 	-lboost_serialization 
@@ -46,6 +47,10 @@ target_link_libraries (lu_boost ${EXTRA_LIBS}
 																				-L/opt/intel/mkl/lib/intel64
     																		-L/opt/intel/lib/intel64
 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -L/usr/local/lib/ -lpthread -lboost_thread -lboost_system)
+target_link_libraries (lu_seq ${EXTRA_LIBS}
+																				-L/opt/intel/mkl/lib/intel64
+    																		-L/opt/intel/lib/intel64
+-lmkl_intel_lp64 -lmkl_sequential -lmkl_core)
 if(MPI_COMPILE_FLAGS)
   set_target_properties(hello_world PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
