@@ -24,13 +24,26 @@ private:
     int ready_status;
     T data;
     int src_id, dst_id;
-		mem::Shared_pointer shared_ptr;
+		mem::Shared_pointer status_ptr;
+		mem::Shared_pointer data_ptr;
 		int type_size;
 		int data_size;
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int) {
+			ar 	& BOOST_SERIALIZATION_NVP(ready_status) 
+					& BOOST_SERIALIZATION_NVP(data) 
+					& BOOST_SERIALIZATION_NVP(src_id) 
+					& BOOST_SERIALIZATION_NVP(dst_id)
+					& BOOST_SERIALIZATION_NVP(status_ptr)
+					&	BOOST_SERIALIZATION_NVP(data_ptr) 
+					& BOOST_SERIALIZATION_NVP(type_size)
+					& BOOST_SERIALIZATION_NVP(data_size);
+		}
 public:
 		future();
     future(int _src_id, int _dst_id, int _type_size, int _data_size,
-					mem::Shared_pointer _shared_ptr);
+					mem::Shared_pointer _status_ptr, mem::Shared_pointer _data_ptr);
 		future(int _src_id, int _dst_id, T _data);
     ~future();
     bool is_ready();
@@ -46,7 +59,8 @@ private:
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(_stub);
 				ar & BOOST_SERIALIZATION_NVP(dst_id) 
 					& BOOST_SERIALIZATION_NVP(src_id) 
-					& BOOST_SERIALIZATION_NVP(shared_ptr) 
+					& BOOST_SERIALIZATION_NVP(status_ptr)
+					& BOOST_SERIALIZATION_NVP(data_ptr) 
 					& BOOST_SERIALIZATION_NVP(data_size)
 					& BOOST_SERIALIZATION_NVP(type_size)
 					&	BOOST_SERIALIZATION_NVP(f) 
@@ -55,7 +69,8 @@ private:
 public:
 		int src_id;
 		int dst_id;
-		mem::Shared_pointer shared_ptr;
+		mem::Shared_pointer status_ptr;
+		mem::Shared_pointer data_ptr;
 		int data_size;
 		int type_size;
     F f;
@@ -63,7 +78,8 @@ public:
     typename std::result_of<F(Args...)>::type retVal;
     async_function();
     async_function(int _src_id, int _dst_id, 
-									mem::Shared_pointer _ptr, 
+									mem::Shared_pointer _status_ptr,
+									mem::Shared_pointer _data_ptr, 
 									int _data_size, int _type_size, 
 									F& _f, Args... _args);
     ~async_function();
@@ -78,9 +94,6 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
     Futures_Environment *env = Futures_Environment::Instance();
     int id = env->get_procId();
     DPRINT_VAR("ASYNC:call to async from ", id);
-    int type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
-                    (details::is_primitive_type<typename std::result_of<F(Args...)>::type>());
-
     //get worker id and wake him
 		future<typename std::result_of<F(Args...)>::type> fut;
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
@@ -91,14 +104,33 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
 		}
 		else {
-			mem::Shared_pointer shared_ptr = env->alloc(id, type_size*data_size);		
-		  _stub *job = new async_function<F, Args...>(worker_id, id, shared_ptr,
+			/* 
+				if return type is not a container, then we cannot know apriori the size 
+				that the function will return, so the caller will need to retrieve data
+				from the worker instead of the worker setting data on the caller
+			*/
+			int type_size;
+			mem::Shared_pointer status_ptr, data_ptr;
+			if(!details::is_container<typename std::result_of<F(Args...)>::type>::value) {
+				type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
+						      (details::is_primitive_type<typename std::result_of<F(Args...)>::type>());
+				status_ptr = env->alloc(id, sizeof(int));
+				data_ptr = env->alloc(id, type_size*data_size);
+			}
+			else {
+				type_size = details::_sizeof<typename std::result_of<F(Args...)>::type>()
+						      (details::is_primitive_type<typename std::result_of<F(Args...)>::type>());
+				status_ptr = env->alloc(id, sizeof(int));
+				data_ptr = env->alloc(id, type_size*data_size);
+			}	
+		  _stub *job = new async_function<F, Args...>(worker_id, id, 
+																									status_ptr, data_ptr,
 																									data_size, type_size, 
 																									f, args...);		
 			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, 
 																															type_size, data_size,
-																															shared_ptr);
+																															status_ptr, data_ptr);
 			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
 		  	DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
 				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
@@ -124,12 +156,13 @@ future<typename std::result_of<F(Args...)>::type> async2(unsigned int data_size,
 template <class T> future<T>::future() {};
 
 template <class T> future<T>::future(int _src_id, int _dst_id, int _type_size, int _data_size,
-												mem::Shared_pointer _shared_ptr) {
+												mem::Shared_pointer _status_ptr, mem::Shared_pointer _data_ptr) {
 	src_id = _src_id;
 	dst_id = _dst_id;
 	type_size = _type_size;
 	data_size = _data_size;
-	shared_ptr = _shared_ptr;
+	status_ptr = _status_ptr;
+	data_ptr = _data_ptr;
 	ready_status = 0;
 };
 
@@ -146,7 +179,7 @@ template <class T> future<T>::~future() {};
 template <class T> bool future<T>::is_ready() {
     if(ready_status) return true;
     Futures_Environment* env = Futures_Environment::Instance();
-    ready_status = env->get_data<int>(dst_id, shared_ptr, 1, STATUS_OFFSET);
+    ready_status = env->get_data<int>(status_ptr.node_id, status_ptr, 1, 0);
 		return ready_status;
 };
 
@@ -160,7 +193,7 @@ template <class T> T future<T>::get() {
     //assert(id == dst_id);
 		START_TIMER("idle_time");
     while (1) {
-        ready_status = env->get_data<int>(dst_id, shared_ptr, 1, STATUS_OFFSET);
+        ready_status = env->get_data<int>(status_ptr.node_id, status_ptr, 1, 0);
         if (ready_status) break;
 				STOP_TIMER("idle_time");
 				env->execute_pending_jobs(); //Maybe it's best to execute one job at a time
@@ -169,8 +202,10 @@ template <class T> T future<T>::get() {
 		DPRINT_VAR("future.get():", ready_status);
 		STOP_TIMER("idle_time");
 		DPRINT_VAR("future.get():trying to retrieve data:", id);
-    data = env->get_data<T>(dst_id, shared_ptr, data_size, DATA_OFFSET);
-		env->free(id, shared_ptr);
+		//TODO: here we need to handle containers differently
+    data = env->get_data<T>(data_ptr.node_id, data_ptr, data_size, 0);
+		env->free(data_ptr.node_id, data_ptr);
+		env->free(status_ptr.node_id, status_ptr);
 		DPRINT_VAR("future.get():got data, returning it locally:", id);
     return data;
 };
@@ -180,12 +215,15 @@ template <class F, class... Args>
 async_function<F, Args...>::async_function() {};
 
 template <class F, class... Args>
-async_function<F, Args...>::async_function(int _src_id, int _dst_id, mem::Shared_pointer _ptr, 
+async_function<F, Args...>::async_function(int _src_id, int _dst_id, 
+																					mem::Shared_pointer _status_ptr,
+																					mem::Shared_pointer _data_ptr, 
 																					int _data_size, int _type_size, F& _f, Args... _args):
 	f(_f), args(_args...) {
 	src_id = _src_id;
  	dst_id = _dst_id;
-	shared_ptr = _ptr;
+	status_ptr = _status_ptr;
+	data_ptr = _data_ptr;
 	data_size = _data_size;
 	type_size = _type_size;
 };
@@ -204,10 +242,11 @@ void async_function<F, Args...>::run() {
 		STOP_TIMER("job_execution_time");
 		DPRINT_VAR("JOB:Completed execution, setting future data ",id);
     //return value to future
-		env->set_data(retVal, dst_id, shared_ptr, data_size, DATA_OFFSET);
+		//TODO: here we need to handle containers differently 
+		env->set_data(retVal, data_ptr.node_id, data_ptr, data_size, 0);
 		DPRINT_VAR("JOB:Set future data, setting status ",id);
     int ready_status = 1;
-    env->set_data(ready_status, dst_id, shared_ptr, 1, STATUS_OFFSET);
+    env->set_data(ready_status, status_ptr.node_id, status_ptr, 1, 0);
 		DPRINT_VAR("JOB:Set status, job completed ",id);
 };
 

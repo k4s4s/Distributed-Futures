@@ -141,6 +141,7 @@ Shared_pointer Shared_Memory_manager::allocate(int id, unsigned int size) {
 			DPRINT_VAR("\t\t\tShared Mem:Free Mem:", (*it).actual_size);
 			if((*it).actual_size >= pages_needed*page_size) {
 				DPRINT_VAR("\t\t\tShared Mem:Allocated ", pages_needed*page_size);
+				ptr.node_id = id;
 				ptr.base_address = (*it).base_address;
 				ptr.size = size;
 				ptr.num_of_pages = pages_needed;
