@@ -161,9 +161,13 @@ int main(int argc, char** argv) {
   }
 	//print(array,Size);
   printf("Sorting %ld elements\n", Size);
+	REGISTER_TIMER("total time");
+	START_TIMER("total time");
   // Start sorting
 	quicksort qsort;
   array = qsort(array, 10);
+	STOP_TIMER("total time");
+	PRINT_TIMER("total time");
 	Futures_Finalize();
   // Test result
   if(isSorted(array,Size)){

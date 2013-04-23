@@ -4,21 +4,62 @@ using MPI-2's one-sided communication.
 
 
 \section{Motivation}
-Parallel computing has been mpla mpla mpla.
+In recent years, computer hardware has ceased to follow Moore's law, as a result, researchers
+have been trying to find alternative ways to increase system performance.  The most successful
+way has been to increase the number of cores available on a machine and/or use a large number 
+of machine to run the same program.  In order to be able to successfully solve problems on
+many core/machines, parallel versions of the algorithms had to be developed, as well as tools
+and ways to express parallelism and distribute data on these new machines.
 The two most dominant and widely used programming models are threads and message passing.
-Threads are used on shared memory machines and require locking (error prone) while message
-passing can be used on either shared or distributed memory. Describe message passing, say
-its tough, talk about one sided communication, refer to ARMCI, ARMI, Charm++, Global address
-space languages, MPI-2 etc.  Say that mpi is widely used and is implemented on most machines,
-thus we want to check out its one sided interface, which has not received acceptance due to (?)
-(check all that stuff I've read about how tought it is, mpla mpla).  Also need to mention the
-future interface, and why we use it. Ease o programming, exposing irregular patterns(?).
+Threads are used on shared memory machines, where one thread can write to a memory location
+and another read the data from that location.  In order to ensure correct program execution,
+the user must synchronize memory access by the threads using mutexes, semaphores or locks.
+Message passing on the other hand, has the user to explicitly send messages from one
+application to another.  The usual scheme requires a matching pair of send and receive operations
+where both application will have to eventually block at some point until message has been received.
+Generally, the message passing model is considered more difficult to program but shared memory is
+often not an option on large scale systems.
 
-Note:global arrays guys have already made arguments about one sided comm of mpi-2 
+
+Another option, is the one-sided communication model, where one process can remotely write
+or read from the address space of another process.  ARMCI~\cite{Nieplocha99armci:a} 
+LAPI~\cite{Shah:1998:PEL:876880.879642} and MPI-2 provide library implementations of such 
+one-sided communication interface.  OpenSHMEM~\cite{Chapman:2010:IOS:2020373.2020375} is 
+an effort to standariaze the SHMEM interface wich also provides one-sided communication
+capabilities.  An attractive property of this model, is that communcation can happen 
+asynchrously, which also means however that the programmer needs to explicitly synchronize
+processes as in the shared memory model.
+
+
+Because all of the previous models are either difficult to program or error prone (manual
+synchronization often results in race conditions, due to programming mistakes),a lot of higher 
+level programming models have been suggested, that are implemented on top of one of the 
+previous, lower level, ones.  One such model is the futures model, where the programmer issues fucntions
+asynchrously to be run in parallel and holds the return value of the issued function in 
+a special variable called a future.  In this model, the issuer of the asynchronous function
+can continue execution after calling the function, without waiting for it to complete, but
+he will have to wait for it when he wants to retrieve the future value, if the function has
+not completed execution, else he simply retrieves the value which is alread available.  This 
+synchronization scheme is very easy to reason about and does not cause any race conditions.
+
+
+In this work, we have implemented the futures programming model on top of the one-sided communication
+model, using the MPI-2 library.  Our goal is to evaluate the one-sided communication implementation 
+of the MPI-2 library by writing a runtime for the futures model, which is typically implemented on top
+of shared memory.   Thus, the contribution of this work can sum up to:
+\\
+
+\begin{itemize}
+	\item We have impelemented and evaluated a runtime library of the futures programming interface 
+	for distributed memory 
+	\item We evaluate the MPI-2 one-sided communcation library, using our runtime impelementation
+\end{itemize}
 
 \section{Background}
-\label{sect:futures}
 \subsection{Futures}
+\label{sect:futures}
+
+
 Background on futures, mention languages that implement it as well as std and boost in C++.
 Example code and explanation.
 
@@ -28,5 +69,5 @@ Maybe mention again thins from intro.  Explain the interface (windows, epochs, p
 Maybe a small example.
 
 \section{Related Work}
-RMI, RMC, HPX, STAPL's comm library
+RMI, RMC, HPX, STAPL's comm library, Charm++, ARMCI paper
 

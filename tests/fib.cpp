@@ -43,11 +43,14 @@ int main(int argc, char* argv[]) {
 			break;		
 	}
 
+	REGISTER_TIMER("total time");
+	START_TIMER("total time");
 	fib f = fib();
 	future<double> result = async(f, a);
-
-	cout << "- Master:Result is " <<result.get() << endl;
-
+	double res = result.get();
+	STOP_TIMER("total time");
+	cout << "- Master:Result is " << res << endl;
+	PRINT_TIMER("total time");
 	Futures_Finalize();
 
 };

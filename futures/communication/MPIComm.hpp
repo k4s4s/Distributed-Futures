@@ -4,7 +4,7 @@
 
 #include <mpi.h>
 #include <boost/mpi/datatype.hpp>
-#include <mpi_details.hpp>
+#include "mpi_details.hpp"
 
 namespace futures {
 namespace communication {

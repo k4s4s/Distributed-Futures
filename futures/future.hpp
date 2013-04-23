@@ -99,9 +99,11 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
     int worker_id = env->get_avaibleWorker(); //this call also wakes worker
 
 		if(worker_id == id && id ==  0) { //FIXME: checking if things can work without this code, just for master
+			STOP_TIMER("job_issue_time");
 		  DPRINT_VAR("\tASYNC:running on self", id);
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+			START_TIMER("job_issue_time");
 		}
 		else {
 			/* 
@@ -132,9 +134,11 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 																															type_size, data_size,
 																															status_ptr, data_ptr);
 			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
+				STOP_TIMER("job_issue_time");
 		  	DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
 				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+				START_TIMER("job_issue_time");
 			};
 		}
 		STOP_TIMER("job_issue_time");

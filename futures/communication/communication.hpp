@@ -5,7 +5,7 @@
 #include <mutex.hpp>
 
 #ifdef V_MPI
-#include <MPIComm.hpp>
+#include "MPIComm.hpp"
 #endif
 
 /*

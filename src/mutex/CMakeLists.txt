@@ -12,9 +12,6 @@ if(MPI_LINK_FLAGS)
     LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-install(FILES 
-	${CMAKE_SOURCE_DIR}/mutex/mutex.hpp
-	${CMAKE_SOURCE_DIR}/mutex/MPIMutex.hpp	        
-        DESTINATION include)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/mutex DESTINATION include)
 
 install(TARGETS mutex DESTINATION lib)

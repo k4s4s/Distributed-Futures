@@ -15,6 +15,7 @@ using namespace futures::communication;
 RRScheduler::RRScheduler(CommInterface* _comm) {
     comm = _comm;
     total_workers = comm->size();
+		//DPRINT_VAR("\tRRScheduler:", total_workers);
     master_id = 0;
     int id = comm->get_procId();
 		if(id == master_id) {
@@ -45,6 +46,7 @@ Scheduler* RRScheduler:: create(CommInterface *commInterface) {
 
 int RRScheduler::nextAvaibleWorkerId() {
     assert(total_workers != 0);
+		if(total_workers == 1) return 0;
 		int curr_worker_id;
 		sched_lock->lock(MASTER_ID);
 		curr_worker_id = sched_mem->get<int>(MASTER_ID, 1, 0);

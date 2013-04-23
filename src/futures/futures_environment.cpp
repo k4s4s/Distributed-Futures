@@ -80,11 +80,11 @@ void Futures_Environment::Finalize() {
         while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
+    delete sched;
+		delete memManager;
 		STOP_TIMER("finalization_time");
 		STOP_TIMER("total_execution_time");
 		PRINT_STATS();	
-    delete sched;
-		delete memManager;
     delete commInterface;
     //delete pinstance;
 };
@@ -113,9 +113,14 @@ bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
 };
 
 void Futures_Environment::wait_for_job() {
-		while(!sched->terminate())
+		START_TIMER("idle_time");
+		while(!sched->terminate()) {
+			STOP_TIMER("idle_time");
 			sched->schedule_proc();
-    DPRINT_MESSAGE("ENVIROMENT: worker exiting program");
+			START_TIMER("idle_time");
+		}
+		STOP_TIMER("idle_time");
+    DPRINT_MESSAGE("ENVIRONMENT: worker exiting program");
 		this->Finalize();
 };
 

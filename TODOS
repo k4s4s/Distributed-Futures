@@ -6,7 +6,6 @@
 * TODO:add debug levels
  
 * FIXME:handle void return type
-* FIXME:crashes if run for 1 proc, need at least one worker
 * FIXME:if functor takes more than 2 or 3 arguments like vector (probably for all dynamic containers),
 				poping the task on worker causes a stack smash! 
 				-workaround, create a struct/class to pack arguments (!remember to serialize it!)

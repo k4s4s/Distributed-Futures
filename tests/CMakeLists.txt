@@ -6,7 +6,8 @@ add_executable(quicksort quicksort.cpp)
 add_executable(test test.cpp)
 
 add_executable(ping_pong ping_pong.cpp)
-add_executable(benchmark1 benchmark1.cpp)
+add_executable(bench_issue_container bench_issue_container.cpp)
+add_executable(bench_issue_scalar bench_issue_scalar.cpp)
 add_executable(lu kernels.cpp lu.cpp)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
@@ -28,7 +29,8 @@ target_link_libraries (fibonacci ${EXTRA_LIBS})
 target_link_libraries (quicksort ${EXTRA_LIBS})
 
 target_link_libraries (ping_pong ${EXTRA_LIBS})
-target_link_libraries (benchmark1 ${EXTRA_LIBS})
+target_link_libraries (bench_issue_container ${EXTRA_LIBS})
+target_link_libraries (bench_issue_scalar ${EXTRA_LIBS})
 target_link_libraries (lu ${EXTRA_LIBS}
 													-L/opt/intel/mkl/lib/intel64
     											-L/opt/intel/lib/intel64
@@ -48,7 +50,9 @@ if(MPI_COMPILE_FLAGS)
 
   set_target_properties(ping_pong PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(benchmark1 PROPERTIES
+  set_target_properties(bench_issue_container PROPERTIES
+    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+  set_target_properties(bench_issue_scalar PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
   set_target_properties(lu PROPERTIES
     COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
@@ -70,7 +74,9 @@ if(MPI_LINK_FLAGS)
 
   set_target_properties(ping_pong PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(benchmark1 PROPERTIES
+  set_target_properties(bench_issue_container PROPERTIES
+    LINK_FLAGS "${MPI_LINK_FLAGS}")
+  set_target_properties(bench_issue_scalar PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")
   set_target_properties(lu PROPERTIES
     LINK_FLAGS "${MPI_LINK_FLAGS}")

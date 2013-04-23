@@ -28,17 +28,22 @@
 
 #else
 
-#define REGISTER_TIMER(timer_n) stats::StatManager::Instance()->register_timer(timer_n)
-#define REGISTER_COUNTER(counter_n) stats::StatManager::Instance()->register_counter(counter_n)
-#define START_TIMER(timer_n) stats::StatManager::Instance()->start_timer(timer_n)
-#define STOP_TIMER(timer_n) stats::StatManager::Instance()->stop_timer(timer_n)
-#define INCREASE_COUNTER(counter_n, val) stats::StatManager::Instance()->increase_counter(counter_n, val)
-#define DECREASE_COUNTER(counter_n, val) stats::StatManager::Instance()->decrease_counter(counter_n, val) 
-#define PRINT_TIMER(timer_n) stats::StatManager::Instance()->print_timer(timer_n)
-#define PRINT_COUNTER(counter_n) stats::StatManager::Instance()->print_counter(counter_n)
-#define PRINT_STATS() stats::StatManager::Instance()->print_stats()
+#define REGISTER_TIMER(timer_n) futures::stats::StatManager::Instance()->register_timer(timer_n)
+#define REGISTER_COUNTER(counter_n) futures::stats::StatManager::Instance()->register_counter(counter_n)
+#define START_TIMER(timer_n) futures::stats::StatManager::Instance()->start_timer(timer_n)
+#define STOP_TIMER(timer_n) futures::stats::StatManager::Instance()->stop_timer(timer_n)
+#define INCREASE_COUNTER(counter_n, val) futures::stats::StatManager::Instance()->increase_counter(counter_n, val)
+#define DECREASE_COUNTER(counter_n, val) futures::stats::StatManager::Instance()->decrease_counter(counter_n, val) 
+#define PRINT_TIMER(timer_n) futures::stats::StatManager::Instance()->print_timer(timer_n)
+#define PRINT_COUNTER(counter_n) futures::stats::StatManager::Instance()->print_counter(counter_n)
+#define PRINT_STATS() futures::stats::StatManager::Instance()->print_stats()
 
 #endif
+
+#define FUTURES_REGISTER_TIMER(timer_n) futures::stats::StatManager::Instance()->register_timer(timer_n)
+#define FUTURES_START_TIMER(timer_n) futures::stats::StatManager::Instance()->start_timer(timer_n)
+#define FUTURES_STOP_TIMER(timer_n) futures::stats::StatManager::Instance()->stop_timer(timer_n)
+#define FUTURES_PRINT_TIMER(timer_n) futures::stats::StatManager::Instance()->print_timer(timer_n)
 
 namespace futures {
 namespace stats {

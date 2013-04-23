@@ -13,50 +13,55 @@ I was expecting a `,' or a `}'---line 27 of file references.bib
  : url = {http://en.cppreference.com/w/cpp/thread}
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 31 of file references.bib
+ : 
+ : author = {Adelstein-Lelbach, B. Anderson, M. and Kaiser, H.}
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.13 (2008/09/30) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 9 entries,
+You've used 11 entries,
             4039 wiz_defined-function locations,
-            886 strings with 9514 characters,
-and the built_in function-call counts, 6953 in all, are:
-= -- 561
-> -- 149
-< -- 57
-+ -- 79
-- -- 24
-* -- 353
-:= -- 1071
-add.period$ -- 20
-call.type$ -- 9
-change.case$ -- 9
-chr.to.int$ -- 138
-cite$ -- 9
-duplicate$ -- 491
-empty$ -- 568
-format.name$ -- 31
-if$ -- 1578
+            902 strings with 10129 characters,
+and the built_in function-call counts, 9000 in all, are:
+= -- 716
+> -- 203
+< -- 75
++ -- 107
+- -- 33
+* -- 454
+:= -- 1353
+add.period$ -- 26
+call.type$ -- 11
+change.case$ -- 11
+chr.to.int$ -- 186
+cite$ -- 11
+duplicate$ -- 632
+empty$ -- 746
+format.name$ -- 42
+if$ -- 2061
 int.to.chr$ -- 0
-int.to.str$ -- 9
-missing$ -- 85
-newline$ -- 62
-num.names$ -- 9
-pop$ -- 206
+int.to.str$ -- 11
+missing$ -- 111
+newline$ -- 70
+num.names$ -- 11
+pop$ -- 274
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 525
+skip$ -- 676
 stack$ -- 0
-substring$ -- 321
-swap$ -- 395
-text.length$ -- 11
+substring$ -- 435
+swap$ -- 512
+text.length$ -- 13
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 9
+type$ -- 11
 warning$ -- 0
-while$ -- 34
-width$ -- 10
-write$ -- 122
-(There was 1 error message)
+while$ -- 44
+width$ -- 13
+write$ -- 144
+(There were 2 error messages)

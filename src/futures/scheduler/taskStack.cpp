@@ -30,9 +30,10 @@ bool taskStack::push(int dst_id, _stub *job) {
 	/*read list tail*/
 	curr_head = taskS->get<int>(dst_id, 1, HEAD_OFFSET);
 	curr_size = taskS->get<int>(dst_id, 1, SIZE_OFFSET);
-	if(curr_size >= MAX_STACK_SIZE) return false;
+	assert(curr_size < MAX_STACK_SIZE); //FIXME: find a better way to deal with this
+	//if(curr_size >= MAX_STACK_SIZE) return false;
 	/* add new task to list */
-	
+	DPRINT_VAR("\t\ttaskstack:Push:", curr_size);
 	DPRINT_VAR("\t\ttaskstack:Push:inserting at ", curr_head);
 	int task_size = taskS->put(tw, dst_id, 1, curr_head);
 	DPRINT_VAR("\t\ttaskstack:Push:till ", curr_head+TASK_OFFSET+task_size);

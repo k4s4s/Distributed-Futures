@@ -14,3 +14,4 @@
 \contentsline {figure}{\numberline {2.9}{\ignorespaces By freeing data at base pointer 512, creates a continueous space between base pointer 0 and base pointer 640, causing the list nodes to merge into one.\relax }}{15}{figure.caption.12}
 \contentsline {figure}{\numberline {2.10}{\ignorespaces Shared stack where a worker process keeps its pending jobs. Entries can have varied sizes, this size is stored at the beggining of the entry and can be used to retrieve the corresponding job. Information for the specific stack,like size and head, are stored at the beggining of the shared space, so that other processes can access them.\relax }}{16}{figure.caption.13}
 \addvspace {10\p@ }
+\addvspace {10\p@ }

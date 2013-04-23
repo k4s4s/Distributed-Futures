@@ -52,12 +52,14 @@ int main(int argc, char* argv[]) {
 	 	default:
 			break;		
 	}
-	
+	REGISTER_TIMER("total time");
+	START_TIMER("total time");
 	power f;
 	future<double> message = async(f, a, n);
-
-	cout << "- Master :Result is " <<message.get() << endl;
-	
+	double res = message.get();
+	STOP_TIMER("total time");
+	cout << "- Master :Result is " << res << endl;
+	PRINT_TIMER("total time");
 	Futures_Finalize();
 };
 

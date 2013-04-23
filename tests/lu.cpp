@@ -500,17 +500,18 @@ int main(int argc, char* argv[]) {
 		vector<vector<int>> IPIV = init_ipiv(N, N, NB);
 		//print_array(N, N, &A[0], N);
 		//run LU factorization
-		start_timer();
+		REGISTER_TIMER("total time");
+		START_TIMER("total time");
     info = dgetrf(N, N, tiled_A, LDA, tiled_L, IPIV);
-		stop_timer();
+		STOP_TIMER("total time");
 		cout << "LU completed!" << endl;
 		if(print_result) {
 			deformat_array(N/NB, N/NB, NB, NB, A, tiled_A, LDA);
 			print_array(N, N, &A[0], LDA);
 		}
+		PRINT_TIMER("total time");
 		futures::Futures_Finalize();
 
-		print_timer();
     return 0;
 }
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  4 FEB 2013 16:22
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=latex 2013.1.21)  22 APR 2013 01:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -616,7 +616,12 @@ Overfull \hbox (1246.22343pt too wide) in paragraph at lines 15--15
 
 ]
 Chapter 1.
-) (./related.tex [3]) (./implementation.tex [4]
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 41--46
+
+ []
+
+) (./related.tex) (./implementation.tex [4]
 Chapter 2.
 File: figures/system_overview.eps Graphic file (type eps)
 <figures/system_overview.eps>
@@ -701,26 +706,36 @@ Underfull \hbox (badness 10000) in paragraph at lines 446--448
 
  []
 
-) (./conclusions.tex [17] [18
+) (./evaluation.tex [17] [18
 
 ]
 Chapter 3.
-) (./thesis.bbl [19] [20
+
+LaTeX Warning: Reference `fig:micro1' on page 19 undefined on input line 13.
+
+
+LaTeX Warning: Reference `fig:micro1' on page 19 undefined on input line 14.
+
+) (./conclusions.tex [19] [20
 
 ]
-Underfull \hbox (badness 2401) in paragraph at lines 33--36
+Chapter 4.
+) (./thesis.bbl [21] [22
+
+]
+Underfull \hbox (badness 2119) in paragraph at lines 60--63
 []\T1/cmr/m/n/10.95 D. Gre-gor, ``Boost mpi,'' 2005. [On-line]. Avail-able:
  []
 
-[21])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 94.
- [22]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 94.
+[23])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 95.
+ [24]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 95.
  (./thesis.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 94.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 94.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 95.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 95.
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 6614CD9BA8D22F9EFA76D86363C45A3C;2526.
+(rerunfilecheck)             Checksum: 48BAF1CBC9417F24DD14AFAA0083D0D3;2826.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
@@ -728,15 +743,15 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 94.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 95.
  ) 
 Here is how much of TeX's memory you used:
- 12676 strings out of 494984
- 181224 string characters out of 3180431
- 299077 words of memory out of 3000000
- 15645 multiletter control sequences out of 15000+200000
+ 12689 strings out of 494984
+ 181521 string characters out of 3180431
+ 299520 words of memory out of 3000000
+ 15655 multiletter control sequences out of 15000+200000
  27887 words of font info for 57 fonts, out of 3000000 for 9000
  59 hyphenation exceptions out of 8191
  44i,10n,58p,473b,1461s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on thesis.dvi (35 pages, 119152 bytes).
+Output written on thesis.dvi (37 pages, 128124 bytes).

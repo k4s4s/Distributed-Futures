@@ -41,6 +41,7 @@ StatManager::StatManager() {
 	timerMap["idle_time"] = _timer();
 	timerMap["finalization_time"] = _timer();
 	timerMap["total_execution_time"] = _timer();
+	timerMap["allocation_time"] = _timer();
 	counterMap["total_jobs"] = 0;
 	counterMap["total_memory_needed"] = 0;
 };
@@ -157,7 +158,7 @@ void StatManager::print_stats() {
 				cout << "  job issue time per job:" << ((double)_job_issue_time/1000.0)/((double)jobs_num)<< "ms" << endl;
 				cout << "total job execution time:" << ((double)this->get_time("job_execution_time")/1000.0) << "ms" << endl;
 				cout << "         total idle time:" << ((double)_idle_time/1000.0) << "ms" << endl;	
-				cout << "			total memory needed:" << this->get_count("total_memory_needed") << "bytes" << endl;
+				cout << "         total memory needed:" << this->get_count("total_memory_needed") << "bytes" << endl;
 		}
 		double total_actual_execution_time = this->get_time("total_execution_time")
 			-this->get_time("initialization_time")-this->get_time("finalization_time");

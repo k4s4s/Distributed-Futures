@@ -72,14 +72,18 @@ struct _put {
 										MPI_Win data_win, 
 										boost::mpl::false_) {
         boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
+				DPRINT_VAR("_put:putting data", oa.size());
         oa << data;
+				DPRINT_VAR("_put:put data", oa.size());
     		MPI_Exclusive_put((void*)(&oa.size()), 1, MPI_INT, dst_id, 
 													offset+AR_SIZE_OFFSET,
                           1, MPI_INT, data_win);
+				DPRINT_VAR("_put:putting size", oa.size());
     		MPI_Exclusive_put(const_cast<void*>(oa.address()), oa.size(), 
 																						MPI_PACKED, dst_id,
 																						offset+DATA_OFFSET, oa.size(), 
 																						MPI_PACKED, data_win);
+				DPRINT_VAR("_put:done data", oa.size());
 				return oa.size()+sizeof(oa.size());
     };
 };
