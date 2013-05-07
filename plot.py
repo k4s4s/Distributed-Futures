@@ -16,15 +16,25 @@ def median(mylist):
 		return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
 	return sorts[length / 2]
 
-#parses a file fi
 def parse_file(f, value_name, index):
-	content = f.read()
-	items=re.findall("{0}.*$".format(value_name), content, re.MULTILINE)
-	#print content
+	entry_found = False
 	value_s = '0'
-	if(len(items) == 0): return 0
-	value_s = items[index].partition(':')[2]
-	value_s = value_s.partition('ms')[0]
+	for line in f:
+#		print line
+#		print value_name
+		#find beginnig of index entry
+		if not entry_found and index in line: 
+#			print 'entry found'
+			entry_found = True
+			continue
+		if entry_found and value_name in line:
+#			print 'value found'
+			value_s = line.partition(':')[2]
+			value_s = value_s.partition('ms')[0]
+			break
+		#if we reached start of next entry, exit	
+		if entry_found and "====" in line: break
+#	print value_s
 	return float(value_s)
 
 def valid_line(f, col):
@@ -67,8 +77,7 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 					#get value
 					#print dumpfile_n
 					dumpfile = open(dumpfile_n)
-					#print dumpfile_n
-					value_v.append(parse_file(dumpfile, value_n, 0))
+					value_v.append(parse_file(dumpfile, value_n, ''))
 				#write value to cvs file
 				total_time = median(value_v)
 				if(x == '1'):
@@ -110,19 +119,21 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 
 def plot_bar_graph(	title, clusters, stacks, breakdowns,
 										xlabel, ylabel, iterations, 
-										dump_file_format, graph_type):
+										outfile_n, dump_file_format, graph_type):
 	print "plotting {0}".format(title)
-	datafile_n = ""
-	perf_n = ""
-	if(len(clusters) == 1):
-		perf_n = "perfs/{0}/{0}_breakdowns.perf".format(stacks[0])
-	else:
-		perf_n = "perfs/{0}_breakdowns.perf".format('all')
+	perf_n = '{}.perf'.format(outfile_n)
 	outfile_n = '{0}.eps'.format(os.path.splitext(perf_n)[0])
 	perf=open(perf_n, 'w');
-	perf.write('={0};'.format(graph_type))
-	for b in breakdowns:
-		perf.write('{0};'.format(b))
+	if(graph_type == 'stackcluster' or graph_type == 'stacked'):
+		perf.write('={0};'.format(graph_type))
+		for b in breakdowns:
+			perf.write('{0};'.format(b))
+	elif(graph_type == 'cluster'):
+		perf.write('={0};'.format(graph_type))
+		for s in stacks:
+			perf.write('{0};'.format(s))
+	else:
+		perf.write('=color_per_datum')
 	perf.write('\n')
 	perf.write('=noupperright\n')
 	perf.write('legendx=right\n')
@@ -131,8 +142,9 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 	perf.write('yformat=%g\n')
 	perf.write('xlabel={0}\n'.format(xlabel))
 	perf.write('ylabel={0}\n'.format(ylabel)) 
-	perf.write('rotateby=45.0\n')
-	perf.write('xticshift=-4,-3\n')
+#	perf.write('rotateby=45.0\n')
+#	perf.write('xticshift=-4,-3\n')
+#	pref.write('=norotate')
 	perf.write('=table\n')
 	if(graph_type == 'stackcluster'):
 		for cluster in clusters:
@@ -150,15 +162,63 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 							dumpfile_n = dumpfile_n.replace("#iter#", str(it))
 							#get value
 							dumpfile = open(dumpfile_n)
-							#print dumpfile_n
-							value_v.append(parse_file(dumpfile, value_n, stack_i))
+							value_v.append(parse_file(dumpfile, value_n, stack))
 						#write value to cvs file
 						total_time = median(value_v)
 					except IOError:
 						total_time = 0
 					perf.write('\t{0}'.format(total_time))
 				perf.write('\n')
-				stack_i += 1;
+				if(stacks[0] == 'master'): #cheat
+					stack_i += 1;
+	elif(graph_type == 'cluster'):
+		for cluster in clusters:
+			perf.write('{0}'.format(cluster))
+			stack_i = 0;
+			for stack in stacks:
+				value_n = breakdowns[0]
+				value_v = [];
+				total_time = 0;
+				try:
+					for it in range(iterations):
+						dumpfile_n = dump_file_format.replace("#cluster#", cluster)
+						dumpfile_n = dumpfile_n.replace("#stack#", stack)
+						dumpfile_n = dumpfile_n.replace("#iter#", str(it))
+						#get value
+						dumpfile = open(dumpfile_n)
+						value_v.append(parse_file(dumpfile, value_n, 'MASTER'))
+					#write value to cvs file
+					total_time = median(value_v)
+				except IOError:
+					total_time = 0
+				perf.write('\t{0}'.format(total_time))
+				if(stacks[0] == 'master'): #cheat
+					stack_i += 1;
+			perf.write('\n')
+	else:
+		for cluster in clusters:
+			perf.write('{0}'.format(cluster))
+			stack_i = 0;
+			for stack in stacks:
+				value_n = breakdowns[0]
+				value_v = [];
+				total_time = 0;
+				try:
+					for it in range(iterations):
+						dumpfile_n = dump_file_format.replace("#cluster#", cluster)
+						dumpfile_n = dumpfile_n.replace("#stack#", stack)
+						dumpfile_n = dumpfile_n.replace("#iter#", str(it))
+						#get value
+						dumpfile = open(dumpfile_n)
+						value_v.append(parse_file(dumpfile, value_n, 'MASTER'))
+					#write value to cvs file
+					total_time = median(value_v)
+				except IOError:
+					total_time = 0
+				perf.write('\t{0}'.format(total_time))
+				if(stacks[0] == 'master'): #cheat
+					stack_i += 1;
+			perf.write('\n')
 
 	print CSI+"31;40m" + bold + "bargraph.pl {0} > {1}".format(perf_n, outfile_n) + CSI + "0m"
 	#os.system("bargraph.pl {0} > {1}".format(perf_n, outfile_n))

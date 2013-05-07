@@ -1,73 +1,149 @@
 \chapter{Introduction}
 We present an implementation of the future programming model for distributed memory,
-using MPI-2's one-sided communication.
+using MPI-2's one-sided communication.  The interface is implemented as a runtime 
+library that allows the user to  expose parallel code segment, by issuing functions 
+asynchronously.  The result of the work is the return value of the function, and 
+synchronization between processes is achieved by storing the return value in a special
+variable, called a future.  This variable can be accessed at any time during execution,
+but the process accessing it will block until the function, which has been issued asynchronously
+will finish, thus the actual value of the variable becomes available. 
 
 
 \section{Motivation}
-In recent years, computer hardware has ceased to follow Moore's law, as a result, researchers
-have been trying to find alternative ways to increase system performance.  The most successful
-way has been to increase the number of cores available on a machine and/or use a large number 
-of machine to run the same program.  In order to be able to successfully solve problems on
-many core/machines, parallel versions of the algorithms had to be developed, as well as tools
-and ways to express parallelism and distribute data on these new machines.
-The two most dominant and widely used programming models are threads and message passing.
-Threads are used on shared memory machines, where one thread can write to a memory location
-and another read the data from that location.  In order to ensure correct program execution,
-the user must synchronize memory access by the threads using mutexes, semaphores or locks.
-Message passing on the other hand, has the user to explicitly send messages from one
-application to another.  The usual scheme requires a matching pair of send and receive operations
-where both application will have to eventually block at some point until message has been received.
-Generally, the message passing model is considered more difficult to program but shared memory is
-often not an option on large scale systems.
+	When developing parallel applications the two most dominant and widely used programming models are 
+threads and message passing.  
 
 
-Another option, is the one-sided communication model, where one process can remotely write
-or read from the address space of another process.  ARMCI~\cite{Nieplocha99armci:a} 
+Threads model is commonly used on shared memory machines, where 
+the communication scheme would have one thread writing to a memory location
+and another thread reading the data from that location.  This model does not require data to be
+transfered among threads but can lead to race conditions when two threads try to access the same
+data at the same time or, if a thread does not respect RAW and WAR dependencies. 
+In order to ensure correct program execution,
+the user must synchronize memory access by the threads using mutexes, semaphores, locks, barriers etc.
+Correct synchronization has proven to be a daunting and error-prone task for programmers, and often 
+synchronization bugs in application can be the cause for  
+erroneous results, or even worse, deadlocks.  
+
+
+On the other hand,  applications using message passing libraries, use messages to share data
+between different processes and also for synchronization.  The usual scheme requires a matching pair
+of send and receive operations where both application will have to eventually block at some point until
+the message has been received. Although the message passing model is considered more difficult to program 
+than programming with threads on shared memory, it is easier to reason about data locality, thus can 
+potentially achieve very good performance.  Moreover, message passing libraries are usually the only 
+available option on large scale distributed machines, where different physical nodes do not share 
+a global address space.  A drawback of most message passing implementations is that two-sided 
+communication is required when exchanging messages.  This means that both sender and receiver must
+take active part in the communication, which usually means that both need to block at some point,
+until the message is sent/received.  
+
+
+An alternative from the usual message passing two-sided communication model, 
+is the one-sided communication model, where one process can remotely write
+or read from the address space of another process, while the latter is not required 
+to take active part in the transaction.  ARMCI~\cite{Nieplocha99armci:a} 
 LAPI~\cite{Shah:1998:PEL:876880.879642} and MPI-2 provide library implementations of such 
 one-sided communication interface.  OpenSHMEM~\cite{Chapman:2010:IOS:2020373.2020375} is 
-an effort to standariaze the SHMEM interface wich also provides one-sided communication
-capabilities.  An attractive property of this model, is that communcation can happen 
-asynchrously, which also means however that the programmer needs to explicitly synchronize
-processes as in the shared memory model.
+an effort to standardize the SHMEM interface which also provides one-sided communication
+capabilities.  An attractive property of this model, is that communication can happen 
+asynchronously, which also means however that the programmer needs to explicitly synchronize
+processes as in the shared memory model, using barriers and fences.
 
 
-Because all of the previous models are either difficult to program or error prone (manual
-synchronization often results in race conditions, due to programming mistakes),a lot of higher 
-level programming models have been suggested, that are implemented on top of one of the 
-previous, lower level, ones.  One such model is the futures model, where the programmer issues fucntions
-asynchrously to be run in parallel and holds the return value of the issued function in 
-a special variable called a future.  In this model, the issuer of the asynchronous function
-can continue execution after calling the function, without waiting for it to complete, but
-he will have to wait for it when he wants to retrieve the future value, if the function has
-not completed execution, else he simply retrieves the value which is alread available.  This 
-synchronization scheme is very easy to reason about and does not cause any race conditions.
+Because all of the previous models are either considered difficult to program or error prone, a lot of higher 
+level programming models have been suggested in the literature, that are implemented on top of one of the 
+previous, lower level, ones.  The concept of organizing parallel work in functions that can be run
+concurrently has lead to the development of many task-based programming models
+~\cite{Ayguade:2009:DOT:1512157.1512430, Blumofe95cilk:an} in the shared memory
+environment and to similar models in distributed memory like Remote Procedure Calls (RPC)
+~\cite{Saunders:2003:AAP:966049.781534,Beckman96tulip:a,Vadhiyar03gradsolve-}
+or Remote Service Request (RSR) ~\cite{Foster96thenexus}.  Although this higher level
+abstraction makes it easier to organize parallel code in tasks, it is still up to the 
+programmer to either synchronize data accesses between tasks in shared memory environments,
+or decide how data can be distributed among tasks in distributed memory environments.
 
+The futures (or promises) programming model, tries to simplify the daunting task of synchronizing
+accesses to shared data.  In this model, all data shared between threads should be encapsulated 
+in a special variable called a future.  A future should be paired with another special variable
+called a promise.  The future variable can be used to access the shared data while the promise 
+variable to write to the data.  When a thread accesses the future variable, it will either retrieve
+the encapsulated data or block and wait for it to become available, depending whether the data has 
+been set using the associated promise variable.  The promise variable can be used by another thread
+or the same thread that will access the future value.  Other future interfaces, following the task 
+programming model paradigm, allow the issuing of functions asynchronously, so that they are run 
+concurrently with the calling thread.  In these model, the return value of the function is in fact
+a future and a promise pair.  The thread that executes the issued function, will set the promise
+and the thread that issued the function will retrieve the return value using the future variable. 
+We believe the the futures programming model
+is a reasonable compromise between having an easily programmable environment and the ability to 
+efficiently express parallel algorithms.
 
-In this work, we have implemented the futures programming model on top of the one-sided communication
-model, using the MPI-2 library.  Our goal is to evaluate the one-sided communication implementation 
-of the MPI-2 library by writing a runtime for the futures model, which is typically implemented on top
-of shared memory.   Thus, the contribution of this work can sum up to:
+The futures model is traditionally implemented using threads over shared memory environments.  
+HPX~\cite{HPX:TOBE} is a runtime system that offers an implementation of the futures model 
+for both shared and distributed memory environments.  In this work we aim to provide an 
+implementation of the futures interface as it is defined in the standard C++ library~\cite{CPP:Threads}, 
+but for distributed memory environments.  We have chosen to build our system using the MPI-2 one-sided
+communicaton library, so that we can explore and evaluate it's potential to provide a completely asynchronous
+communication scheme.  Another reason for using an MPI library is that it is the most commonly available 
+library on distributed and shared memory machines alike.  
+The contributions of this work can sum up to:
 \\
-
 \begin{itemize}
-	\item We have impelemented and evaluated a runtime library of the futures programming interface 
-	for distributed memory 
-	\item We evaluate the MPI-2 one-sided communcation library, using our runtime impelementation
+	\item Implementation and evaluation of a runtime library of the futures programming interface 
+	for distributed memory. 
+	\item Evaluation of the MPI-2 one-sided communication interface, for implementing an advanced runtime system.
+	\item Exploration of the potential of implementing a runtime on distributed memory using shared memory scheduling techniques.
+\\
 \end{itemize}
+Our evaluation shows that the runtime is only able to offer some speedup only when we use coarse grain 
+tasks, due to the high cost of issuing functions asynchronously, communication and using locks implemented over
+an one-sided communication interface.  Moreover, MPI-2 one-sided communication interface is not as versatile as we 
+would like, especially due to the fact that it can only expose data from one process to another through collective 
+operations.  
 
 \section{Background}
-\subsection{Futures}
-\label{sect:futures}
-
-
-Background on futures, mention languages that implement it as well as std and boost in C++.
-Example code and explanation.
 
 \label{sect:mpi-one-sided}
 \subsection{MPI one-sided communication}
-Maybe mention again thins from intro.  Explain the interface (windows, epochs, put, get).
-Maybe a small example.
 
-\section{Related Work}
-RMI, RMC, HPX, STAPL's comm library, Charm++, ARMCI paper
+One of the most controversial features of MPI-2 is it's one-sided communication.  Although PGAS programming
+models and languages have become widely accepted for developing code in large scale machines, programmers
+consider the MPI one-sided communication interface to be generally difficult to understand and use.  In this
+section we try to familiarize the reader with the main concepts of the interface.  
+
+In order to perform remote access operations on some data, this data, residing on one process, needs to be exposed to 
+the other processes, through an MPI\_Window object.  Thus, all processes need to create an MPI\_Window that will expose
+some of theirs local address space to all other processes.  MPI\_Windows are created using the MPI\_Win\_create function.
+This functions requires a pointer to a local address space and the size of the data to be shared, through the window.
+This is a collective operation over a group of MPI processes.  Each process can expose different size of data (or none)
+to the window. Note that only the processes in the group will be able
+to perform a remote operation on the created MPI\_Window.
+
+The two main operations that can be performed are MPI\_Put and MPI\_Get, which allow a process to remotely write and
+read some data respectively.  Both operations are applied on an MPI\_Window and the rank of the process, whose address
+space  we want to remotely write to or read from.  In addition, a buffer has to be supplied to each function, that
+either points to the data that needs to be written to the remote address or to the local memory that the remote data
+will be stored to.  Along with the buffers, an MPI\_Datatype and buffer size must be supplied.  Another operation 
+available is the MPI\_Accumulate, that can be used to apply some action on the data that is remotely read and the local
+data on the process.  An operation must also be supplied to this function.    
+
+In contrast to the two-sided communication interface, in the one-sided interface, get and put operation need not 
+be paired and non-blocking, thus synchronizing processes that perform these remote operations must be explicitly
+done by the programmer.  Synchronization in the MPI one-sided communication interface is achieved using "epochs",
+that define the start and end of an operation.  All one-sided operations must happen in one "epoch".  MPI provides
+two different ways to define "epochs", called \emph{active target} and \emph{passive target}.
+
+In the \emph{active target} mode both processes are required to take part in the synchronization.  The programmer 
+need to declare the beginning and end of an "epoch" in the origin process, by explicitly calling MPI\_Win\_start/complete.
+On the target process, MPI\_Win\_post/wait must be used to declare the beginning and end of the "epoch".  MPI\_Win\_start needs
+to be paired with an MPI\_Win\_post and MPI\_Win\_complete must be paired with an MPI\_Win\_wait.  Moreover, an "epoch" can be 
+defined by using a pair of MPI\_Win\_fence calls to declare the start and end of the "epoch".  This function is used for 
+collectively synchronizing remote operations.  All these functions require an MPI\_Window to be provided as an argument. 
+
+The \emph{passive target} mode requires only the origin process to define the start and end of an "epoch", by using 
+MPI\_Win\_lock/unlock respectively.  Again, the window on which the operation is performed is required to be passed as
+an argument along with the rank of the target process.  An MPI\_Win\_lock/unlock can be either shared or exclusive.
+A shared lock allows or concurrent operations to take place in the same "epoch", while the exclusive will force them
+to happen in different "epochs".
 

@@ -1,0 +1,79 @@
+\documentclass[11pt,oneside]{book}
+
+\usepackage{graphicx}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{verbatim}
+\usepackage[numbers]{natbib}
+%\usepackage[greek,english,french]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{slantsc}
+\usepackage[T1]{fontenc}
+
+%my packages
+\usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{subfig}
+
+\title{A Futures Programming Model Runtime System for Distributed Memory}
+\author{Dimitrios Chasapis \\
+				Laboratoire de Recherche en Informatique \\
+				Parall Group
+}
+\date{\today}
+
+\hypersetup{
+    bookmarks=true,            % show bookmarks bar?
+    unicode=true,              % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,           % show Acrobat’s toolbar?
+    pdfmenubar=true,           % show Acrobat’s menu?
+    pdffitwindow=true,         % window fit to page when opened
+    pdftitle={Master Thesis},  % title
+    pdfborder={ 0 0 0 },        % uBorder tin links
+		linktocpage = true
+}
+
+
+\begin{document}
+\maketitle
+
+\lstset{
+  language=C++,
+  basicstyle=\ttfamily\footnotesize,
+  columns=flexible,
+  numbers=left,
+  showstringspaces=false,
+  alsoletter={-},
+  literate={-}{-}1,
+  numbersep=1em,
+  xleftmargin=2.5em,
+  xrightmargin=1em,
+  escapeinside={@}{@},
+  commentstyle=\color{gray},
+  keywordstyle=\bf\color{blue},
+	keywordstyle=[2]\bf\color{blue},
+	keywords=[2]{async, future, Futures_Initialize, Futures_Finalize},
+	tabsize=2,
+}
+
+\input{./abstract_en.tex}
+\pagenumbering{Roman}
+\pagestyle{plain}
+\tableofcontents
+\pagestyle{headings}
+\pagenumbering{arabic}
+\input{./introduction.tex}
+\input{./related.tex}
+\input{./implementation.tex}
+\input{./evaluation.tex}
+\input {./conclusions.tex}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

@@ -1,1 +1,46 @@
 \chapter{Conclusions and Future Work}
+In this work we presented an implementation of the futures programming model as a C++ library,
+for distributed memory machines.  We implemented our system using the MPI one-sided communication
+library for communication and we adopted shared memory scheduling techniques to implement 
+our scheduler, making use again of the MPI one-sided interface.  Our evaluation of the system shows
+that the current implementation suffers from significant overheads, especially when issuing asynchronous
+\emph{jobs} on processes. In order to be usable, the user must issue coarse grain \emph{jobs}.  At this
+point, we are inconclusive whether the large overhead can be attributed to the MPI library or to other
+implementation issues in our runtime system (e.g. scheduling policies, mutex implementation).  We suspect
+however, that busy waiting, the technique we use to check for future availability, 
+even on local variable that are shared through MPI windows can be costly (acquiring locks on an "epoch" for example).
+
+
+At this point, from our experience with the MPI one-sided communication interface, we believe that there exist
+some fundamental limitations in its design. These are:
+\\
+\begin{enumerate}
+	\item MPI\_Window creation is a collective operation over a group of MPI processes.  In order to dynamically
+				allocate data and share through a window, all processes must synchronize, calling the MPI\_Window\_create
+				routine.  For our asynchronous system this is a serious limitation, especially when we only want to create
+				windows between only two processes at a time.  The only solution to this problem would be to create a priori
+				all possible groups for all pairs of processes, which can be costly.  Instead, we were forced to preallocate
+				a buffer for each process, that is shared through a window.
+	
+	\item The \emph{active mode} "epoch" definition scheme, requires both processes to take part in the communication,
+				which we believe to be counter intuitive for an one-sided communication interface. What's more, we find that
+				it is unusable in our asynchronous communication system.
+
+	\item The locking schematics of the \emph{passive mode} "epoch" definition scheme, do not define well what happens
+				when a window is concurrently accessed, which can cause erroneous results.  This forced us to implement our
+				own mutexes to synchronize data accesses on the same window.  Moreover, acquiring an exclusive lock on a 
+				window will block other processes from accessing it, even if they access different, non-overlapping addresses
+				in that window.  The later constraint, limits fine grain locking.  In our system, this is a very common
+				scenario, where processes, different asynchronous \emph{jobs}, need to write to different parts of the same
+		 		window of the process owning the associated futures.   
+\\
+\end{enumerate}
+
+In the future we plan to further investigate the cause of our systems high overhead.  If our suspicions are correct
+and the cause of the overhead is our scheduling scheme, we will try different approaches than using the MPI one-sided
+communication in order to achieve better performance.  Our focus will be to deliver a high performance runtime system.
+We also plan to add important features to the runtime, such as the ability to serialize and send futures to other 
+processes.  This will be very useful in applications like our Tiled LU, where the master issues all the async \emph{jobs},
+but instead each process will wait for it's futures to be available. This will allow finer grain synchronization and
+the master will not become a bottleneck.
+

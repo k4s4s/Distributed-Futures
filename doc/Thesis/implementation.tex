@@ -1,6 +1,6 @@
 \chapter{Design and Implementation}
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \center
 \includegraphics[width=0.7\columnwidth]{figures/system_overview}
 \caption{Overview of our futures library design.}
@@ -9,14 +9,14 @@
 
 We have modeled the distributed futures, as closely as possible, 
 to the shared memory futures from the C++ standard library.  Parallelism in the future
-model is extracted by issuing functions asynchronously, using a \emph{special} async funtion
+model is extracted by issuing functions asynchronously, using a \emph{special} async function
 that takes the function to be executed in parallel as an argument (see section ~\ref{sect:futures-interface}).
 In our library, functions called using the async function,
-refered to as \emph{jobs} from now on, are send through a communication library 
-to be executed by other avaible processes.  
+referred to as \emph{jobs} from now on, are send through a communication library 
+to be executed by other available processes.  
 The decision of who executes a \emph{job} is made by a scheduler.  The host process can retrieve
 the return value of a \emph{job} using the future object associated with the corresponding \emph{async} call.
-A process can only retrieve a future's value if the job has finished executionm, in which case the remote 
+A process can only retrieve a future's value if the job has finished execution, in which case the remote 
 process will set the futures value on the host process, else the host process will will block.
 In our implementation, a blocked process will try to execute any pending \emph{jobs} it might have
 while it is beeing blocked.
@@ -41,11 +41,11 @@ Our system consists out of three main modules:
 All the above modules are initialized, finalized and managed by an system environment, 
 an instance of which is present
 at every process.  Note that it is not necessary however for every environment instance to be the same, for
-example process 1 can be only responsibe for it's own shared address space and be aware only of the shared
+example process 1 can be only responsible for it's own shared address space and be aware only of the shared
 addresses of other processes, which hold futures associated with \emph{jobs} that are supposed to run by
 process 0.
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \begin{lstlisting}
 class helloWorld {
 public:
@@ -77,7 +77,7 @@ The output of the program on process 0 would be "- Master :Hello 1".}
 \label{lst:hello}
 \end{figure}
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \includegraphics[width=\columnwidth]{figures/hello_flow}
 \caption{
 The control flow of the hello world program in figture~\ref{lst:hello}.}
@@ -101,7 +101,7 @@ The job is then scheduled to be executed by process 1.  The worker process,
 here process 1, will wait until a \emph{job} is send and then run it.  When done, it will set 
 the future's value and return to waiting for other jobs or until it is terminated by the master
 process.  When process 0 retrieves message's value, it prints it and continues until it reaches
-the Futures\_Finalize() routine.  At this point it will singal all other processes that the program
+the Futures\_Finalize() routine.  At this point it will signal all other processes that the program
 has reached it's termination point and finalize the futures environment.  All other processes will
 do the same after receiving the terminate signal.
 \\
@@ -128,9 +128,9 @@ Note that the argument to the first macro command is always \emph{async\_functio
 where F is a functor class
 and Args are an aribary number argument types, that are to be passed to the overloaded call method 
 of the functor F.  \emph{Async\_function} is a special class that wraps around the functor objects and its
-arguments.  Instantiation of this class, using C++ templates metaprogramming capabilities,
+arguments.  Instantiation of this class, using C++ templates meta-programming capabilities,
 generates the appropriate routines, for setting the future's value, according to the value's type.
-It also facilitates all necessary information that are needed to be transfared to the worker process.
+It also facilitates all necessary information that are needed to be transfered to the worker process.
 Figure ~\ref{lst:async_function} shows the definition of the \emph{async\_function} class.
 
 
@@ -147,10 +147,10 @@ the owner of the future needs to call the get() method.  This method is blocking
 process to block until the value of the future becomes available.  Alternatively, the future owner can call the
 is\_ready() method, which is not blocking, to check if the value can be retrieved, and if not continue running
 user code until the future's value becomes available at a later point.  Also, note that before using
-the futures library, the user has to explicitely call the \emph{Futures\_Initialize()} and \emph{Futures\_Finalize()},
+the futures library, the user has to explicitly call the \emph{Futures\_Initialize()} and \emph{Futures\_Finalize()},
 which will initialize and finalize the futures environment, respectively. 
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \begin{lstlisting}
 
 template<typename F, typename... Args>
@@ -179,7 +179,7 @@ instances of this class.  The base class \emph{\_job} is used for serialization 
 \label{lst:async_function}
 \end{figure}
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \begin{lstlisting}
 class fib {
 public:
@@ -209,14 +209,14 @@ FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
 \label{sect:communication}
 The communication module is responsible for message exchange between all of the processes in our system,
 as well as providing the infrastructure for a shared address space.
-In our implementation the communication module uses MPI-2'S one-sided communication libary and Boost MPI's
+In our implementation the communication module uses MPI-2'S one-sided communication library and Boost MPI's
 input and output archives, for object serialization.
 
-The communication module acts as a layer of abstraction between the various system component and the MPI libary.
+The communication module acts as a layer of abstraction between the various system component and the MPI library.
 It acts as a simple wrapper for initializing, finalizing MPI and simple send/receive operations.
 It is also capable of providing information of the MPI environment to the other components of our system (e.g.
-number of processs, rank e.t.c.).  Moreover, it can be used to expose part of a process' address space to other 
-processes in the same commuication group.  
+number of process, rank e.t.c.).  Moreover, it can be used to expose part of a process' address space to other 
+processes in the same communication group.  
 
 \subsection{Shared Address Space}
 In our implementation, the underlying message passing library used is MPI-2, thus we use MPI windows to
@@ -226,19 +226,19 @@ space will be locally allocated to a pointer using the MPI\_Alloc\_mem, and then
 through creating an MPI window that is correlated to the pointer with MPI\_Create\_Win 
 (See section~\ref{sect:mpi-one-sided}). 
 A drawback in MPI is that a window can be created only collectively over an MPI communicator,
-and in turn, a communicator can be created, again, only collectively over an existing paretnt communicator. 
+and in turn, a communicator can be created, again, only collectively over an existing parent communicator. 
 In our design, this requires that either all windows are created a priori at initialization, 
 since when issuing a job, only the sender and receiver should take part in the communication.  
 In order to overcome this limitation, we implemented the algorithm presented in
 ~\cite{Dinan:2011:NCC:2042476.2042508}, which requires only the processes that will join the communicator to
 take part in the communicator creation process.  The algorithm needs an MPI group as input and progressively
 creates two adjacent groups of processes.  If a process' id is even, then the process is added to the \emph{right}
-group, if the process' id is odd it is added to the \emph{left}.  Everytime a process is added to either group, an
+group, if the process' id is odd it is added to the \emph{left}.  Every time a process is added to either group, an
 inteprocess communicator is created and then merged with the adjacent group's interprocess communicator. The 
 algorithm's pseudocode can be found on~\cite[p.287~]{Dinan:2011:NCC:2042476.2042508}.
 Employing this algorithm we can dynamically allocate windows between any two processes that compose an MPI group.
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \begin{lstlisting}
 void set_data(void* val, int dst_id, Shared_pointer ptr, 
 							Datatype datatype) {
@@ -280,7 +280,7 @@ setting a future's value.  The ptr variable has information on the location we n
 window.  The shared\_space[ptr.page\_size] is a map that contains mpi windows.  Section
 ~\ref{sect:shared_memory_manager} explains how MPI windows are organized in this map, according to the 
 page sized used during allocating space for a future.  Note that the variable datatype, MPI\_Datatype in this
-implementation, is inferred statically using template routines from the Boost MPI libarary,
+implementation, is inferred statically using template routines from the Boost MPI library,
 when instantiating the \emph{async\_function} class.  The second overloaded \emph{set\_data} method is used for
 when the future's value is not a primitive data type and requires serialization.  In the latter scenario, we
 need to store information on the archives size, thus the actual data is indexed at location 
@@ -288,7 +288,7 @@ ptr.base\_address+DATA\_OFFSET.
 
 \subsection{Mutexes}
 In order to synchronize accesses to shared memory addresses and other critical sections in our system, designed
-a mutex library, whith the same interface as the standard C++ mutex library, which is implemented
+a mutex library, with the same interface as the standard C++ mutex library, which is implemented
 for shared memory.  The only difference is that a call to lock, unlock or try\_lock requires the user to specify
 the id of the tareget process. We have adopted MPICH's implementation of mutexes in our design.  A mutex is a
 shared vector through an MPI window.  Each vector element is a byte value corresponding to one process.  When
@@ -303,14 +303,14 @@ waiting to acquire the lock.
 The Memory Manager module is responsible for managing the systems shared address space. 
 It uses the communication module to create address spaces that
 are visible by all processes in our system and use the Shared\_pointer construct to describe a location in such
-shared memory.  This modules provides the functionallity of allocating and freeing space, from the shared address 
+shared memory.  This modules provides the functionality of allocating and freeing space, from the shared address 
 space among all processes.  Our allocator is implemented using free lists in order to track free space as 
 described in~\cite[p.~185-187]{Tanenbaum:2007:MOS:1410217}.  
 However, we keep different free lists for different page sizes to deal
 with memory segmentation. Figure~\ref{fig:freeLists} shows how the memory manager keeps a map of free lists
 indexed by a memory page size.
 The shared address space is allocated a priori
-using the communication module, to create MPI windows in our current implementation.  This is ofcourse transparent to
+using the communication module, to create MPI windows in our current implementation.  This is of-course transparent to
 the Shared Memory Manager module, since it uses Shared\_pointers to describe memory location, size etc.  
 The Shared\_pointer is a tuple  ptr<ID, BA, SZ, PSZ, PN, ASZ>, where id is the id of the process
 whose address space we want to address, BA is the base address that the data is located in a shared address space,
@@ -321,12 +321,12 @@ modules simply holds a mapping of the shared address space, the actual local add
 underlying communication library (MPI in our case).   
 So, each freeList in figure~\ref{fig:freeLists} is actually a list of 
 Shared\_pointers to a corresponding MPI window.  We choose
-to keep seperate windows for each free list because when acquiring an epoch access to an MPI window, the whole 
+to keep separate windows for each free list because when acquiring an epoch access to an MPI window, the whole 
 window is locked, so even though we do not have overlapping accesses \footnote{only one process needs to write to a 
 future's shared address, since only one future is associated with one \emph{job}.} 
 (see section~\ref{sect:mpi-one-sided}).  
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \includegraphics[width=\columnwidth]{figures/free_lists}
 \caption{Shared Memory Manager keeps a map of free lists, indexed by the page size.  For page size that do
 not match any predefined ones, we use the \emph{other} page size free list.}
@@ -342,24 +342,24 @@ which does not use a predefined page size, but instead uses the data size to fin
 space is found in the correct free list, then the allocator can try to find data in another free list, of different
 page size.  Figure~\ref{fig:alloc} shows a free list, before and after allocating a data object.
 The first fit algorithm
-will iterate the list from the start untill it finds a large enough space for the object.  Each node in the free list,
-is a Shared\_pointer, which describes how much continueous space there is avaible.  When the allocator finds a large
+will iterate the list from the start until it finds a large enough space for the object.  Each node in the free list,
+is a Shared\_pointer, which describes how much continuous space there is available.  When the allocator finds a large
 enough node, it removes from that node the size and number of pages it needs and sets its base address value 
-accoringly.
+accordingly.
 It then returns a new Shared\_pointer, that describes the memory space that will be now occupied from the data object.
 In the example in figure~\ref{fig:alloc}, the first list node has enough space to fit an 128 size data object.  
 Removing the reserved now space, from the beginning of the list, will leave us again with two free nodes, but the
 first one will now have 512 bytes left and the base address will be moved at the 128th byte.
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \includegraphics[width=0.6\columnwidth]{figures/alloc}
 \caption{During allocation, when a large enough space is found, the allocated page is removed from the node.}
 \label{fig:alloc}
 \end{figure}
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \includegraphics[width=0.7\columnwidth]{figures/free}
-\caption{By freeing data at base pointer 512, creates a continueous space between base pointer 0 and
+\caption{By freeing data at base pointer 512, creates a continuous space between base pointer 0 and
 base pointer 640, causing the list nodes to merge into one.}
 \label{fig:free}
 \end{figure}
@@ -369,7 +369,7 @@ that is associated with the future.  In order to free shared space, a process ne
 that was returned by the allocator routine.  The Shared\_pointer keeps information of the page size used to 
 allocate space, thus finding the correct free list is trivial, we just need to use the page size as an index.
 We then insert the Shared\_pointer in the free list in a sorted fashion, using the base address for comparison.
-This way, all free lists are sorted lists of Shared\_pointers by base address, so that if we find continueous
+This way, all free lists are sorted lists of Shared\_pointers by base address, so that if we find continuous
 space, we merge the list elements, resulting in larger block of free space.  Figure~\ref{fig:free} shows a 
 free list, before and after freeing some shared memory.  Because freeing 128 bytes at base address 512 creates
 a continueous space from byte 0 to byte 640, the two list nodes will be merged into one.
@@ -393,12 +393,12 @@ but will actually block forever, since neither process will run the pending fibo
 is not a problem if processes are dynamically spawned, but if we have a static number of process, which is
 common for mpi programs, we need to address such issues.  
 
-\begin{figure}[here]
+\begin{figure}[!ht]
 \center
 \includegraphics[width=0.5\columnwidth]{figures/task_stack}
 \caption{Shared stack where a worker process keeps its pending jobs.  Entries can have varied sizes, this
-size is stored at the beggining of the entry and can be used to retrieve the corresponding job.  Information
-for the specific stack,like size and head, are stored at the beggining of the shared space, so that other
+size is stored at the beginning of the entry and can be used to retrieve the corresponding job.  Information
+for the specific stack,like size and head, are stored at the beginning of the shared space, so that other
 processes can access them.}
 \label{fig:task_stack}
 \end{figure}
@@ -411,11 +411,11 @@ in recursive algorithms.  Using one-sided communication, only the issuer needs t
 the workers stack, as in a shared memory environment.  Figure~\ref{fig:task_stack} 
 shows how a task stack is structured.  
 Note that an entry is composed by the functor object, its arguments (they are considered one object) and the 
-size of the entry. This is neccessary since different functors and/or different arguments result in 
+size of the entry. This is necessary since different functors and/or different arguments result in 
 varying entry sizes.
 Thus, the exact location of a \emph{job} is calculated using the stack head and functor object size values 
-\footnote{functors and arguments are send/received as outpur/input archives, using boost.serialize library.}.
-Moreover, at the beggining of the shared space, the size and current head values are stored, so all processes
+\footnote{functors and arguments are send/received as output/input archives, using boost.serialize library.}.
+Moreover, at the beginning of the shared space, the size and current head values are stored, so all processes
 can push \emph{jobs}.
 
 
@@ -426,7 +426,7 @@ the futures environment and calls the terminate routine from the scheduler.  The
 the futures environment, which must happen collectively among all workers and master and then enter a
 loop, looking for pending jobs in their stacks until their terminate routine returns true, in which case
 they exit the loop, finalize again collectively with all other processes and exit the program, without ever
-returning to the main function.  The scheduler is responsible for providing the functionallity of the terminate
+returning to the main function.  The scheduler is responsible for providing the functionality of the terminate
 routines.  In our implementation the workers poll a local variable which they expose through the communication
 module as a shared variable.  The master, when calling his terminate routine, will check the status of every 
 worker.  A process can be either idle, busy or terminated.  Process status is again exposed by a shared variable
@@ -441,16 +441,17 @@ Then it asks the scheduler to send the job to the worker process.  In our implem
 pushes the job int the process' stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
 (excluding the master process, which should run user code). 
 
-\subsection{Alternative Implementations/Design Versability}
+\subsection{Alternative Implementations/Design Versatility}
+\label{sect:impl_alt_impl}
 
 We have designed the system to be able to use alternative scheduler implementations.  However, all must meet the
-following interface requirments.\\
+following interface requirements.\\
 
 \begin{itemize}
 
  \item Implement routines to send and receive jobs.  The call to the \emph{async} function should be
 able to send a \emph{job} to the worker process without blocking.  The worker should be able to handle
-multiple \emph{jobs}, without breaking the asynchrous model.  Moreover, \emph{communication} should only
+multiple \emph{jobs}, without breaking the asynchronous model.  Moreover, \emph{communication} should only
 require the process that issued the \emph{job} and the one that receives it to participate.
 
 
@@ -459,11 +460,9 @@ issued by call to \emph{async}.
 
  \item Implement the terminate routine, which should return true for a process to exit and should
 also not block execution if it does not return true.
-
+\\
 \end{itemize}
  
-\vfill
-
 Remote Procedure Call (RMC) and Remote Method Invocation (RMI) libraries often have the above requirements as well.
 There is a number of known solutions as to how to implement such systems in the literature.  The two most commonly used methods are polling for work requests
 ~\cite{Beckman96tulip:a, Saunders:2003:AAP:966049.781534, Foster96thenexus, vonEicken:1992:AMM:146628.140382} 
@@ -475,5 +474,9 @@ dominate computation, but we also need a process to poll frequent enough to ensu
 Alternatively, a hardware interrupt could be sent to notify a process of an incoming message.  This method however,
 is avoided because interrupts have to go through the OS, which has a significant cost. 
 ~\cite{Saunders:2003:AAP:966049.781534, Shah:1998:PEL:876880.879642, Foster96thenexus, vonEicken:1992:AMM:146628.140382}.
-The Nexus system ~\cite{Foster96thenexus}, also suggests 
+The Nexus system ~\cite{Foster96thenexus}, also suggests dedicating threads only for communication.  These threads can 
+either probe for pending messages or block (depending on the underlying communication library and OS capabilities).
+How responsive this implementation can be depends on the thread implementation and OS (for example if the OS supports
+priorities).  A detailed discussion and comparison between using threads for communication versus probing or interrupts
+can be found in~\cite{Foster96thenexus}.
 

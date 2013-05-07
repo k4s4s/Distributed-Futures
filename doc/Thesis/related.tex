@@ -1,2 +1,31 @@
 \section{Related Work}
+Dinan et al~\cite{Dinan:2012:SGA:2357496.2358660}
+have implemented the Global Arrays (GA)\cite{Nieplocha:2006:AAP:1125980.1125985}, a PGAS model, over the one-sided
+communication interface of MPI.  In their work they ported GA's low-level ARMCI~\cite{Nieplocha99armci:a} one-sided
+communication librari using the MPI API.  Although, they succesfully delivered a high-performance runtime, they 
+are critical on both interface usability and performance of MPI one-sided interface.  Bonachea in his report
+\cite{Bonachea:mpi2} also supports that the MPI one-sided interface is not fit to be used for the implementation 
+of PGAS languages.  There are however examples~\cite{A_hydra-mpi:an, Cui:2010:SES:1884643.1884646}
+where MPI's one-sided interface has been succesfully used to implement high-performance applications.  
+
+High Performance ParalleX (HPX)~\cite{HPX:TOBE} is a parallel runtime system 
+implementation of the ParalleX\cite{Kaiser:2009:PAP:1678991.1679815} 
+execution model.  One of ParalleX's many features is the futures synchronization model.
+The adopted futures interface is similar to the C++ standard library one and is available for both shared and distributed
+memory.  In contrast with our work, it does not use an MPI library for communication, and is instead an alternative to
+the MPI model.  
+
+Other high-performance systems that support Remote Method Invocation (RMI), RSR and RPC share similar specifications
+with our runtime system.  LAPI\cite{Shah:1998:PEL:876880.879642}, 
+Charm++\cite{Kale93charm++:a}, 
+ARMI\cite{Saunders:2003:AAP:966049.781534}, which support RMI, are required to perform remote operations 
+asynchronously.  They however use two-sided communication message passing libraries, thus employing different 
+techniques than we do, in order to achieve asynchronous communcation.  The RSR sheme from Nexus\cite{Foster96thenexus} 
+also operates 
+over a two-sided communication interface and employes the same techniques with the aforementioned runtimes.
+Active-Messages is another communication model, where data that is transfered between processes is paired with 
+a handler, which is an action that is performed upon the arrival of data on a process.  This scheme is also similar
+to the RPC model.  AMMPI\cite{Bonachea:ammpi} is an Active-Messages implementation over MPI two-sided communication
+interface.  The techniques used by these systems to provide asynchronous communication are briefly described in
+section \ref{sect:impl_alt_impl}
 
