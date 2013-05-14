@@ -45,6 +45,9 @@ Futures_Environment* Futures_Environment::Initialize(int &argc, char**& argv,
             delete pinstance;
             exit(1);
         }
+				else  {
+					START_TIMER("user_code_execution_time");
+				}
     }
     return pinstance; // address of sole instance
 };
@@ -71,15 +74,17 @@ Futures_Environment::Futures_Environment(int &argc, char**& argv,
 Futures_Environment::~Futures_Environment() {};
 
 void Futures_Environment::Finalize() {
+		STOP_TIMER("user_code_execution_time");
 		START_TIMER("finalization_time");
     if(commInterface->get_procId() == 0) {
         /*maybe not necessary,
-        															terminate would also return
-        															correct value for workers
-        															in order to terminate*/
+					terminate would also return
+					correct value for workers
+					in order to terminate*/
         while(!sched->terminate());
         DPRINT_MESSAGE("ENVIROMENT: master exiting program");
     }
+		int id = commInterface->get_procId();
     delete sched;
 		delete memManager;
 		STOP_TIMER("finalization_time");
@@ -115,9 +120,7 @@ bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
 void Futures_Environment::wait_for_job() {
 		START_TIMER("idle_time");
 		while(!sched->terminate()) {
-			STOP_TIMER("idle_time");
 			sched->schedule_proc();
-			START_TIMER("idle_time");
 		}
 		STOP_TIMER("idle_time");
     DPRINT_MESSAGE("ENVIRONMENT: worker exiting program");

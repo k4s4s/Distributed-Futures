@@ -73,6 +73,7 @@ _stub *Master::get_job() {
 
 bool Master::has_job() {
 	//return !task_queue->is_empty(id);
-	return !task_stack->is_empty(id);
+	//return !task_stack->is_empty(id);
+	return false;
 };
 

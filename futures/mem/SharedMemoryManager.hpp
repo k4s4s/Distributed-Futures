@@ -16,7 +16,7 @@
 #define PAGE_SIZE_4kb 4096
 #define PAGE_SIZE_OTHER -1
 
-#define Shared_Memory_manager_SIZE 2*1024*10
+#define Shared_Memory_manager_SIZE 2*1024*100
 
 #define STATUS_OFFSET 0
 #define DATA_OFFSET sizeof(int)

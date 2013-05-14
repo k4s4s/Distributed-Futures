@@ -6,6 +6,7 @@ using namespace std;
 using namespace futures; 
 
 #define DEFAULT_SIZE 1000
+#define DEFAULT_MIN_WORK_UNIT 1
 
 ////////////////////////////////////////////////////////////
 // Miscialenous functions
@@ -99,20 +100,29 @@ void QsSequential(vector<SortType>& array, const long left, const long right){
  
 /** A task dispatcher */
 class quicksort {
+private:
+	friend class boost::serialization::access;
+	template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & min_work_unit;
+	}
+	long int min_work_unit;
 public:
 	quicksort() {};
+	quicksort(long int _min_work_unit): min_work_unit(_min_work_unit) {};
 	~quicksort() {};
 	template <class SortType>
 	vector<SortType> operator()(vector<SortType> array, const int deep) {
 		const int left = 0;
 		const int right = array.size()-1;
     if(left < right){
-        if(array.size() > 1) {
+        if(array.size() > min_work_unit) {
             const long part = QsPartition(array, left, right);
  						vector<SortType> subarrA((right)-(part+1)+1), subarrB(part-1-left+1);
 						Copy(subarrA, array, part+1, right+1);
 						Copy(subarrB, array, left, part);
-						quicksort qsort;
+						quicksort qsort(min_work_unit);
 						future<vector<SortType> > res1, res2;
 						res1 = async2(subarrA.size(), qsort, subarrA, deep-1);
 						res2 = async2(subarrB.size(), qsort, subarrB, deep-1);
@@ -130,7 +140,6 @@ public:
 	}
 };
 
-FUTURES_SERIALIZE_CLASS(quicksort);
 FUTURES_EXPORT_FUNCTOR((async_function<quicksort, vector<long>, int>));
 
 ////////////////////////////////////////////////////////////
@@ -141,13 +150,16 @@ int main(int argc, char** argv) {
  
 	Futures_Initialize(argc, argv);
 	long Size = DEFAULT_SIZE;
-
+	long int min_work_unit = DEFAULT_MIN_WORK_UNIT;
 	char c;
 
-	while ((c = getopt(argc, argv, "n:")) != -1)
+	while ((c = getopt(argc, argv, "n:w:")) != -1)
 	switch (c)	{
 		case 'n':
 			Size = atoi(optarg);	 
+		 	break;
+		case 'w':
+			min_work_unit = atoi(optarg);	 
 		 	break;
 	 	default:
 			break;		
@@ -164,7 +176,7 @@ int main(int argc, char** argv) {
 	REGISTER_TIMER("total time");
 	START_TIMER("total time");
   // Start sorting
-	quicksort qsort;
+	quicksort qsort(min_work_unit);
   array = qsort(array, 10);
 	STOP_TIMER("total time");
 	PRINT_TIMER("total time");

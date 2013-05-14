@@ -9,14 +9,17 @@ apps = {'fibonacci', 'quicksort', 'lu'}
 
 workloads = {'large'}
 
-args = {'power':{'large_fine':'-a2 -n10000'}, 
-				'factorial':{'large':'-n10000'},
-				'fibonacci':{'large':'-a15'}, 
-				'quicksort':{'large':'-n1000'}, 
+args = {'fibonacci':{'large':'-a45 -w30'}, 
+				'quicksort':{'large':'-n10000000 -w100000'}, 
 				'lu':{'large':'-n2000 -b200'}}
+
+seq_times = {	'fibonacci':2.3,
+							'quicksort':2.9,
+							'lu':1228}
 
 ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 #ncores = ['1']
+#iterations = 20;
 iterations = 20;
 
 for app in apps:
@@ -26,71 +29,41 @@ for app in apps:
 		print "creating "+dumpdir+" directory" 
 		os.makedirs(dumpdir);
 	#run app
-#	for workload in workloads:
-#		for n in ncores:
-#			for it in range(iterations):
-#				dumpfile = dumpdir+"/{0}_load={1}_ncores={2}_{3}.dump".format(app, workload, n, it)
-#				print "running ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile)
-#				os.system("mpirun -np {3} ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile, n))
+	for workload in workloads:
+		for n in ncores:
+			for it in range(iterations):
+				dumpfile = dumpdir+"/{0}_load={1}_ncores={2}_{3}.dump".format(app, workload, n, it)
+				print "running ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile)
+				os.system("mpirun -np {3} ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile, n))
 
 
 
-plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
-											apps, ncores, workloads, iterations, 	
-											'total time', 'perfs/apps_scalability',
-											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'raw')
+#plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
+#											apps, ncores, workloads, iterations, 	
+#											'total time', 'perfs/apps_scalability',
+#											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'raw')
 
-plot.plot_line_graph(	'application speedup', 'ncores', 'speedup', 'load',
-											apps, ncores, workloads, iterations, 
-											'total time', 'perfs/apps_speedup',
-											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'speedup')
+#plot.plot_line_graph(	'application speedup', 'ncores', 'speedup', 'load',
+#											apps, ncores, workloads, iterations, 
+#											'total time', 'perfs/apps_speedup',
+#											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'speedup')
 
-plot.plot_line_graph('application relative_slowdown', 'ncores', 'relative slowdown', 'load',
-											apps, ncores, workloads, iterations, 
-											'total time', 'perfs/apps_relative_slowdown',
-											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'relative_slowdown')
+#plot.plot_line_graph('application relative_slowdown', 'ncores', 'relative slowdown', 'load',
+#											apps, ncores, workloads, iterations, 
+#											'total time', 'perfs/apps_relative_slowdown',
+#											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'relative_slowdown')
 
-breakdowns = ['total job issue time', 
-							'job execution time',
-							'user code execution time',
-							'idle time',
-							'rest of time']
+#breakdowns = ['total job issue time', 
+#							'job execution time',
+#							'idle time',
+#							'rest of time']
 
-stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3']
+#stacks = ['master', 'worker#1', 'worker#2', 'worker#3', 'worker#4', 'worker#5']
 
-plot.plot_bar_graph('application breakdowns for 4 cores', apps, stacks, breakdowns,
-										'benchmarks', 'execution time (ms)', iterations,
-										'perfs/app_breakdowns_4cores',
-										'perfs/#cluster#/#cluster#_load=large_ncores=4_#iter#.dump', 'stackcluster')
-
-stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5']
-
-plot.plot_bar_graph('application breakdowns for 6 cores', apps, stacks, breakdowns,
-										'benchmarks', 'execution time (ms)', iterations,
-										'perfs/app_breakdowns_6cores',
-										'perfs/#cluster#/#cluster#_load=large_ncores=6_#iter#.dump', 'stackcluster')
-
-stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5',
-					'Worker#6', 'Worker#7', 'Worker#8', 'Worker#9', 'Worker#10', 'Worker#11']
-
-plot.plot_bar_graph('application breakdowns for 12 cores', apps, stacks, breakdowns,
-										'benchmarks', 'execution time (ms)', iterations,
-										'perfs/app_breakdowns_12cores',
-										'perfs/#cluster#/#cluster#_load=large_ncores=12_#iter#.dump', 'stackcluster')
-
-breakdowns2 = ['total job issue time', 
-							'job execution time',
-							'user code execution time',
-							'idle time',
-							'rest of time',
-							'initialization time',
-							'finalization time']
-stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5']
-
-plot.plot_bar_graph('application breakdowns w/ initialization times for 6 cores', apps, stacks, breakdowns2,
-										'benchmarks', 'execution time (ms)', iterations,
-										'perfs/app_breakdowns_w_init',
-										'perfs/#cluster#/#cluster#_load=large_ncores=6_#iter#.dump', 'stackcluster')
+#plot.plot_bar_graph('application breakdowns for 6 cores', apps, stacks, breakdowns,
+#										'benchmarks', 'execution time (ms)', iterations,
+#										'perfs/app_breakdowns',
+#										'perfs/#cluster#/#cluster#_load=large_ncores=6_#iter#.dump', 'stackcluster')
 
 #create ping pong dump directory
 dumpdir = 'perfs/{0}'.format('ping_pong')
@@ -147,21 +120,29 @@ if not os.path.exists(dumpdir):
 #		print "running ./tests/bench_issue_container -a1 -n{1} > {0}".format(dumpfile, sz)
 #		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n{1} > {0}".format(dumpfile, sz))
 
-plot.plot_bar_graph('scalar and container task issue time comparison', 
-										args_num, ['bench_issue_container', 'bench_issue_scalar'], ['total job issue time'],
-										'number of arguments', 'job issue time (ms)', iterations,
-										'perfs/job_issue_time_scalar_vs_container_bars',
-										'perfs/#stack#/#stack#_argn=#cluster#_size=1_#iter#.dump', 'cluster')
+#plot.plot_bar_graph('scalar and container task issue time comparison', 
+#										args_num, ['bench_issue_container', 'bench_issue_scalar'], ['total job issue time'],
+#										'number of arguments', 'job issue time (ms)', iterations,
+#										'perfs/job_issue_time_scalar_vs_container_bars',
+#										'perfs/#stack#/#stack#_argn=#cluster#_size=1_#iter#.dump', 'cluster')
 
-plot.plot_bar_graph('task issue time for different number of arguments, distributing same size', 
-										args_num, ['bench_issue_container'], ['total job issue time'],
-										'number of arguments', 'job issue time (ms)', iterations,
-										'perfs/job_issue_time_different_argnums_same_size_bars',
-										'perfs/#stack#/#stack#_argn=#cluster#_size=large_#iter#.dump', 'simple')
+#plot.plot_line_graph(	'task issue time for different number of arguments, distributing same size', 
+#											'number of arguments', 'execution time (ms)', 'total argument size',
+#											['bench_issue_container'], args_num, ['1200000'], iterations,
+#											'total job issue time', 'perfs/job_issue_time_different_argnums_same_size', 
+#											'perfs/#app#/#app#_argn=#xlabel#_size=large_#iter#', 'raw')
 
-plot.plot_bar_graph('task issue time for different argument sizes', 
-										arg_sizes, ['bench_issue_container'], ['total job issue time'],
-										'argument sizes', 'job issue time (ms)', iterations,
-										'perfs/job_issue_time_different_argsizes',
-										'perfs/#stack#/#stack#_argn=1_size=#cluster#_#iter#.dump', 'simple')
+#plot.plot_bar_graph('task issue time for different number of arguments, distributing same size', 
+#										args_num, ['bench_issue_container'], ['total job issue time'],
+#										'number of arguments', 'job issue time (ms)', iterations,
+#										'perfs/job_issue_time_different_argnums_same_size_bars',
+#										'perfs/#stack#/#stack#_argn=#cluster#_size=large_#iter#.dump', 'simple')
+
+#plot.plot_bar_graph('task issue time for different argument sizes', 
+#										arg_sizes, ['bench_issue_container'], ['total job issue time'],
+#										'argument sizes', 'job issue time (ms)', iterations,
+#										'perfs/job_issue_time_different_argsizes',
+#										'perfs/#stack#/#stack#_argn=1_size=#cluster#_#iter#.dump', 'simple')
+
+print 'DONE!'
 

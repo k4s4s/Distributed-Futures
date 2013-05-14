@@ -89,6 +89,7 @@ public:
 /** Implementation of async function **/
 template<typename F, typename... Args>
 future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {
+		STOP_TIMER("user_code_execution_time");
 		INCREASE_COUNTER("total_jobs", 1); //FIXME: check if that's ok here
 		START_TIMER("job_issue_time");
     Futures_Environment *env = Futures_Environment::Instance();
@@ -100,9 +101,12 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 
 		if(worker_id == id && id ==  0) { //FIXME: checking if things can work without this code, just for master
 			STOP_TIMER("job_issue_time");
+			STOP_TIMER("job_execution_time");
 		  DPRINT_VAR("\tASYNC:running on self", id);
+			START_TIMER("user_code_execution_time");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+			STOP_TIMER("user_code_execution_time");
 			START_TIMER("job_issue_time");
 		}
 		else {
@@ -136,12 +140,16 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 			if(!env->schedule_job(worker_id, job)) { //it's possible to fail to schedule work on worker
 				STOP_TIMER("job_issue_time");
 		  	DPRINT_VAR("\tASYNC:failed to schedule job, running on self ", id);
+				START_TIMER("job_execution_time");
 				typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally
 				fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, retVal);
+				STOP_TIMER("job_execution_time");
 				START_TIMER("job_issue_time");
 			};
 		}
 		STOP_TIMER("job_issue_time");
+		START_TIMER("user_code_execution_time");
+		START_TIMER("job_execution_time");
 		DPRINT_VAR("ASYNC:returning future ", id);
     return fut;
 };
@@ -188,7 +196,13 @@ template <class T> bool future<T>::is_ready() {
 };
 
 template <class T> T future<T>::get() {
-    if(ready_status) return data;
+		STOP_TIMER("user_code_execution_time");
+		STOP_TIMER("job_execution_time");
+    if(ready_status) {
+			START_TIMER("user_code_execution_time");
+			START_TIMER("job_execution_time");
+			return data;
+		}
     Futures_Environment* env = Futures_Environment::Instance();
     int id = env->get_procId();
 		//DPRINT_VAR("future.get():executing all pending jobs in queue:", id);
@@ -199,9 +213,7 @@ template <class T> T future<T>::get() {
     while (1) {
         ready_status = env->get_data<int>(status_ptr.node_id, status_ptr, 1, 0);
         if (ready_status) break;
-				STOP_TIMER("idle_time");
 				env->execute_pending_jobs(); //Maybe it's best to execute one job at a time
-				START_TIMER("idle_time");
     }
 		DPRINT_VAR("future.get():", ready_status);
 		STOP_TIMER("idle_time");
@@ -211,6 +223,8 @@ template <class T> T future<T>::get() {
 		env->free(data_ptr.node_id, data_ptr);
 		env->free(status_ptr.node_id, status_ptr);
 		DPRINT_VAR("future.get():got data, returning it locally:", id);
+		START_TIMER("user_code_execution_time");
+		START_TIMER("job_execution_time");
     return data;
 };
 

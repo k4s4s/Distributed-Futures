@@ -16,7 +16,6 @@ memory_pages::memory_pages(communication::CommInterface *_comm, int _page_size) 
 			total_size = Shared_Memory_manager_SIZE*page_size;
 	else
 			total_size = Shared_Memory_manager_SIZE*1024*8;
-	
 	shared_address_space = comm->new_shared_space(total_size);
 
 	Shared_pointer free_mem;

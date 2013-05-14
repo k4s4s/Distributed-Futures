@@ -19,9 +19,8 @@ Shared_Address_space::Shared_Address_space(std::size_t size) {
 };
 
 Shared_Address_space::~Shared_Address_space() {
-
 	MPI_Win_free(&shared_memory_win);
-  MPI_Free_mem(shared_memory);
+  //MPI_Free_mem(shared_memory); //FIXME: LEAK LEAK!
 };
 
 /*** CommInterface implementation ***/

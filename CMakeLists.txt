@@ -39,7 +39,7 @@ include_directories(futures/scheduler)
 include_directories(futures/stats)
 
 add_definitions(-I/users/parall/falcou/dimitrios/libs/plasma/include -I/opt/intel/mkl/include -O3 -std=c++0x)
-add_definitions(-DV_MPI)
+add_definitions(-DV_MPI -g)
 
 add_subdirectory(src/mutex)
 add_subdirectory(src/futures)
