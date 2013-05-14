@@ -56,6 +56,13 @@ breakdowns = ['total job issue time',
 							'idle time',
 							'rest of time']
 
+stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3']
+
+plot.plot_bar_graph('application breakdowns for 4 cores', apps, stacks, breakdowns,
+										'benchmarks', 'execution time (ms)', iterations,
+										'perfs/app_breakdowns_4cores',
+										'perfs/#cluster#/#cluster#_load=large_ncores=4_#iter#.dump', 'stackcluster')
+
 stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5']
 
 plot.plot_bar_graph('application breakdowns for 6 cores', apps, stacks, breakdowns,

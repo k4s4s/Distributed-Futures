@@ -41,14 +41,37 @@ that can influence performance the most.
 \end{figure}
 
 \begin{figure}[!ht]
-\includegraphics[width=\columnwidth]{figures/job_issue_time_different_argnums_same_size_bars}
+\includegraphics[width=0.7\columnwidth]{figures/job_issue_time_different_argnums_same_size_bars}
 \caption{Comparison between issuing functors with different number of vector arguments, but total 
 				size of arguments is the same in all cases.}
 \label{fig:issue_time_different_argnum_same_size}
 \end{figure}
 
+%\begin{figure}
+%	\centering
+%	\begin{subfigure}[b]{0.5\textwidth}
+%		\centering
+%		\includegraphics[width=\columnwidth]{figures/job_issue_time_different_argsizes}
+%		\caption{Comparison between issuing functors with 1 vector argument of different sizes}
+%		\label{fig:job_issue_time_different_argsizes}
+%	\end{subfigure}%
+%	~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+%		%(or a blank line to force the subfigure onto a new line)
+%	\begin{subfigure}[b]{0.5\textwidth}
+%		\centering
+%		\includegraphics[width=\columnwidth]{figures/job_issue_time_different_argnums_same_size_bars}
+%		\caption{Comparison between issuing functors with different number of vector arguments, but total 
+%						size of arguments is the same in all cases.}
+%		\label{fig:issue_time_different_argnum_same_size}
+%	\end{subfigure}
+%	~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+%		%(or a blank line to force the subfigure onto a new line)
+%	\caption{Pictures of animals}
+%	\label{fig:animals}
+%\end{figure}
+
 \begin{figure}[!ht]
-\includegraphics[width=\columnwidth]{figures/job_issue_time_different_argsizes}
+\includegraphics[width=0.7\columnwidth]{figures/job_issue_time_different_argsizes}
 \caption{Comparison between issuing functors with 1 vector argument of different sizes}
 \label{fig:job_issue_time_different_argsizes}
 \end{figure}
@@ -59,10 +82,9 @@ that can influence performance the most.
 \\
 \\
 	\textbf{Fibonacci}:  This is a simple implementation of the fibonacci function.  Figure~\ref{lst:fib} shows 
-our implementation.  This recursive version is ideal to demonstrate the ease of use of the future's interface,
-but the problem itself is of little interest on a distributed platform, since there is too little work to be 
-done on each function.  Nevertheless, we include it in our results.  In our experiments we compute the fibonacci
-sequence of 15.
+our implementation.  This recursive version is ideal to demonstrate the ease of use of the future's interface.
+We have modified the fibonacci code to run the sequential verson of the code for values smaller than  30, so that
+each async function can have some amount of work.  We run the fibonacci function with 45 as an argument.  
 \\
 \\
 	\textbf{Quicksort}:  Figure~\ref{lst:quicksort} shows our implementation.  The \emph{QsSequantial} 
@@ -211,10 +233,12 @@ for(int k = 0; k < TOTAL_TILES; k++) {
 machine setup we described in section~\ref{sect:eval_intro}.  We measure only the algorithm and no initialization
 and finalization times of the runtime system, etc.
 We observe that we do not manage to get any speedup on 
-any application, on the contrary we get a slowdown (figure~\ref{fig:apps_speedup}).
-There is some improvement as we increase the cores for 
-the fibonacci and quicksort applications, but in no case we manage to even match the sequential problem.  In 
-figure~\ref{fig:apps_breakdowns_6cores} 
+on quicksort and Tiled LU, on the contrary we get a slowdown (figure~\ref{fig:apps_speedup}).
+We get a small speedup in Fibonacci when using more than 4 processes.  We also notice a strange
+behaviour of the runtime when running our applications on very few cores. In these cases we have
+noticed an increase in communication when the worker try to return the future value, but we have 
+yet to identify the cause of that issue.
+In figure~\ref{fig:app_breakdowns_6cores} 
 we show the breakdowns for the master application and the slaves, for running the applications on 6 cores.
 \emph{Job issue time} is the time needed to send a \emph{job} from one process to another. This time includes
 time spend in the scheduler, to find the next worker and time spend on serialization of the \emph{job} object
@@ -226,8 +250,8 @@ value and for the workers, it's also time spent waiting for a \emph{job} to beco
 the time needed to send the return value of the asynchronous execution of a \emph{job} by a worker.  In all 
 applications we see that the either \emph{job issue time} or \emph{rest of time} are the greatest sources of 
 overhead, while a fair amount of time is also spent on \emph{idle time}.  These overhead times are too great
-compared to the actual work done by any of the processes, so small problems and kernels are not fit to be 
-run on our runtime system, as the current implementation stands.  At this stage it is unclear whether the issue
+compared to the actual work done by any of the processes, as a result our runtime is not fit to run 
+problems with fine grain granurality.  At this stage it is unclear whether the issue
 is the MPI library or the implementation.  We will further investigate the current issues.  Moreover, figure
 ~\ref{fig:app_breakdowns_w_init} shows the same breakdowns with figure~\ref{fig:app_breakdowns_6cores}, with 
 the addition of initialization and finalization times.  The initialization and finalization include the 
@@ -236,13 +260,13 @@ of the shared memory (MPI Windows) and scheduler.  The initialization time is co
 it mainly depends on the number of processes, while the finalization time is negligible. 
 
 \begin{figure}[!ht]
-\includegraphics[width=\columnwidth]{figures/apps_scalability}
+\includegraphics[width=0.7\columnwidth]{figures/apps_scalability}
 \caption{Scalability graph for fibonacci, quicksort and LU}
 \label{fig:apps_scalability}
 \end{figure}
 
 \begin{figure}[!ht]
-\includegraphics[width=\columnwidth]{figures/apps_speedup}
+\includegraphics[width=0.7\columnwidth]{figures/apps_speedup}
 \caption{Speedup graph for fibonacci, quicksort and LU}
 \label{fig:apps_speedup}
 \end{figure}

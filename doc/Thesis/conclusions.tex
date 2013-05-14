@@ -37,8 +37,10 @@ some fundamental limitations in its design. These are:
 \end{enumerate}
 
 In the future we plan to further investigate the cause of our systems high overhead.  If our suspicions are correct
-and the cause of the overhead is our scheduling scheme, we will try different approaches than using the MPI one-sided
-communication in order to achieve better performance.  Our focus will be to deliver a high performance runtime system.
+and the cause of the overhead is our scheduling scheme, we will try different implementations for the scheduling 
+and communication layers.  We would also like to explore the potential of having a hybrid model, where \emph{jobs}
+that run on the same machine will use a shared memory runtime, while \emph{jobs} that run on different machines,
+will have to make use of the distributed memory runtime.  Our focus will be to deliver a high performance runtime system.
 We also plan to add important features to the runtime, such as the ability to serialize and send futures to other 
 processes.  This will be very useful in applications like our Tiled LU, where the master issues all the async \emph{jobs},
 but instead each process will wait for it's futures to be available. This will allow finer grain synchronization and

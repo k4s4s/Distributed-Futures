@@ -1,0 +1,25 @@
+=stackcluster;total job issue time;job execution time;user code execution time;idle time;rest of time;
+=noupperright
+legendx=right
+legendy=center
+title=application breakdowns for 4 cores
+yformat=%g
+xlabel=benchmarks
+ylabel=execution time (ms)
+rotateby=-45
+=table
+multimulti=lu
+MASTER	1633.41	162.8225	457.5365	308.072	291.6645
+Worker#1	0.0	296.095	0.0	1911.33	484.771
+Worker#2	0.0	294.4125	0.0	1896.965	506.295
+Worker#3	0.0	298.533	0.0	1897.825	495.7325
+multimulti=quicksort
+MASTER	264.2635	33.3255	497.65	4375.36	146.3885
+Worker#1	1503.385	423.5855	0.0	1266.72	2073.06
+Worker#2	1545.335	394.6135	0.0	1515.465	1862.43
+Worker#3	1508.195	397.595	0.0	1748.255	1718.21
+multimulti=fibonacci
+MASTER	0.539	0.001	0.137	28663.15	0.052
+Worker#1	3756.37	7471.435	0.0	5526.54	11415.15
+Worker#2	3971.955	7406.415	0.0	5417.52	11669.45
+Worker#3	4127.23	7136.95	0.0	3844.625	13348.5

@@ -1,0 +1,15 @@
+=color_per_datum
+=noupperright
+legendx=right
+legendy=center
+title=task issue time for different number of arguments, distributing same size
+yformat=%g
+xlabel=number of arguments
+ylabel=job issue time (ms)
+=norotate
+=table
+1	17.6595
+2	14.6385
+4	17.003
+6	20.9335
+8	18.4375

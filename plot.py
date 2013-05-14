@@ -60,7 +60,7 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 	perf_n = "{0}.perf".format(outfile_n)
 	
 	datafile = open(datafile_n, 'w')
-	seq_time = 0;
+	seq_time = {};
 	for x in xlabel_range:
 		datafile.write("{0}".format(x))
 		for app in apps:
@@ -81,13 +81,13 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 				#write value to cvs file
 				total_time = median(value_v)
 				if(x == '1'):
-					seq_time = total_time
+					seq_time[app] = total_time
 			except IOError:
 				total_time = 0
 			if(graph_type == 'speedup'):
-				total_time = calc_speedup(seq_time, total_time)
+				total_time = calc_speedup(seq_time[app], total_time)
 			elif(graph_type == 'relative_slowdown'):
-				total_time = calc_relative_slowdown(seq_time, total_time, float(x))
+				total_time = calc_relative_slowdown(seq_time[app], total_time, float(x))
 			datafile.write(" {0}".format(total_time))
 
 		datafile.write("\n")

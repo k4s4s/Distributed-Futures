@@ -1,0 +1,32 @@
+colors=med_blue,yellow,red,grey,dark_green,cyan,magenta
+=stackcluster;total job issue time;job execution time;user code execution time;idle time;rest of time;initialization time;finalization time;
+=noupperright
+legendx=right
+legendy=center
+title=application breakdowns w/ initialization times for 6 cores
+yformat=%g
+xlabel=benchmarks
+ylabel=execution time (ms)
+rotateby=-45
+=table
+multimulti=lu
+MASTER	1667.15	164.9165	466.989	315.4805	296.5325	1031.03	0.469
+Worker#1	0.0	179.895	0.0	2272.005	302.4045	1030.675	0.175
+Worker#2	0.0	181.6705	0.0	2275.83	294.342	1030.675	0.1815
+Worker#3	0.0	177.6655	0.0	2276.51	294.4505	1030.445	0.193
+Worker#4	0.0	178.3835	0.0	2279.905	295.634	1029.94	0.1795
+Worker#5	0.0	189.036	0.0	2258.355	311.2235	1029.235	0.1875
+multimulti=quicksort
+MASTER	261.3175	33.7965	498.85	3550.025	150.21	1029.905	0.4635
+Worker#1	1298.505	286.4105	0.0	1335.845	1477.55	1029.515	0.1475
+Worker#2	1345.88	238.88	0.0	1733.515	1081.25	1029.425	0.1545
+Worker#3	1079.215	268.596	0.0	1877.565	1212.395	1028.68	0.151
+Worker#4	1140.83	253.3785	0.0	1843.81	1157.96	1028.125	0.1665
+Worker#5	1170.45	229.9845	0.0	2002.855	1109.03	1027.675	0.156
+multimulti=fibonacci
+MASTER	0.5995	0.001	0.155	12638.35	0.062	1030.54	0.4185
+Worker#1	3935.475	4622.305	0.0	1286.19	2671.14	1030.07	0.1555
+Worker#2	3982.76	4618.385	0.0	1195.24	2792.08	1029.915	0.147
+Worker#3	3924.86	4624.26	0.0	1334.985	2806.93	1029.315	0.152
+Worker#4	3874.635	4598.525	0.0	1301.785	2695.075	1028.71	0.153
+Worker#5	3868.595	4601.695	0.0	1440.405	2648.335	1028.205	0.152
