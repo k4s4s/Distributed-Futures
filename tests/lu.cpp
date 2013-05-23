@@ -12,20 +12,24 @@
 #include <futures.hpp>
 
 #define DEFAULT_NB 4
+#define DEFAULT_IB 1
 #define DEFAULT_SIZE 8
+
+#define MAX(a, b) (a >= b):a?b
+#define MIN(a, b) (a <= b):a?b
 
 int SIZE;
 int NB;
+int IB;
 
 using namespace std;
 
 template<typename T>
-void print_array(int M, int N, T *A, int LDA) {
+void print_array(int M, int N, Matrix<T>& A) {
 	std::cout << "----------" << std::endl;
 	for(int i=0; i < M; i++) {
 		for(int j=0; j < N; j++) {
-			//std::cout << std::setw(10) << "["<<i+j*LDA<<"]="<<A[i+j*LDA];
-			std::cout << std::setw(16) << A[i+j*LDA];
+			std::cout << std::setw(16) << A(i,j);
 		}
 		std::cout << std::endl;
 	}
@@ -33,34 +37,30 @@ void print_array(int M, int N, T *A, int LDA) {
 }
 
 template<typename T>
-vector<T> get_tile(int M, int N, T *A, int LDA) {
-	vector<T> tile(M*N);
-	for(int i=0; i < M; i++) {
-		for(int j=0; j < N; j++) {	
-			tile[i+j*M] = A[i+j*LDA];
-		}
-	}
-	return tile;
-}
-
-template<typename T>
-void copy_tile(int M, int N, vector<T> tile, T *A, int LDA) {
-	for(int i=0; i < M; i++) {
-		for(int j=0; j < N; j++) {
-			A[i+j*LDA] = tile[i+j*M];
-		}
-	}
-}
-
-template<typename T>
-vector<vector<T>> format_array(int M, int N, int m, int n, T* A, int LDA) {
-	vector<vector<T>> tiles(M*N);
-	for(int i=0; i < M; i++) {
-		for(int j=0; j < N; j++) {
-			tiles[i+j*M] = vector<T>(n*m);
-			for(int ii=0; ii < m; ii++) {
-				for(int jj=0; jj < n; jj++) {
-					tiles[i+j*M][ii+jj*m] = A[(i+j*LDA)*m+(ii+jj*LDA)];
+Matrix<Matrix<T>> format_array(int M, int N, int NB, Matrix<T>& A, int LDA) {
+	int m = (M%NB==0) ? (M/NB) : ((M/NB)+1);
+  int n = (N%NB==0) ? (N/NB) : ((N/NB)+1);
+	int m_mod = M%NB;
+	int n_mod = N%NB;
+	cout << "m="<<m<<", n="<<n<<endl;	
+	Matrix<Matrix<T>> tiles(m, n);
+	for(int i=0; i < m; i++) {
+		for(int j=0; j < n; j++) {
+			int block_m = NB;
+			int block_n = NB;
+			int ld = NB;
+			if(m_mod != 0)
+				if(i == m-1)
+					block_m = m_mod;
+			if(n_mod != 0)
+				if(j == n-1)
+					block_n = n_mod;
+			tiles(i, j) = Matrix<T>(block_m, block_n);
+			tiles(i, j).height = block_m;
+			tiles(i, j).width = block_n;
+			for(int ii=0; ii < block_m; ii++) {
+				for(int jj=0; jj < block_n; jj++) {
+					tiles(i, j)(ii, jj) = (&A(0,0))[(i+j*LDA)*NB+(ii+jj*LDA)];
 				}
 			}
 		}
@@ -69,12 +69,25 @@ vector<vector<T>> format_array(int M, int N, int m, int n, T* A, int LDA) {
 }
 
 template<typename T>
-void deformat_array(int M, int N, int m, int n, vector<T>& A, vector<vector<T>>& tiles, int LDA) {
-	for(int i=0; i < M; i++) {
-		for(int j=0; j < N; j++) {
-			for(int ii=0; ii < m; ii++) {
-				for(int jj=0; jj < n; jj++) {
-					A[((i+j*LDA))*m+(ii+jj*LDA)] = tiles[i+j*M][ii+jj*m];
+void deformat_array(int M, int N, int NB, Matrix<T>& A, Matrix<Matrix<T>>& tiles, int LDA) {
+	int m = (M%NB==0) ? (M/NB) : ((M/NB)+1);
+  int n = (N%NB==0) ? (N/NB) : ((N/NB)+1);
+	int m_mod = M%NB;
+	int n_mod = N%NB;
+	for(int i=0; i < m; i++) {
+		for(int j=0; j < n; j++) {
+			int block_m = NB;
+			int block_n = NB;
+			int ld = NB;
+			if(m_mod != 0)
+				if(i == m-1)
+					block_m = m_mod;
+			if(n_mod != 0)
+				if(j == n-1)
+					block_n = n_mod;	
+			for(int ii=0; ii < block_m; ii++) {
+				for(int jj=0; jj < block_n; jj++) {
+					(&A(0,0))[(i+j*LDA)*NB+(ii+jj*LDA)] = tiles(i, j)(ii, jj);
 				}
 			}
 		}
@@ -101,7 +114,7 @@ private:
       ar & Akn;
   }
 public:
-	vector<double> Akn;
+	Matrix<double> Akn;
 };
 
 class dgessm_action {
@@ -125,9 +138,9 @@ private:
 	int  	K;
 	int  	IB;
 	vector<int> IPIV;
-	vector<double> L;
+	Matrix<double> L;
 	int  	LDL;
-	vector<double> A;
+	Matrix<double> A;
 	int  	LDA;
 public:
 	dgessm_action() {};
@@ -136,9 +149,9 @@ public:
 								int _K,
 								int _IB,
 								vector<int>& _IPIV,
-								vector<double>& _L,
+								Matrix<double>& _L,
 								int _LDL,
-								vector<double>& _A,
+								Matrix<double>& _A,
 								int _LDA)
 	{
 		M = _M;
@@ -154,7 +167,7 @@ public:
 
 	dgessm_RV operator()()
 	{
-		core_dgessm(M, N, K, IB, &IPIV[0], &L[0], LDL, &A[0], LDA);
+		core_dgessm(M, N, K, IB, &IPIV[0], &L(0,0), LDL, &A(0,0), LDA);
 		dgessm_RV retVal;
 		retVal.Akn = A;
 		return retVal;	
@@ -164,9 +177,9 @@ public:
 FUTURES_EXPORT_FUNCTOR((futures::async_function<dgessm_action>));
 
 struct dtstrf_RV {
-	vector<double> Akk;
-	vector<double> Amk;
-	vector<double> Lmk;
+	Matrix<double> Akk;
+	Matrix<double> Amk;
+	Matrix<double> Lmk;
 	vector<int> 	 IPIVmk;
 	int info;
 };
@@ -177,18 +190,18 @@ public:
 						        	int  	N,
 						        	int  	IB,
 						        	int  	NB,
-								      vector<double> U,
+								      Matrix<double> U,
 								      int  	LDU,
-								      vector<double> A,
+								      Matrix<double> A,
 								      int  	LDA,
-								      vector<double> L,
+								      Matrix<double> L,
 								      int  	LDL,
 								      vector<int>	IPIV	)
 	{
 		vector<double> work(M*N);
 		int info;
-		core_dtstrf(M, N, IB, NB, &U[0], LDU, &A[0], LDA,
-		            &L[0], LDL, &IPIV[0], &work[0], M, &info);
+		core_dtstrf(M, N, IB, NB, &U(0,0), LDU, &A(0,0), LDA,
+		            &L(0,0), LDL, &IPIV[0], &work[0], M, &info);
 		dtstrf_RV retVal;
 		retVal.Akk = U;
 		retVal.Amk = A;
@@ -209,8 +222,8 @@ private:
 			ar & Amn;
   }
 public:
-	vector<double> Akn;
-	vector<double> Amn;
+	Matrix<double> Akn;
+	Matrix<double> Amn;
 };
 
 class dssssm_action {
@@ -241,13 +254,13 @@ private:
 	int  N2;
 	int  K;
 	int  IB;
-	vector<double> A1;
+	Matrix<double> A1;
 	int  LDA1;
-	vector<double> A2;
+	Matrix<double> A2;
 	int  LDA2;
-	vector<double> L1;
+	Matrix<double> L1;
 	int  	LDL1;
-	vector<double> L2;
+	Matrix<double> L2;
 	int  	LDL2;
 	vector<int>	IPIV;
 public:
@@ -258,13 +271,13 @@ public:
 								int  _N2,
 								int  _K,
 								int  _IB,
-								vector<double>& _A1,
+								Matrix<double>& _A1,
 								int  _LDA1,
-								vector<double>& _A2,
+								Matrix<double>& _A2,
 								int  _LDA2,
-								vector<double>& _L1,
+								Matrix<double>& _L1,
 								int  	_LDL1,
-								vector<double>& _L2,
+								Matrix<double>& _L2,
 								int  	_LDL2,
 								vector<int>&	_IPIV) 
 	{
@@ -284,12 +297,25 @@ public:
 		LDL2 = _LDL2;
 		IPIV = _IPIV;	
 	}
+	~dssssm_action() {
+/*
+		cout << "deleting dssssm_action" << endl;
+		A1.~Matrix<double>();
+		cout << "deleted A1" << endl;
+		A2.~Matrix<double>();
+		cout << "deleted A2" << endl;
+		L1.~Matrix<double>();
+		cout << "deleted L1" << endl;
+		IPIV.~vector<int>();
+		cout << "deleted all" << endl;
+*/
+	};
 
 	dssssm_RV operator()()
 	{
 		core_dssssm(M1, N1, M2, N2, K, IB, 
-								&A1[0], LDA1, &A2[0], LDA2,
-		            &L1[0], LDL1, &L2[0], LDL2, &IPIV[0]);
+								&A1(0,0), LDA1, &A2(0,0), LDA2,
+		            &L1(0,0), LDL1, &L2(0,0), LDL2, &IPIV[0]);
 		dssssm_RV retVal;
 		retVal.Akn = A1;
 		retVal.Amn = A2;
@@ -299,23 +325,20 @@ public:
 
 FUTURES_EXPORT_FUNCTOR((futures::async_function<dssssm_action>));
 
-int dgetrf(int M, int N, vector<vector<double>>& A, int LDA, 
-					vector<vector<double>>& L, vector<vector<int>>& IPIV) {
+int dgetrf(int M, int N, Matrix<Matrix<double>>& A, int LDA, 
+					Matrix<Matrix<double>>& L, Matrix<vector<int>>& IPIV) {
 
-		int TILES = M/NB;
-		int m = M/TILES;
-		int n = N/TILES;
-		int LDIPIV = NB*m;
- 		vector<futures::future<dgessm_RV>> dgessm_tiles(TILES*TILES);
-		vector<futures::future<dssssm_RV>> dssssm_tiles(TILES*TILES);
+		int TILES = (M%NB==0) ? (M/NB) : ((M/NB)+1);
+		int LDIPIV = LDA;
+ 		Matrix<futures::future<dgessm_RV>> dgessm_tiles(TILES,TILES);
+		Matrix<futures::future<dssssm_RV>> dssssm_tiles(TILES,TILES);
     for(int k=0; k < TILES; k++) {
-        int info;
-				
+        int info;		
 				if(k != 0) { 
-					//unless we are in the firts iteration, we need to get updated block
+					//unless we are in the first iteration, we need to get updated block
 					//from dssssm
 					//copy_tile(m, n, dssssm_tiles[k+k*TILES].get().Amn, &A[k*m+k*n*LDA], LDA);
-					A[k+k*TILES] = dssssm_tiles[k+k*TILES].get().Amn;
+					A(k,k) = dssssm_tiles(k,k).get().Amn;
 				}
 #if 0
 				cout << "dgetrf input:" << endl;
@@ -326,8 +349,8 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 				cout << "indexing IPIV["<<k+k*TILES<<"]"<<endl;
 				print_array(m, 1, &IPIV[k+k*TILES][0], m);
 #endif
-        core_dgetrf(m, n, &A[k+k*TILES][0], 
-                    m, &IPIV[k+k*TILES][0], &info);
+        core_dgetrf(A(k,k).height, A(k,k).width, &A(k,k)(0,0), 
+                    A(k,k).height, &IPIV(k,k)[0], &info);
 #if 0
 				cout << "dgetrf output:" << endl;
 				cout << "A"<<k<<k<<":" << endl;
@@ -342,7 +365,7 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 						if(k != 0) {
 							//unless we are in the first row of the matrix, we need to get
 							//the updated values from dssssm
-							A[k+nn*TILES] = dssssm_tiles[k+nn*TILES].get().Amn;
+							A(k,nn) = dssssm_tiles(k,nn).get().Amn;
 						}
 #if 0						
 						cout << "dgessm input:" << endl;
@@ -353,9 +376,10 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 						cout << "IPIV"<<k<<k<<":" << endl;
 						print_array(m, 1, &IPIV[k+k*TILES][0], m);
 #endif						
-						dgessm_action dgessm(m, n, m, n, IPIV[k+k*TILES], A[k+k*TILES], m,
-																A[k+nn*TILES], m);
-						dgessm_tiles[k+nn*TILES] = futures::async2(m*n ,dgessm);
+						dgessm_action dgessm(	A(k,nn).height, A(k,nn).width, A(k,nn).height, A(k,nn).height, 
+																	IPIV(k,k), A(k,k), A(k,k).width,
+																	A(k,nn), A(k,nn).height);
+						dgessm_tiles(k,nn) = futures::async2(A(k,nn).height*A(k,nn).width, dgessm);
 #if 0						
 						cout << "dgessm output:" << endl;
 						cout << "A"<<k<<nn<<":" << endl;
@@ -367,9 +391,9 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 						if(k != 0) {
 							//unless we are in the first column of the matrix, we need to get
 							//the updated values from dssssm
-							A[mm+k*TILES] = dssssm_tiles[mm+k*TILES].get().Amn;
+							A(mm,k) = dssssm_tiles(mm,k).get().Amn;
 						}
-						vector<double> work(m*n);
+						vector<double> work(A(mm,k).height*A(mm,k).width);
 #if 0						
 						cout << "dtstrf input:" << endl;
 						cout << "A"<<k<<k<<":" << endl;
@@ -381,9 +405,10 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 						cout << "IPIV"<<mm<<k<<":" << endl;
 						print_array(m, 1, &IPIV[mm+k*TILES][0], m);
 #endif						
-						core_dtstrf(m, n, m, n, &A[k+k*TILES][0], m, &A[mm+k*TILES][0], m, 
-												&L[mm+k*TILES][0], m, &IPIV[mm+k*TILES][0], 
-												&work[0], m, &info);
+						core_dtstrf(A(mm,k).height, A(mm,k).width, A(mm,k).height, A(mm,k).height, 
+												&A(k,k)(0,0), A(k,k).height, &A(mm,k)(0,0), A(mm,k).height, 
+												&L(mm,k)(0,0), L(mm,k).height, &IPIV(mm,k)[0], 
+												&work[0], A(mm,k).height, &info);
 #if 0						
 						cout << "dtstrf output:" << endl;
 						cout << "A"<<k<<k<<":" << endl;
@@ -414,30 +439,33 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 #endif								
 								if(mm == k+1) {
 									//if we are on the top of the column get dgessm result
-									A[k+nn*TILES] = dgessm_tiles[k+nn*TILES].get().Akn;
+									A(k,nn) = dgessm_tiles(k,nn).get().Akn;
 								}
 								else { 
 									//else get the value of dssssm applied on the above tile
-									A[k+nn*TILES] = dssssm_tiles[(mm-1)+nn*TILES].get().Akn;
+									A(k,nn) = dssssm_tiles((mm-1),nn).get().Akn;
 								}		
 								if(k != 0) {
 									//unless we are in the first iteration, we need to get
 									//the updated values from dssssm from previous iteration
-									A[mm+nn*TILES] = dssssm_tiles[mm+nn*TILES].get().Amn;
+									A(mm,nn) = dssssm_tiles(mm,nn).get().Amn;
 								}	
-								dssssm_action dssssm(m, n, m, n, m, m, A[k+nn*TILES], m, A[mm+nn*TILES], m,
-																		L[mm+k*TILES], m, A[mm+k*TILES], m, IPIV[mm+k*TILES]);
-								dssssm_tiles[mm+nn*TILES] = futures::async2(m*n*2, dssssm);
-								if(mm == TILES-1) 
+								dssssm_action dssssm(	A(k,nn).height, A(k,nn).width, A(mm,nn).height, A(mm,nn).width,
+																			A(k,nn).height, A(mm,k).height, 
+																			A(k,nn), A(k,nn).height, A(mm,nn), A(mm,nn).height,
+																			L(mm,k), L(mm,k).height, A(mm,k), A(mm,k).height, 
+																			IPIV(mm,k));
+								dssssm_tiles(mm,nn) = futures::async2(NB*NB*2, dssssm);
+								if(mm == TILES-1)
 									//if we reach bottom, update tile of gdessm step
-									A[k+nn*TILES] = dssssm_tiles[mm+nn*TILES].get().Akn;
+									A(k,nn) = dssssm_tiles(mm,nn).get().Akn;
 #if 0								
 								cout << "dssssm output:" << endl;
 								cout << "A"<<k<<nn<<":" << endl;
 								print_array(m, n, &A[k+nn*TILES][0], m);
 								cout << "A"<<mm<<nn<<":" << endl;
 								print_array(m, n, &A[mm+nn*TILES][0], m);
-#endif								
+#endif						
             }
         }
     }
@@ -447,13 +475,13 @@ int dgetrf(int M, int N, vector<vector<double>>& A, int LDA,
 int IONE=1;
 int ISEED[4] = {0,0,0,1};   /* initial seed for dlarnv() */
 
-vector<vector<int>> init_ipiv(int M, int N, int NB) {
-	int NT = (N%NB==0) ? (N/NB) : ((N/NB)+1);
+Matrix<vector<int>> init_ipiv(int M, int N, int NB) {
   int MT = (M%NB==0) ? (M/NB) : ((M/NB)+1);
-  vector<vector<int>> ipiv(NT*MT);
+	int NT = (N%NB==0) ? (N/NB) : ((N/NB)+1);
+  Matrix<vector<int>> ipiv(MT, NT);
 	for(int i=0; i < MT; i++) {
 		for(int j=0; j < NT; j++) {
-			ipiv[i+j*MT] = vector<int>(NB);
+			ipiv(i,j) = vector<int>(NB);
 		}
 	}
 	return ipiv;
@@ -462,7 +490,7 @@ vector<vector<int>> init_ipiv(int M, int N, int NB) {
 int main(int argc, char* argv[]) {
 
 		SIZE = DEFAULT_SIZE;
-		NB = DEFAULT_NB;
+		IB = NB = DEFAULT_NB;
 		bool print_result = false;
 		char c;
 
@@ -471,7 +499,7 @@ int main(int argc, char* argv[]) {
 			case 'n':
 				SIZE = atoi(optarg); 
 			case 'b':
-				NB = atoi(optarg);	 
+				IB = NB = atoi(optarg);	 
 			 	break;
 			case 'v':
 				print_result = true;
@@ -487,27 +515,37 @@ int main(int argc, char* argv[]) {
     int info;
     int LDAxN = LDA*N;
 
-		vector<double> A(LDA*N);
-		vector<double> L(LDA*N);
+		Matrix<double> A(LDA, N);
+		Matrix<double> L(LDA, N);
     /* Initialize A Matrix */
-    dlarnv(&IONE, ISEED, &LDAxN, &A[0]);
+    dlarnv(&IONE, ISEED, &LDAxN, &A(0,0));
 		/* Format arrays in tiles*/
+		
 		int tiles = N/NB;
 		int m = N/NB;
 		int n = N/NB;
-		vector<vector<double>> tiled_A = format_array(m, n, NB, NB, &A[0], LDA);
-		vector<vector<double>> tiled_L = format_array(m, n, NB, NB, &L[0], LDA);
-		vector<vector<int>> IPIV = init_ipiv(N, N, NB);
-		//print_array(N, N, &A[0], N);
+		int m_mod = N%NB;
+		if(m_mod != 0) {
+			m++;
+			n++;
+			IB = m_mod; //just use the smaller size of elements in a block						
+		}
+		cout << "m=" << m << "(mod=" << m_mod << ")" << endl;
+		print_array(N, N, A);
+		Matrix<Matrix<double>> tiled_A = format_array(N, N, NB, A, LDA);
+		Matrix<Matrix<double>> tiled_L = format_array(N, N, NB, L, LDA);
+		Matrix<vector<int>> IPIV = init_ipiv(N, N, NB);
 		//run LU factorization
+
 		REGISTER_TIMER("total time");
 		START_TIMER("total time");
     info = dgetrf(N, N, tiled_A, LDA, tiled_L, IPIV);
+		cout << "done!" << endl;
 		STOP_TIMER("total time");
 		cout << "LU completed!" << endl;
 		if(print_result) {
-			deformat_array(N/NB, N/NB, NB, NB, A, tiled_A, LDA);
-			print_array(N, N, &A[0], LDA);
+			deformat_array(N, N, NB, A, tiled_A, LDA);
+			print_array(N, N, A);
 		}
 		PRINT_TIMER("total time");
 		futures::Futures_Finalize();
