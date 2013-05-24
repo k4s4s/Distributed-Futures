@@ -42,7 +42,6 @@ Matrix<Matrix<T>> format_array(int M, int N, int NB, Matrix<T>& A, int LDA) {
   int n = (N%NB==0) ? (N/NB) : ((N/NB)+1);
 	int m_mod = M%NB;
 	int n_mod = N%NB;
-	cout << "m="<<m<<", n="<<n<<endl;	
 	Matrix<Matrix<T>> tiles(m, n);
 	for(int i=0; i < m; i++) {
 		for(int j=0; j < n; j++) {
@@ -339,6 +338,12 @@ int dgetrf(int M, int N, Matrix<Matrix<double>>& A, int LDA,
 					//from dssssm
 					//copy_tile(m, n, dssssm_tiles[k+k*TILES].get().Amn, &A[k*m+k*n*LDA], LDA);
 					A(k,k) = dssssm_tiles(k,k).get().Amn;
+					/*we also need to update the dgessm tile of the previous iteration, as it 
+						is altered by the application of dssssm on the last row of the submatrix
+						NOTE: this is not needed by the dgetrf step, but we need it to update the array
+						for the final result
+					*/				
+					A(k-1, k) = dssssm_tiles(TILES-1, k).get().Akn;
 				}
 #if 0
 				cout << "dgetrf input:" << endl;
@@ -366,6 +371,13 @@ int dgetrf(int M, int N, Matrix<Matrix<double>>& A, int LDA,
 							//unless we are in the first row of the matrix, we need to get
 							//the updated values from dssssm
 							A(k,nn) = dssssm_tiles(k,nn).get().Amn;
+							/*
+								we also need to update the dgessm tile of the previous iteration, as it 
+								is altered by the application of dssssm on the last row of the submatrix
+								NOTE: this is not needed by the dgetrf step, but we need it to update the array
+								for the final result
+							*/
+							A(k-1, nn) = dssssm_tiles(TILES-1, nn).get().Akn;	
 						}
 #if 0						
 						cout << "dgessm input:" << endl;
@@ -456,9 +468,9 @@ int dgetrf(int M, int N, Matrix<Matrix<double>>& A, int LDA,
 																			L(mm,k), L(mm,k).height, A(mm,k), A(mm,k).height, 
 																			IPIV(mm,k));
 								dssssm_tiles(mm,nn) = futures::async2(NB*NB*2, dssssm);
-								if(mm == TILES-1)
+								//if(mm == TILES-1)
 									//if we reach bottom, update tile of gdessm step
-									A(k,nn) = dssssm_tiles(mm,nn).get().Akn;
+									//A(k,nn) = dssssm_tiles(mm,nn).get().Akn;
 #if 0								
 								cout << "dssssm output:" << endl;
 								cout << "A"<<k<<nn<<":" << endl;
@@ -530,8 +542,7 @@ int main(int argc, char* argv[]) {
 			n++;
 			IB = m_mod; //just use the smaller size of elements in a block						
 		}
-		cout << "m=" << m << "(mod=" << m_mod << ")" << endl;
-		print_array(N, N, A);
+		//print_array(N, N, A);
 		Matrix<Matrix<double>> tiled_A = format_array(N, N, NB, A, LDA);
 		Matrix<Matrix<double>> tiled_L = format_array(N, N, NB, L, LDA);
 		Matrix<vector<int>> IPIV = init_ipiv(N, N, NB);
@@ -540,7 +551,6 @@ int main(int argc, char* argv[]) {
 		REGISTER_TIMER("total time");
 		START_TIMER("total time");
     info = dgetrf(N, N, tiled_A, LDA, tiled_L, IPIV);
-		cout << "done!" << endl;
 		STOP_TIMER("total time");
 		cout << "LU completed!" << endl;
 		if(print_result) {

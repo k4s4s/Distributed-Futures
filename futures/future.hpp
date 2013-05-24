@@ -86,6 +86,18 @@ public:
     void run();
 };
 
+
+/** Implementation of make_future function **/
+template<typename T>
+future<T> make_future(T val) {
+	STOP_TIMER("user_code_execution_time");
+  Futures_Environment *env = Futures_Environment::Instance();
+  int id = env->get_procId();
+	future<T> fut(id, id, val);
+	START_TIMER("user_code_execution_time");
+	return fut;
+}
+
 /** Implementation of async function **/
 template<typename F, typename... Args>
 future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {

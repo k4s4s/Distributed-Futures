@@ -20,12 +20,16 @@ add_custom_target(doc
   										SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
 endif(DOXYGEN_FOUND)
 
-option(debug "debug" OFF)
+option(debug "debug" 0)
 option(stats "stats" OFF)
 
-if(debug MATCHES ON)
-add_definitions(-g -DDEBUG)
-endif(debug MATCHES ON)
+if(debug MATCHES 1)
+	add_definitions(-g)
+endif(debug MATCHES 1)
+
+if(debug MATCHES 2)
+	add_definitions(-g -DDEBUG)
+endif(debug MATCHES 2)
 
 if(stats MATCHES ON)
 add_definitions(-DSTATS)
@@ -39,7 +43,7 @@ include_directories(futures/scheduler)
 include_directories(futures/stats)
 
 add_definitions(-I/users/parall/falcou/dimitrios/libs/plasma/include -I/opt/intel/mkl/include -O3 -std=c++0x)
-add_definitions(-DV_MPI -g)
+add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)
 add_subdirectory(src/futures)
