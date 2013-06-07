@@ -273,7 +273,7 @@ where as the second is for serializable objects.}
 \label{lst:set_data}
 \end{figure}
 
-The communication library also provides the routines needed to write and read data from an address space shared
+The communication library also provides the routines needed to write and read data from a address space shared
 though an MPI window, using the special Shared\_pointer construct (see section~\ref{sect:shared-memory-manager}).  
 This pointer keeps information of where the data is located within an MPI window in addition to the total size of the data associated with this pointer during its allocation.  Figure~\ref{lst:set_data} shows a simplified version for 
 setting a future's value.  The ptr variable has information on the location we need to write the data to on an MPI 

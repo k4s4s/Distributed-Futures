@@ -1,0 +1,30 @@
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}
+\contentsline {paragraph}{}{2}{section*.2}
+\contentsline {paragraph}{}{2}{section*.3}
+\contentsline {paragraph}{}{3}{section*.4}
+\contentsline {paragraph}{}{3}{section*.5}
+\contentsline {paragraph}{}{3}{section*.6}
+\contentsline {paragraph}{}{4}{section*.7}
+\contentsline {section}{\numberline {1.1}Futures and Promises}{4}{section.1.1}
+\contentsline {paragraph}{}{5}{section*.8}
+\contentsline {section}{\numberline {1.2}Background}{6}{section.1.2}
+\contentsline {subsection}{\numberline {1.2.1}MPI one-sided communication}{6}{subsection.1.2.1}
+\contentsline {paragraph}{}{6}{section*.9}
+\contentsline {paragraph}{}{6}{section*.10}
+\contentsline {paragraph}{}{6}{section*.11}
+\contentsline {paragraph}{}{7}{section*.12}
+\contentsline {paragraph}{}{7}{section*.13}
+\contentsline {section}{\numberline {1.3}Related Work}{7}{section.1.3}
+\contentsline {chapter}{\numberline {2}Design and Implementation}{9}{chapter.2}
+\contentsline {section}{\numberline {2.1}Futures Interface}{12}{section.2.1}
+\contentsline {section}{\numberline {2.2}Communication}{13}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Shared Address Space}{14}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}Mutexes}{17}{subsection.2.2.2}
+\contentsline {section}{\numberline {2.3}Shared Memory Management}{17}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Memory Allocation/Deallocation}{18}{subsection.2.3.1}
+\contentsline {section}{\numberline {2.4}Scheduler}{20}{section.2.4}
+\contentsline {subsection}{\numberline {2.4.1}Alternative Implementations/Design Versatility}{22}{subsection.2.4.1}
+\contentsline {chapter}{\numberline {3}Evaluation}{24}{chapter.3}
+\contentsline {section}{\numberline {3.1}Microbenchmarks}{24}{section.3.1}
+\contentsline {section}{\numberline {3.2}Real Application Benchmarking}{25}{section.3.2}
+\contentsline {chapter}{\numberline {4}Conclusions and Future Work}{33}{chapter.4}

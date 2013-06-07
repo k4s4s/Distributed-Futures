@@ -12,7 +12,7 @@ report:
 	latex report
 	dvipdfm report
 
-report_extra:	
+report:	
 	latex report_extra
 	--bibtex report_extra
 	latex report_extra

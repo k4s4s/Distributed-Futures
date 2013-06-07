@@ -446,13 +446,4 @@ url = {http://www.cs.berkeley.edu/~bonachea/ammpi/}
  keywords = {dependencies, discontiguous data, domains, parallelism, region tree, regions, tasks},
 } 
 
-@INPROCEEDINGS{4100352,
-author={Beckman, P. and Iskra, K. and Yoshii, K. and Coghlan, S.},
-booktitle={Cluster Computing, 2006 IEEE International Conference on},
-title={The Influence of Operating Systems on the Performance of Collective Operations at Extreme Scale},
-year={2006},
-pages={1-12},
-keywords={benchmark testing;noise measurement;operating systems (computers);parallel processing;software performance evaluation;extreme-scale platforms;microbenchmark;operating system noise;parallel applications;Acoustical engineering;Computer architecture;Delay;Interference;Linux;Noise measurement;Noise reduction;Operating systems;Petascale computing;Synchronization;microbenchmark;noise;petascale;synchronicity},
-doi={10.1109/CLUSTR.2006.311846},
-ISSN={1552-5244},}
 
