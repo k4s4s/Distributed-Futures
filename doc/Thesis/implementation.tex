@@ -1,4 +1,5 @@
 \chapter{Design and Implementation}
+\label{chap:implementation}
 
 \begin{figure}[!ht]
 \center
@@ -441,42 +442,27 @@ Then it asks the scheduler to send the job to the worker process.  In our implem
 pushes the job int the process' stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
 (excluding the master process, which should run user code). 
 
-\subsection{Alternative Implementations/Design Versatility}
-\label{sect:impl_alt_impl}
+%\subsection{Alternative Implementations/Design Versatility}
+%\label{sect:impl_alt_impl}
 
-We have designed the system to be able to use alternative scheduler implementations.  However, all must meet the
-following interface requirements.\\
+%We have designed the system to be able to use alternative scheduler implementations.  However, all must meet the
+%following interface requirements.\\
 
-\begin{itemize}
+%\begin{itemize}
 
- \item Implement routines to send and receive jobs.  The call to the \emph{async} function should be
-able to send a \emph{job} to the worker process without blocking.  The worker should be able to handle
-multiple \emph{jobs}, without breaking the asynchronous model.  Moreover, \emph{communication} should only
-require the process that issued the \emph{job} and the one that receives it to participate.
+% \item Implement routines to send and receive jobs.  The call to the \emph{async} function should be
+%able to send a \emph{job} to the worker process without blocking.  The worker should be able to handle
+%multiple \emph{jobs}, without breaking the asynchronous model.  Moreover, \emph{communication} should only
+%require the process that issued the \emph{job} and the one that receives it to participate.
 
 
- \item Implement a routine which returns a valid process id that is available to run a \emph{job}
-issued by call to \emph{async}.
+% \item Implement a routine which returns a valid process id that is available to run a \emph{job}
+%issued by call to \emph{async}.
 
- \item Implement the terminate routine, which should return true for a process to exit and should
-also not block execution if it does not return true.
-\\
-\end{itemize}
+% \item Implement the terminate routine, which should return true for a process to exit and should
+%also not block execution if it does not return true.
+%\\
+%\end{itemize}
  
-Remote Procedure Call (RMC) and Remote Method Invocation (RMI) libraries often have the above requirements as well.
-There is a number of known solutions as to how to implement such systems in the literature.  The two most commonly used methods are polling for work requests
-~\cite{Beckman96tulip:a, Saunders:2003:AAP:966049.781534, Foster96thenexus, vonEicken:1992:AMM:146628.140382} 
-and hardware interrupts.
-In our system, polling would require a worker process to poll for incoming \emph{jobs} at certain
-time intervals.   Extra care must be taken to define the polling period, since if polling happens too often, it can
-dominate computation, but we also need a process to poll frequent enough to ensure timely responses
-~\cite{Saunders:2003:AAP:966049.781534, Shah:1998:PEL:876880.879642}.
-Alternatively, a hardware interrupt could be sent to notify a process of an incoming message.  This method however,
-is avoided because interrupts have to go through the OS, which has a significant cost. 
-~\cite{Saunders:2003:AAP:966049.781534, Shah:1998:PEL:876880.879642, Foster96thenexus, vonEicken:1992:AMM:146628.140382}.
-The Nexus system ~\cite{Foster96thenexus}, also suggests dedicating threads only for communication.  These threads can 
-either probe for pending messages or block (depending on the underlying communication library and OS capabilities).
-How responsive this implementation can be depends on the thread implementation and OS (for example if the OS supports
-priorities).  A detailed discussion and comparison between using threads for communication versus probing or interrupts
-can be found in~\cite{Foster96thenexus}.
+
 
