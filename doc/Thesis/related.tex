@@ -45,7 +45,8 @@ between processes.
 
 \paragraph{}
 Charm++~\cite{Kale93charm++:a} is an parallel object-oriented extension to the C++ language.  It is based on the 
-\emph{Actors}~\cite{} but differentiates sequential and parallel objects.  It uses a Message driven execution model,
+\emph{Actors}~\cite{conf/icpp/HouckA92} but differentiates sequential and parallel objects.  
+It uses a Message driven execution model,
 different from the traditional send/receive pairing, where computations begin when a message is received.  The parallel,
 work unit in Charm++ is called a \emph{chares} and different \emph{chares} can communicate between themselves.  Instead
 of RPC, it uses a futures implementation that provides the same interface for local and remote invocation, in order to have overlapping communication and computation.  This implementation however is not based on MPI or another one-sided 
@@ -85,5 +86,14 @@ either probe for pending messages or block (depending on the underlying communic
 How responsive this implementation can be depends on the thread implementation and OS (for example if the OS supports
 priorities).  A detailed discussion and comparison between using threads for communication versus probing or interrupts
 can be found in~\cite{Foster96thenexus}.
+
+\paragraph{}
+In our implementation, we use none of these methods, instead we use MPI's one-sided communication interface.  The benefit
+of using a one-sided communication interface, lies in the fact that we can have real asynchronous execution.  In contrast 
+with polling, the the system can react without any delay (polling period), while it will not suffer from costly interrupts
+or the extra overhead and reponse delay of having a thread running, as we discussed above.  However, synchronization in such
+a system can become a serious performance problem, as with shared memory models (fences, barries mutexes).
+
+
 
 

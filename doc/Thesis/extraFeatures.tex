@@ -8,24 +8,26 @@ to create a future variable and initialize it with a value.  This is usefull in 
 value but we already know the value it should hold, while we would like to use this variable a later point of the code
 as an actual future.
 
-
-Another addition is the \emph{async\_on} function, which can be used if the user wishes to schedule a job on a process
-of preferance instead of using the librarys scheduler.  This function is useful when the user needs to schedule his 
-jobs on specific nodes, so that he can take advantage of data locality and/or avoid transfering data through the network.
-
+In section ~\ref{sect:scheduler} we described our scheduler module.  This modules mainly facilitates the necessary 
+infrastructure to send \emph{jobs} betweend processes asynchronously, but also it is responsible for making a decision
+on how jobs will be distributed among these processes.  Although a simple scheduler policy, like Round Robin, 
+can be sufficient for many scenarios, it is possible that a more elaborate work or data distribution scheme is required
+for better performance.  Especially in a distributed environment, we would like to be able to distribute data in faschion
+that takes advantage of data locality and/or avoid excessive data transmition through the network.  For this reason, we
+have added a variation of the async function, \emph{async\_on}, which is identical to an \emph{async} with the addition of
+the target process id.  The \emph{async\_on} function still makes use of the scheduler infrastructure the same way
+the default \emph{async}, it simply skips the step where the scheduler decides which process will receive the new 
+\emph{job}.
 
 \section{Future Serialization}
 An important addition to our futures library, is the serialization of a futures object.  By serializing a future
 object, we can practically pass it as an argument the async function.  This is important, because this way
 a future created on one process, can be transfered to another one, thus synchronization can take place on the 
-worker process, which allows finer granularity when synchronizing taks.  Consider the tiled LU in \ref{FIXME}.
-In this example, all the future objects are created on the master and all synchronization takes also place on 
-the master.  It would be better if the process that will run the functor object issued with an async, for instance
-dgessm, will wait for its tiles instead of the master.  This can be achieved by serializing the future objects related
-with the tiles that are needed as input to dgessm.
+worker process, which allows finer granularity when synchronizing task.  FIXME: add example here
 
 
-In our implementation, a future object is defined as shown in \ref{FIXME}.  \emph{ready\_status} is the current
+In our implementation, a future object is defined as shown in \ref{FIXME:add future object definition}.
+The variable \emph{ready\_status} is the current
 status of the future which is true if the value has been set or false otherwise.  \emph{Data}, is a local storage for the
 the future's value, once the future has been set by the remote process.  The variables \emph{src\_id} and \emph{dst\_id}
 hold the id value of the owner of the future and the process that will set the future value respectively.  

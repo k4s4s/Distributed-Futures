@@ -8,20 +8,19 @@
 \label{fig:system_overview}
 \end{figure}
 
-We have modeled the distributed futures, as closely as possible, 
-to the shared memory futures from the C++ standard library.  Parallelism in the future
-model is extracted by issuing functions asynchronously, using a \emph{special} async function
-that takes the function to be executed in parallel as an argument (see section ~\ref{sect:futures-interface}).
-In our library, functions called using the async function,
-referred to as \emph{jobs} from now on, are send through a communication library 
-to be executed by other available processes.  
-The decision of who executes a \emph{job} is made by a scheduler.  The host process can retrieve
-the return value of a \emph{job} using the future object associated with the corresponding \emph{async} call.
-A process can only retrieve a future's value if the job has finished execution, in which case the remote 
-process will set the futures value on the host process, else the host process will will block.
-In our implementation, a blocked process will try to execute any pending \emph{jobs} it might have
-while it is beeing blocked.
-		We designed our system so that different aspects of the runtime library, such as process
+\paragraph{}
+	In this chapter we describe the interface and the implementation details of our futures library.
+Our interface allows the programmer to issue callable objects, referred to as \emph{jobs} from now on,
+ to be executed asynchronously
+by other processes.  An asynchronous call of a functor will return a future object instead of its normal 
+return value.  This future object can be used by any other process to retrieve the encapsulated value.  If
+the functor has not been executed yet, the reference to the future's value will block \footnote{
+as we'll see in section \ref{FIXME}, only the master process blocks while other processes will try to 
+run any functor objects that are scheduled to be run.}
+until it becomes available.  
+ 
+\paragraph{}
+		We designed our system to be modular, so that different aspects of the runtime library, such as process
 communication, hide its underlying implementation (e.g. MPI),  thus different implementations 
 of the same module should not interfere with other components of the library.
 Figure~\ref{fig:system_overview} shows the different component hierarchy.\\
@@ -37,14 +36,12 @@ Our system consists out of three main modules:
 	and also decides which process will run a \emph{job}.
 \end{itemize}
 
-\vfill
-
-All the above modules are initialized, finalized and managed by an system environment, 
-an instance of which is present
-at every process.  Note that it is not necessary however for every environment instance to be the same, for
-example process 1 can be only responsible for it's own shared address space and be aware only of the shared
-addresses of other processes, which hold futures associated with \emph{jobs} that are supposed to run by
-process 0.
+\paragraph{}
+All the above modules are initialized, finalized and managed by a system environment, 
+an instance of which is present at every process.  Note that it is not necessary for all
+processes to keep identical environments, which means that other than the initialization
+and finalization, processes are only responsible for their local environment, no updates
+are necessary.
 
 \begin{figure}[!ht]
 \begin{lstlisting}
@@ -85,6 +82,7 @@ The control flow of the hello world program in figture~\ref{lst:hello}.}
 \label{fig:helloCF}
 \end{figure}
 
+\paragraph{}
 Figure~\ref{fig:helloCF} shows the program flow for processes 0 and 1, of the simple
 hello world example in figure~\ref{lst:hello}.  Before any call to the library is made, the futures
 environment must be initialized, which in turn initializes all other library modules 
@@ -96,8 +94,10 @@ The \emph{async} function can be called from any process
 and within other async calls, thus allowing recursive algorithms to be expressed. 
 In the example, process 0 issues a \emph{job} by
 calling \emph{async(f)}.  It will then return from the call and continue until
-the message.get() call, at this point the process will either retrive the message value or block untill
+the message.get() call, at this point the process will either retrieve the message value or block until
 it's set.
+
+\paragraph{}
 The job is then scheduled to be executed by process 1.  The worker process,
 here process 1, will wait until a \emph{job} is send and then run it.  When done, it will set 
 the future's value and return to waiting for other jobs or until it is terminated by the master
@@ -105,8 +105,8 @@ process.  When process 0 retrieves message's value, it prints it and continues u
 the Futures\_Finalize() routine.  At this point it will signal all other processes that the program
 has reached it's termination point and finalize the futures environment.  All other processes will
 do the same after receiving the terminate signal.
-\\
 
+\paragraph{}
 In the rest of this chapter, we will present the future interface in section~\ref{sect:futures-interface}
 and discuss our implementations of the the communication, shared memory manager and scheduler modules in
 sections~\ref{sect:communication},~\ref{sect:shared-memory-manager} and~\ref{sect:scheduler}
@@ -114,43 +114,58 @@ respectively.
 
 \section{Futures Interface}
 \label{sect:futures-interface}
-We replicate the futures interface from the C++ standard threads library, with one major difference being that 
-the the function being called must be a functor object.  Figure~\ref{lst:fib} shows a recursive implementation
-of the fibonacci function using our future implementation.  The user needs to create a functor, which must be
-serializable, and use the macro 
-FUTURES\_EXPORT\_FUNCTOR(async\_function<fib, int>) to expose the functor object to the underlying 
-serialization library \footnote{We use the boost serialization library~\cite{Ramey:2004:Boost:Serialization} 
-and the input/output archives from the boost mpi library~\cite{Gregor:2005:Boost:MPI}}.
-Moreover, the user can use the FUTURES\_SERIALIZE(F) macro, where F is a functor object, 
-which will create the necessary serialization routines automatically, but it is not recommended if the 
-functor object has members (see~\cite{Ramey:2004:Boost:Serialization} for more details on how to serialize
-a C++ object with Boost serialization library).
-Note that the argument to the first macro command is always \emph{async\_function<F, Args...>},
-where F is a functor class
-and Args are an aribary number argument types, that are to be passed to the overloaded call method 
-of the functor F.  \emph{Async\_function} is a special class that wraps around the functor objects and its
-arguments.  Instantiation of this class, using C++ templates meta-programming capabilities,
-generates the appropriate routines, for setting the future's value, according to the value's type.
+
+\paragraph{}
+An important goal of this work is to provide a unified interface for both distributed and shared memory machines.
+To meet this end we decided to replicate the C++11 futures interface from the standard threads library, with which
+the C++ community is already familiar and works well with object programming.  We had to make some additions to the 
+interface and impose some restrictions, but they do not limit the capacity of the programmer to express parallelism,
+while still keeping the interface as simple as possible to use (we will discuss them shortly). Figure~\ref{lst:fib} 
+shows a recursive implementation of the fibonacci function using our future implementation.  The user can issue 
+callable objects to be run asynchronously by other processes, using the \emph{async} function and passing the 
+callable object, along with its arguments, as the \emph{async}'s arguments.  Note, that in our implementation, the 
+callable object can only be a functor object. No normal functions, or function pointers, etc can be used here, which
+is the major restriction our implementation has, compared to the C++11 standard library.  The reason for this is that
+we send the callable object through the communication module, using messages.  We do not use a compiler, or require
+the programmer to identify the functions that are to be run asynchronously and provide a mapping of them to all 
+processes.  Instead, we serialize the functor object and send through the message passing library.  
+
+\paragraph{}
+This restriction
+implies the one major limitation of our interface, which is that the functor object, as well as all of its arguments,
+must be serializable.  Back to our example in figure~\ref{lst:fib}, note that \emph{fib1} and \emph{fib2} are both
+functor objects.  The user can either provide the serialization routines himself (see~\cite{Ramey:2004:Boost:Serialization} 
+for more details on how to serialize a C++ object with Boost serialization library
+\footnote{We use the boost serialization library~\cite{Ramey:2004:Boost:Serialization} 
+and the input/output archives from the boost mpi library~\cite{Gregor:2005:Boost:MPI}}.), or use the FUTURES\_SERIALIZE(F),
+here F is a functor object, which will create the necessary serialization routines automatically.  The former is only 
+recommended for very simple functors that have to state (members).  Moreover, the user needs to expose the functor 
+type to the underlying serialization library.  This is done with the macro command 
+FUTURES\_EXPORT\_FUNCTOR(async\_function<fib, int>) in our example.  Here the type declaration must be wrapped in the
+\emph{async\_function} type, which is the library internal template class for all \emph{jobs}.  The template type 
+here is the functor type, fib, and the argument types that will be passed when calling the functor, here \emph{int}. 
+Instantiation of the \emph{async\_function} class, using C++ templates meta-programming capabilities,
+generates the appropriate routines, for setting the future's value, according to the functor's return type.
 It also facilitates all necessary information that are needed to be transfered to the worker process.
 Figure ~\ref{lst:async_function} shows the definition of the \emph{async\_function} class.
 
-
-A call to the \emph{async(F, Args...)} function, where F is a functor object and Args 
-is any number of arguments,
-will send the functor object to an available process or execute 
-the functor directly, if no such process is found (see~\ref{sect:scheduler} for details). 
-The async function returns a 
-future object which can be used by the process that called the \emph{async} function to retrieve the 
-functor's return value.  If the return value is an array, a pointer or any other form of container, the user
+\paragraph{}
+A call to the \emph{async} function is non-blocking and returns a future<T> object immediately, 
+where T is the return type of the encapsulated functor object, passed to \emph{async}.
+ If the return value is an array, a pointer or any other form of container, the user
 should instead call a variation of the \emph{async} function, \emph{async(N, F, Args...)}, 
-where N is number of elements that will be returned. In order to retrieve the value,
+where N is number of elements that will be returned \footnote{  
+In section~\ref{} we discuss an expansion to
+our implementation that would allow us to keep the original interface intact, without the need for
+the extra size argument, but we have not yet implemented it and there are also some performance concerns.}.
+In order to retrieve the value,
 the owner of the future needs to call the get() method.  This method is blocking, so calling it will cause the 
 process to block until the value of the future becomes available.  Alternatively, the future owner can call the
-is\_ready() method, which is not blocking, to check if the value can be retrieved, and if not continue running
+is\_ready() method, which is none blocking, to check if the value can be retrieved, and if not continue running
 user code until the future's value becomes available at a later point.  Also, note that before using
 the futures library, the user has to explicitly call the \emph{Futures\_Initialize()} and \emph{Futures\_Finalize()},
 which will initialize and finalize the futures environment, respectively. 
-
+    
 \begin{figure}[!ht]
 \begin{lstlisting}
 
@@ -208,11 +223,14 @@ FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
 
 \section{Communication}
 \label{sect:communication}
+
+\paragraph{}
 The communication module is responsible for message exchange between all of the processes in our system,
 as well as providing the infrastructure for a shared address space.
 In our implementation the communication module uses MPI-2'S one-sided communication library and Boost MPI's
 input and output archives, for object serialization.
 
+\paragraph{}
 The communication module acts as a layer of abstraction between the various system component and the MPI library.
 It acts as a simple wrapper for initializing, finalizing MPI and simple send/receive operations.
 It is also capable of providing information of the MPI environment to the other components of our system (e.g.
@@ -220,6 +238,7 @@ number of process, rank e.t.c.).  Moreover, it can be used to expose part of a p
 processes in the same communication group.  
 
 \subsection{Shared Address Space}
+\paragraph{}
 In our implementation, the underlying message passing library used is MPI-2, thus we use MPI windows to
 expose such space among processes.  
 Exposing part of process' address space in the MPI-2 schema, requires that the some
@@ -274,11 +293,12 @@ where as the second is for serializable objects.}
 \label{lst:set_data}
 \end{figure}
 
+\paragraph{}
 The communication library also provides the routines needed to write and read data from an address space shared
 though an MPI window, using the special Shared\_pointer construct (see section~\ref{sect:shared-memory-manager}).  
 This pointer keeps information of where the data is located within an MPI window in addition to the total size of the data associated with this pointer during its allocation.  Figure~\ref{lst:set_data} shows a simplified version for 
 setting a future's value.  The ptr variable has information on the location we need to write the data to on an MPI 
-window.  The shared\_space[ptr.page\_size] is a map that contains mpi windows.  Section
+window.  The shared\_space[ptr.page\_size] is a map that contains MPI windows.  Section
 ~\ref{sect:shared_memory_manager} explains how MPI windows are organized in this map, according to the 
 page sized used during allocating space for a future.  Note that the variable datatype, MPI\_Datatype in this
 implementation, is inferred statically using template routines from the Boost MPI library,
@@ -288,6 +308,7 @@ need to store information on the archives size, thus the actual data is indexed 
 ptr.base\_address+DATA\_OFFSET.
 
 \subsection{Mutexes}
+\paragraph{}
 In order to synchronize accesses to shared memory addresses and other critical sections in our system, designed
 a mutex library, with the same interface as the standard C++ mutex library, which is implemented
 for shared memory.  The only difference is that a call to lock, unlock or try\_lock requires the user to specify
@@ -301,6 +322,8 @@ waiting to acquire the lock.
 
 \section{Shared Memory Management}
 \label{sect:shared-memory-manager}
+
+\paragraph{}
 The Memory Manager module is responsible for managing the systems shared address space. 
 It uses the communication module to create address spaces that
 are visible by all processes in our system and use the Shared\_pointer construct to describe a location in such
@@ -335,14 +358,16 @@ not match any predefined ones, we use the \emph{other} page size free list.}
 \end{figure}
 
 \subsection{Memory Allocation/Deallocation}
-When a process issues an \emph{async} function, it needs to allocate space in its shared address space, for the worker process to store the future's value.  To allocate such space, the host process uses the shared memory manager. 
+\paragraph{}
+When a process issues an \emph{async} function, it needs to allocate space in its shared address space, for the worker process to store the future's value.  To allocate such space, the host process makes use of the shared memory manager module. 
 The shared memory allocator tries to find the best page size
-fit for the data size, and searches the corresponding free list, using a first fit algorithm to find a large 
+fit for the data size (the one that is closest to the data's total size), and searches the corresponding free list, 
+using a first fit algorithm~\cite[p.~185-187]{Tanenbaum:2007:MOS:1410217} to find a large 
 enough space for the new data. If no fitting page size is found then the allocator uses a special freeList, 
 which does not use a predefined page size, but instead uses the data size to find free space.  If not enough free
 space is found in the correct free list, then the allocator can try to find data in another free list, of different
 page size.  Figure~\ref{fig:alloc} shows a free list, before and after allocating a data object.
-The first fit algorithm
+The first fit algorithm 
 will iterate the list from the start until it finds a large enough space for the object.  Each node in the free list,
 is a Shared\_pointer, which describes how much continuous space there is available.  When the allocator finds a large
 enough node, it removes from that node the size and number of pages it needs and sets its base address value 
@@ -365,6 +390,7 @@ base pointer 640, causing the list nodes to merge into one.}
 \label{fig:free}
 \end{figure}
 
+\paragraph{}
 As soon as a process retrieves a future value, it makes a local copy of it, and frees any shared address space
 that is associated with the future.  In order to free shared space, a process needs to provide the Shared\_pointer
 that was returned by the allocator routine.  The Shared\_pointer keeps information of the page size used to 
@@ -373,10 +399,12 @@ We then insert the Shared\_pointer in the free list in a sorted fashion, using t
 This way, all free lists are sorted lists of Shared\_pointers by base address, so that if we find continuous
 space, we merge the list elements, resulting in larger block of free space.  Figure~\ref{fig:free} shows a 
 free list, before and after freeing some shared memory.  Because freeing 128 bytes at base address 512 creates
-a continueous space from byte 0 to byte 640, the two list nodes will be merged into one.
+a continuous space from byte 0 to byte 640, the two list nodes will be merged into one.
 
 \section{Scheduler}
 \label{sect:scheduler}
+
+\paragraph{}
 In order to have a distributed memory interface similar to the shared memory one, we chose to implement 
 a scheduler, which is responsible for deciding who will execute which \emph{job}.  If the user was 
 responsible for distributing \emph{jobs} among the processes,  he would need to reason about dependencies
@@ -392,7 +420,7 @@ async(f, 3).  At some point, process 1 issues async(f, 3) to process 2, while pr
 to process 1.  Both processes will return from the async calls and proceed calling get() to retrieve the value
 but will actually block forever, since neither process will run the pending fibonacci functions.  This scenario
 is not a problem if processes are dynamically spawned, but if we have a static number of process, which is
-common for mpi programs, we need to address such issues.  
+common for MPI programs, we need to address such issues.  
 
 \begin{figure}[!ht]
 \center
@@ -404,6 +432,7 @@ processes can access them.}
 \label{fig:task_stack}
 \end{figure}
 
+\paragraph{}
 Since it is not always trivial to reason about such dependencies, we have implemented our own \emph{job} 
 scheduler.  We use MPI-2's one-sided communication library (via the communication module) to implement task
 stacks, similar to their shared memory counterparts. We choose to implement a stack because it suits better
@@ -419,10 +448,10 @@ Thus, the exact location of a \emph{job} is calculated using the stack head and 
 Moreover, at the beginning of the shared space, the size and current head values are stored, so all processes
 can push \emph{jobs}.
 
-
+\paragraph{}
 Figure~\ref{fig:helloCF} shows a control flow graph for the master and worker processes.  
 The master simply initializes
-the futures environment and issues async functions while executing user code.  At the end it finalizes 
+the futures environment and issues \emph{async} functions while executing user code.  At the end it finalizes 
 the futures environment and calls the terminate routine from the scheduler.  The workers initialize 
 the futures environment, which must happen collectively among all workers and master and then enter a
 loop, looking for pending jobs in their stacks until their terminate routine returns true, in which case
@@ -436,33 +465,65 @@ will set the terminated flag to true on all of them.  If a process is still busy
 or has still pending \emph{jobs} in its stack, the master must wait till all jobs are finished and then set the 
 terminated flags.
 
-When running user code or a \emph{job} and an async call is made, the process will address the scheduler in order
-to get the id of the next avaible process and allocates enough space for the return value to be stored.
+\paragraph{}
+When running user code or a \emph{job} and an \emph{async} call is made, the process will address the scheduler in order
+to get the id of the next available process and allocates enough space for the return value to be stored.
 Then it asks the scheduler to send the job to the worker process.  In our implementation the scheduler 
 pushes the job int the process' stack.  Our scheduler distributes \emph{jobs} in a round robin fashion 
 (excluding the master process, which should run user code). 
 
-%\subsection{Alternative Implementations/Design Versatility}
-%\label{sect:impl_alt_impl}
+\section{Extra Features}
 
-%We have designed the system to be able to use alternative scheduler implementations.  However, all must meet the
-%following interface requirements.\\
+\subsection{Additions to the User Interface}
+\paragraph{}
+Up to this point, the interface we have described includes only the very basic routines of the std futures interface.
+Other futures interfaces, such as HPX and boost have enriched their interfaces with additional routines.  One routine
+we found to be useful, is the \emph{make\_future} routine.  In our library, the \emph{make\_future} routine is used
+to create a future variable and initialize it with a value.  This is usefull in cases we would like to have a future
+value but we already know the value it should hold, while we would like to use this variable a later point of the code
+as an actual future.
 
-%\begin{itemize}
+\paragraph{}
+In section ~\ref{sect:scheduler} we described our scheduler module.  This modules mainly facilitates the necessary 
+infrastructure to send \emph{job}s betweend processes asynchronously, but also it is responsible for making a decision
+on how \emph{job}s will be distributed among these processes.  Although a simple scheduler policy, like Round Robin, 
+can be sufficient for many scenarios, it is possible that a more elaborate work or data distribution scheme is required
+for better performance.  Especially in a distributed environment, we would like to be able to distribute data in faschion
+that takes advantage of data locality and/or avoid excessive data transmition through the network.  For this reason, we
+have added a variation of the async function, \emph{async\_on}, which is identical to an \emph{async} with the addition of
+the target process id.  The \emph{async\_on} function still makes use of the scheduler infrastructure the same way
+the default \emph{async}, it simply skips the step where the scheduler decides which process will receive the new 
+\emph{job}.
 
-% \item Implement routines to send and receive jobs.  The call to the \emph{async} function should be
-%able to send a \emph{job} to the worker process without blocking.  The worker should be able to handle
-%multiple \emph{jobs}, without breaking the asynchronous model.  Moreover, \emph{communication} should only
-%require the process that issued the \emph{job} and the one that receives it to participate.
+\subsection{Future Serialization}
+\paragraph{}
+An important addition to our futures library, is the serialization of a futures object.  By serializing a future
+object, we can practically pass it as an argument the async function.  This is important, because this way
+a future created on one process, can be transfered to another one, thus synchronization can take place on the 
+worker process, which allows finer granularity when synchronizing task.  FIXME: add example here
 
-
-% \item Implement a routine which returns a valid process id that is available to run a \emph{job}
-%issued by call to \emph{async}.
-
-% \item Implement the terminate routine, which should return true for a process to exit and should
-%also not block execution if it does not return true.
-%\\
-%\end{itemize}
- 
-
+\paragraph{}
+In our implementation, a future object is defined as shown in \ref{FIXME:add future object definition}.
+The variable \emph{ready\_status} is the current
+status of the future which is true if the value has been set or false otherwise.  \emph{Data}, is a local storage for the
+the future's value, once the future has been set by the remote process.  The variables \emph{src\_id} and \emph{dst\_id}
+hold the id value of the owner of the future and the process that will set the future value respectively.  
+The \emph{data\_ptr} and \emph{status\_ptr} variables are \emph{Shared\_pointers} (see section \ref{sect:shared-memory-manager}),
+which hold all the
+information needed for the owner of the future to retrieve the data and the future status from his shared address space. 
+Finally, \emph{data\_size} and \emph{type\_size} are the number of elements and the
+type size of the data the future wraps around.  A future object can be trivially serialized by serializing each
+of its member using the boost serialization library.  One however must be aware that when a new future is created
+the Shared Memory Allocator module will first allocate the memory needed for the future's data and status in the 
+shared memory segment of the original future owner.  This is done for performance reasons, since accessing local
+variables costs considerably less than accessing remote ones, and the way the get method is implemented requires 
+regular polling on the emph{status\_ptr} variable.  However, when we serialize a \emph{Shared\_pointer} variable,
+it will still point on the same memory, on the original owner.  This implies, that the new owner will have to 
+access the \emph{data\_ptr} and \emph{status\_ptr} using the underlying communication library of our implementation.
+The reason for this limitation is that once the future is created there is no way to alert the process that will
+run the asynchronous \emph{job} and that will set the future's value, that that it should update its own copy \emph{Shared\_pointer}
+variable using the current asynchronous communication scheme our library uses.  In practice, the original owner of the
+future, will act as a proxy between the new future owner and the process that will set its value.  Also note that it is
+possible for the user to retrieve still retrieve the future value from the original owner, or have it sent to multiple
+processes, since the actual data will always reside on the same place for everyone.
 
