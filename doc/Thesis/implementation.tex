@@ -500,10 +500,85 @@ the default \emph{async}, it simply skips the step where the scheduler decides w
 An important addition to our futures library, is the serialization of a futures object.  By serializing a future
 object, we can practically pass it as an argument the async function.  This is important, because this way
 a future created on one process, can be transfered to another one, thus synchronization can take place on the 
-worker process, which allows finer granularity when synchronizing task.  FIXME: add example here
+worker process, which allows finer granularity when synchronizing task.  Consider the two examples in figures 
+\ref{lst:pipe_futures_a} and \ref{lst:pipe_futures_b}, where we can observe a pipeline scheme implemented 
+without future serialization and with future serialization.  In figure \ref{lst:pipe_futures_a} at pipeline
+loop stage2, the master process will have to wait on res1[0], even if re1[n], where n > 0, is available before
+res1[0].  This forces sequential issuing of the stage2 \emph{async}, which can limit performance and breaks the 
+pipelining scheme.  Now consider figure \ref{lst:pipe_futures_b}, in this example each stage function will only
+need to wait on its corresponding future, even if previous futures in the arrays res1 and res2 are not available,
+a stage function can proceed normally its execution.  This time we have an accurate pipeline implementation.
+
+\begin{figure}[!ht]
+\begin{subfigure}[b]{0.4\textwidth}
+\begin{lstlisting}
+...
+for(int i=0; i < N; i++) {
+	res1[i] = async(stage1);
+}
+
+for(int i=0; i < N; i++) {
+	res2[i] = async(stage2, res1[i].get());
+} 
+
+for(int i=0; i < N; i++) {
+	res3[i] = async(stage3, res2[i].get());
+} 
+...
+\end{lstlisting}
+\caption{	Pipeline example with the master process blocking.  
+					Each \emph{async} will have to wait for all futures before her corresponding future.}
+\label{lst:pipe_futures_a}
+\end{subfigure}
+
+\begin{subfigure}[b]{0.4\textwidth}
+\begin{lstlisting}
+...
+for(int i=0; i < N; i++) {
+	res1[i] = async(stage1);
+}
+
+for(int i=0; i < N; i++) {
+	res2[i] = async(stage2, res1[i]);
+} 
+
+for(int i=0; i < N; i++) {
+	res3[i] = async(stage3, res2[i]);
+} 
+...
+\end{lstlisting}
+\caption{	Pipeline example with each process blocking on its corresponding future.
+					Each \emph{async} will only wait for its future to become available.}
+\label{lst:pipe_futures_b}
+\end{subfigure}
+\caption{	Different implementations of a pipeline scheme using our futures .}
+\end{figure}
+
+\begin{figure}[!ht]
+\begin{lstlisting}
+template <class T>
+class future {
+private:
+	... //serialization routine omitted
+    int ready_status;
+    T data;
+    int src_id, dst_id;
+		Shared_pointer status_ptr;
+		Shared_pointer data_ptr;
+		int type_size;
+		int data_size;
+public:
+		... //constructors and destructors omitted
+    bool is_ready();
+    T get();
+};
+\end{lstlisting}
+\caption{The future object definition.}
+\label{lst:future_object}
+\end{figure}
 
 \paragraph{}
-In our implementation, a future object is defined as shown in \ref{FIXME:add future object definition}.
+In our implementation, a future object is defined as shown in \ref{lst:future_object}.
 The variable \emph{ready\_status} is the current
 status of the future which is true if the value has been set or false otherwise.  \emph{Data}, is a local storage for the
 the future's value, once the future has been set by the remote process.  The variables \emph{src\_id} and \emph{dst\_id}
@@ -524,6 +599,7 @@ The reason for this limitation is that once the future is created there is no wa
 run the asynchronous \emph{job} and that will set the future's value, that that it should update its own copy \emph{Shared\_pointer}
 variable using the current asynchronous communication scheme our library uses.  In practice, the original owner of the
 future, will act as a proxy between the new future owner and the process that will set its value.  Also note that it is
-possible for the user to retrieve still retrieve the future value from the original owner, or have it sent to multiple
-processes, since the actual data will always reside on the same place for everyone.
+possible for the user to still retrieve the future value from the original owner, or have it sent to multiple
+processes, since the actual data will always reside on the same place for everyone.  This means that our future 
+object behaves just like C+11's shared\_future object. 
 
