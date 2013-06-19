@@ -15,7 +15,7 @@ Our interface allows the programmer to issue callable objects, referred to as \e
 by other processes.  An asynchronous call of a functor will return a future object instead of its normal 
 return value.  This future object can be used by any other process to retrieve the encapsulated value.  If
 the functor has not been executed yet, the reference to the future's value will block \footnote{
-as we'll see in section \ref{FIXME}, only the master process blocks while other processes will try to 
+as we'll see in section \ref{sect:scheduler}, only the master process blocks while other processes will try to 
 run any functor objects that are scheduled to be run.}
 until it becomes available.  
  
@@ -155,7 +155,7 @@ where T is the return type of the encapsulated functor object, passed to \emph{a
  If the return value is an array, a pointer or any other form of container, the user
 should instead call a variation of the \emph{async} function, \emph{async(N, F, Args...)}, 
 where N is number of elements that will be returned \footnote{  
-In section~\ref{} we discuss an expansion to
+In section~\ref{FIXME} we discuss an expansion to
 our implementation that would allow us to keep the original interface intact, without the need for
 the extra size argument, but we have not yet implemented it and there are also some performance concerns.}.
 In order to retrieve the value,
@@ -473,6 +473,7 @@ pushes the job int the process' stack.  Our scheduler distributes \emph{jobs} in
 (excluding the master process, which should run user code). 
 
 \section{Extra Features}
+\label{sect:extra_features}
 
 \subsection{Additions to the User Interface}
 \paragraph{}

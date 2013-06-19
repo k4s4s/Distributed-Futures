@@ -22,19 +22,19 @@ ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 #iterations = 20;
 iterations = 20;
 
-for app in apps:
+#for app in apps:
 	#create lu threads dump directory
-	dumpdir = 'perfs/{0}'.format(app)
-	if not os.path.exists(dumpdir):
-		print "creating "+dumpdir+" directory" 
-		os.makedirs(dumpdir);
+#	dumpdir = 'perfs/{0}'.format(app)
+#	if not os.path.exists(dumpdir):
+#		print "creating "+dumpdir+" directory" 
+#		os.makedirs(dumpdir);
 	#run app
-	for workload in workloads:
-		for n in ncores:
-			for it in range(iterations):
-				dumpfile = dumpdir+"/{0}_load={1}_ncores={2}_{3}.dump".format(app, workload, n, it)
-				print "running ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile)
-				os.system("mpirun -np {3} ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile, n))
+#	for workload in workloads:
+#		for n in ncores:
+#			for it in range(iterations):
+#				dumpfile = dumpdir+"/{0}_load={1}_ncores={2}_{3}.dump".format(app, workload, n, it)
+#				print "running ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile)
+#				os.system("mpirun -np {3} ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile, n))
 
 
 
@@ -119,6 +119,21 @@ if not os.path.exists(dumpdir):
 #		dumpfile = dumpdir+"/bench_issue_container_argn=1_size={1}_{0}.dump".format(it, sz)
 #		print "running ./tests/bench_issue_container -a1 -n{1} > {0}".format(dumpfile, sz)
 #		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n{1} > {0}".format(dumpfile, sz))
+
+num_of_jobs = [1, 100];
+
+#create bench_issue_mul dump directory
+dumpdir = 'perfs/{0}'.format('bench_issue_mul')
+if not os.path.exists(dumpdir):
+	print "creating "+dumpdir+" directory" 
+	os.makedirs(dumpdir);
+#run app
+for n in ncores:
+	for it in range(iterations):
+		for jobs in num_of_jobs
+		dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
+		print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
+		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
 
 #plot.plot_bar_graph('scalar and container task issue time comparison', 
 #										args_num, ['bench_issue_container', 'bench_issue_scalar'], ['total job issue time'],

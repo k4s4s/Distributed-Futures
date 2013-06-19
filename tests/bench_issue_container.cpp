@@ -161,6 +161,7 @@ int main(int argc, char* argv[]) {
 	
 	int arg_size = DEFAULT_ARG_SIZE;
 	int arg_number = DEFAULT_ARG_NUMBER;
+	int jobs = 1;
 	char c;
 
 	while ((c = getopt(argc, argv, "a:n:")) != -1)
@@ -170,7 +171,10 @@ int main(int argc, char* argv[]) {
 		 	break;
 		case 'n':
 			arg_size = atoi(optarg);	 
-		 	break;		
+		 	break;	
+		case 'w':
+			jobs = atoi(optarg);	 
+		 	break;			
 	 	default:
 			break;		
 	}
@@ -193,30 +197,32 @@ int main(int argc, char* argv[]) {
 
 	REGISTER_TIMER("total time");
 	START_TIMER("total time");
-	switch (arg_number)	{
-		case	1:
-			res = async(f_1arg);
-			res.get();	 
-		 	break;
-		case	2:
-			res = async(f_2args);
-			res.get();	 
-		 	break;		
-		case	4:
-			res = async(f_4args);
-			res.get();	 
-		 	break;	
-		case	6:
-			res = async(f_6args);
-			res.get();	 
-		 	break;	
-		case	8:
-			res = async(f_8args);
-			res.get(); 
-		 	break;	
-	 	default:
-			cout << "ERROR: argument number must be 1,2,4,6 or 8!" << endl;
-			break;		
+	for(int i=0; i < jobs; i++) {
+		switch (arg_number)	{
+			case	1:
+				res = async(f_1arg);
+				res.get();	 
+			 	break;
+			case	2:
+				res = async(f_2args);
+				res.get();	 
+			 	break;		
+			case	4:
+				res = async(f_4args);
+				res.get();	 
+			 	break;	
+			case	6:
+				res = async(f_6args);
+				res.get();	 
+			 	break;	
+			case	8:
+				res = async(f_8args);
+				res.get(); 
+			 	break;	
+		 	default:
+				cout << "ERROR: argument number must be 1,2,4,6 or 8!" << endl;
+				break;		
+		}
 	}
 	STOP_TIMER("total time");	
 	PRINT_TIMER("total time");
