@@ -1,24 +1,25 @@
 \chapter{Design and Implementation}
 \label{chap:implementation}
 
-\begin{figure}[!ht]
-\center
-\includegraphics[width=0.7\columnwidth]{figures/system_overview}
-\caption{Overview of our futures library design.}
-\label{fig:system_overview}
-\end{figure}
-
 \paragraph{}
 	In this chapter we describe the interface and the implementation details of our futures library.
 Our interface allows the programmer to issue callable objects, referred to as \emph{jobs} from now on,
- to be executed asynchronously
-by other processes.  An asynchronous call of a functor will return a future object instead of its normal 
+to be executed asynchronously by other processes.  In C++ a callable object is any language struct that
+can be treated as a function (function pointers, functors etc). 
+An asynchronous call of such an object will return a future object instead of its normal 
 return value.  This future object can be used by any other process to retrieve the encapsulated value.  If
 the functor has not been executed yet, the reference to the future's value will block \footnote{
 as we'll see in section \ref{sect:scheduler}, only the master process blocks while other processes will try to 
 run any functor objects that are scheduled to be run.}
 until it becomes available.  
- 
+
+\begin{figure}[!ht]
+\center
+\includegraphics[width=0.5\columnwidth]{figures/system_overview}
+\caption{Overview of our futures library design.}
+\label{fig:system_overview}
+\end{figure} 
+
 \paragraph{}
 		We designed our system to be modular, so that different aspects of the runtime library, such as process
 communication, hide its underlying implementation (e.g. MPI),  thus different implementations 
@@ -154,10 +155,11 @@ A call to the \emph{async} function is non-blocking and returns a future<T> obje
 where T is the return type of the encapsulated functor object, passed to \emph{async}.
  If the return value is an array, a pointer or any other form of container, the user
 should instead call a variation of the \emph{async} function, \emph{async(N, F, Args...)}, 
-where N is number of elements that will be returned \footnote{  
-In section~\ref{FIXME} we discuss an expansion to
-our implementation that would allow us to keep the original interface intact, without the need for
-the extra size argument, but we have not yet implemented it and there are also some performance concerns.}.
+where N is number of elements that will be returned 
+%\footnote{  
+%In section~\ref{FIXME} we discuss an expansion to
+%our implementation that would allow us to keep the original interface intact, without the need for
+%the extra size argument, but we have not yet implemented it and there are also some performance concerns.}.
 In order to retrieve the value,
 the owner of the future needs to call the get() method.  This method is blocking, so calling it will cause the 
 process to block until the value of the future becomes available.  Alternatively, the future owner can call the
@@ -511,51 +513,6 @@ need to wait on its corresponding future, even if previous futures in the arrays
 a stage function can proceed normally its execution.  This time we have an accurate pipeline implementation.
 
 \begin{figure}[!ht]
-\begin{subfigure}[b]{0.4\textwidth}
-\begin{lstlisting}
-...
-for(int i=0; i < N; i++) {
-	res1[i] = async(stage1);
-}
-
-for(int i=0; i < N; i++) {
-	res2[i] = async(stage2, res1[i].get());
-} 
-
-for(int i=0; i < N; i++) {
-	res3[i] = async(stage3, res2[i].get());
-} 
-...
-\end{lstlisting}
-\caption{	Pipeline example with the master process blocking.  
-					Each \emph{async} will have to wait for all futures before her corresponding future.}
-\label{lst:pipe_futures_a}
-\end{subfigure}
-
-\begin{subfigure}[b]{0.4\textwidth}
-\begin{lstlisting}
-...
-for(int i=0; i < N; i++) {
-	res1[i] = async(stage1);
-}
-
-for(int i=0; i < N; i++) {
-	res2[i] = async(stage2, res1[i]);
-} 
-
-for(int i=0; i < N; i++) {
-	res3[i] = async(stage3, res2[i]);
-} 
-...
-\end{lstlisting}
-\caption{	Pipeline example with each process blocking on its corresponding future.
-					Each \emph{async} will only wait for its future to become available.}
-\label{lst:pipe_futures_b}
-\end{subfigure}
-\caption{	Different implementations of a pipeline scheme using our futures .}
-\end{figure}
-
-\begin{figure}[!ht]
 \begin{lstlisting}
 template <class T>
 class future {
@@ -576,6 +533,54 @@ public:
 \end{lstlisting}
 \caption{The future object definition.}
 \label{lst:future_object}
+\end{figure}
+
+\begin{figure}
+\begin{subfigure}[b]{.6\textwidth}
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}
+...
+for(int i=0; i < N; i++) {
+	res1[i] = async(stage1);
+}
+
+for(int i=0; i < N; i++) {
+	res2[i] = 
+		async(stage2, res1[i].get());
+} 
+
+for(int i=0; i < N; i++) {
+	res3[i] = 
+		async(stage3, res2[i].get());
+} 
+...
+\end{lstlisting}
+\caption{Pipeline without serilizable futures}
+\end{minipage}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{.6\textwidth}
+\begin{minipage}{.48\textwidth}
+
+\begin{lstlisting}
+...
+for(int i=0; i < N; i++) {
+	res1[i] = async(stage1);
+}
+
+for(int i=0; i < N; i++) {
+	res2[i] = async(stage2, res1[i]);
+} 
+
+for(int i=0; i < N; i++) {
+	res3[i] = async(stage3, res2[i]);
+} 
+...
+\end{lstlisting}
+\caption{Pipeline with serilizable futures}
+\end{minipage}
+\end{subfigure}
+\caption{	Different implementations of a pipeline scheme using our futures .}
 \end{figure}
 
 \paragraph{}

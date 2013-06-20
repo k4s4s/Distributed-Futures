@@ -1,17 +1,18 @@
 \chapter{Conclusions and Future Work}
 \label{chap:conclusion}
+\paragraph{}
 In this work we presented an implementation of the futures programming model as a C++ library,
-for distributed memory machines.  We implemented our system using the MPI one-sided communication
-library for communication and we adopted shared memory scheduling techniques to implement 
-our scheduler, making use again of the MPI one-sided interface.  Our evaluation of the system shows
-that the current implementation suffers from significant overheads, especially when issuing asynchronous
-\emph{jobs} on processes. In order to be usable, the user must issue coarse grain \emph{jobs}.  At this
-point, we are inconclusive whether the large overhead can be attributed to the MPI library or to other
-implementation issues in our runtime system (e.g. scheduling policies, mutex implementation).  We suspect
-however, that busy waiting, the technique we use to check for future availability, 
-even on local variable that are shared through MPI windows can be costly (acquiring locks on an "epoch" for example).
+for distributed and shared memory machines.  We implemented our system using the MPI one-sided communication
+library for communication. We adopted shared memory scheduling techniques to implement 
+our scheduler, making use again of the MPI one-sided interface.  In terms of interface, we showed that it 
+is possible to implement the shared memory C++11 standard interface.  There are only minimal differences
+between the two interfaces, none of which limits the the expressiveness and usability of the futures model. 
+Our performance evaluation of the system shows
+that the current implementation suffers from significant overheads, making it unsuitable for fine grain
+parallelization.  For the most part, the high overhead can be mainly attributed to the serialization 
+routines and the MPI based mutex library we use.  
 
-
+\paragraph{}
 At this point, from our experience with the MPI one-sided communication interface, we believe that there exist
 some fundamental limitations in its design. These are:
 \\
@@ -33,17 +34,22 @@ some fundamental limitations in its design. These are:
 				window will block other processes from accessing it, even if they access different, non-overlapping addresses
 				in that window.  The later constraint, limits fine grain locking.  In our system, this is a very common
 				scenario, where processes, different asynchronous \emph{jobs}, need to write to different parts of the same
-		 		window of the process owning the associated futures.   
+		 		window of the process owning the associated futures.
+
+	\item The lack of synchronization primitives, with the same schematics as their shared memory counterparts 
+				limits the usability of the model.  Native implementations of such primitives, could offer much better
+				performance than implementing them on top of the MPI library.   
 \\
 \end{enumerate}
 
-In the future we plan to further investigate the cause of our systems high overhead.  If our suspicions are correct
-and the cause of the overhead is our scheduling scheme, we will try different implementations for the scheduling 
-and communication layers.  We would also like to explore the potential of having a hybrid model, where \emph{jobs}
-that run on the same machine will use a shared memory runtime, while \emph{jobs} that run on different machines,
-will have to make use of the distributed memory runtime.  Our focus will be to deliver a high performance runtime system.
-We also plan to add important features to the runtime, such as the ability to serialize and send futures to other 
-processes.  This will be very useful in applications like our Tiled LU, where the master issues all the async \emph{jobs},
-but instead each process will wait for it's futures to be available. This will allow finer grain synchronization and
-the master will not become a bottleneck.
+\paragraph{}
+In the future we plan to address the performance issues of our system.  Currently we use the Boost serialization
+library, which is not tuned for performance.  We could try alternative serialization routine that could possibly
+match our needs.  The overhead caused by the mutex library though, is tougher to address, while still using 
+the one-sided communication Interface.  Unless MPI will not provide a native mutex implementation, alternative
+one-sided communication libraries, like ARMCI, should be used.  Less high profile goals include implementing 
+all the secondary features of the C++11 futures library.  We are also interested in exploring the potential of having 
+a hybrid model with a unified interface. \emph{Jobs} that run on the same machine will use a shared memory runtime, 
+while \emph{jobs} that run on different machines, will have to make use of the distributed memory runtime.  
+Our main goal is to deliver a high performance runtime system.
 

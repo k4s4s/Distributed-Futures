@@ -12,7 +12,7 @@ block/.style={draw, minimum width=1.5cm, minimum height=1.5cm},
 next_ar/.style={draw, single arrow, minimum width=1cm, minimum height=1cm, fill=Gold},
 U_block/.style={draw, isosceles triangle, isosceles triangle apex angle=90, rotate=0, minimum width=2cm}]
 	%k=1, step 1 
-	\node[block, fill=Blue] (00_0) {dgetrf};
+	\node[block, fill=RoyalBlue] (00_0) {dgetrf};
 	\node[block, right=0.5cm of 00_0] (01_0) {};
 	\node[block, right=0.5cm of 01_0] (02_0) {}; 
 
@@ -43,9 +43,9 @@ U_block/.style={draw, isosceles triangle, isosceles triangle apex angle=90, rota
 	\node[block, right=0.5cm of 20_1] (21_1) {};
 	\node[block, right=0.5cm of 21_1] (22_1) {};
 
-  \path[->, bend left, color=Blue] (00_1.north) edge (01_1.north);
-	\path[->, bend left, color=Blue] (00_1.north) edge (02_1.north);
-	\path[->, bend right, color=Blue] (00_1.west) edge (10_1.west);
+  \path[->, bend left, color=RoyalBlue] (00_1.north) edge (01_1.north);
+	\path[->, bend left, color=RoyalBlue] (00_1.north) edge (02_1.north);
+	\path[->, bend right, color=RoyalBlue] (00_1.west) edge (10_1.west);
 
 	\node[next_ar, right=0.5 of 12_1] {};
 
@@ -96,7 +96,7 @@ U_block/.style={draw, isosceles triangle, isosceles triangle apex angle=90, rota
 	\node[block, below=0.5cm of 00_4, fill=Gray] (10_4) {};
 	\node[block, below=0.5cm of 10_4, fill=Gray] (20_4) {};  
 
-	\node[block, right=0.5cm of 10_4, fill=Blue] (11_4) {dgetrf};
+	\node[block, right=0.5cm of 10_4, fill=RoyalBlue] (11_4) {dgetrf};
 	\node[block, right=0.5cm of 11_4] (12_4) {};  
 	\node[block, right=0.5cm of 20_4] (21_4) {};
 	\node[block, right=0.5cm of 21_4] (22_4) {};
@@ -120,8 +120,8 @@ U_block/.style={draw, isosceles triangle, isosceles triangle apex angle=90, rota
 	\node[block, right=0.5cm of 20_5, fill=Red] (21_5) {dtstrf};
 	\node[block, right=0.5cm of 21_5] (22_5) {};
 
-	\path[->, color=Blue] (11_5.east) edge (12_5.west);
-	\path[->, color=Blue] (11_5.south) edge (21_5.north);
+	\path[->, color=RoyalBlue] (11_5.east) edge (12_5.west);
+	\path[->, color=RoyalBlue] (11_5.south) edge (21_5.north);
 
 	%k=2, step 3
 	\node[block, below=2cm of 20_3, fill=Gray] (00_6) {};
@@ -154,7 +154,7 @@ U_block/.style={draw, isosceles triangle, isosceles triangle apex angle=90, rota
 
 	\node[block, right=0.5cm of 11_7, fill=Gray] (12_7) {};  
 	\node[block, right=0.5cm of 20_7, fill=Gray] (21_7) {};
-	\node[block, right=0.5cm of 21_7, fill=Blue] (22_7) {dgetrf};
+	\node[block, right=0.5cm of 21_7, fill=RoyalBlue] (22_7) {dgetrf};
 
 	%extra
 	\node[above=0.5cm of 00_0, scale=2] {step 1};

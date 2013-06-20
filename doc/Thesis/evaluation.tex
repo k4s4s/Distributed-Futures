@@ -1,5 +1,5 @@
 \chapter{Evaluation}
-\label{chapter:evaluation}
+\label{chap:evaluation}
 	In this chapter, we asses our effort to implement the C++11 standard future interface, for 
 distributed memory enviromnent, and we evaluate the performance of our runtime system.
 
@@ -15,6 +15,9 @@ using the get method.  Our future object behaves also like a shared\_future from
 which means that it can be accessed by different processes concurrently.  
 
 \paragraph{}
+One difference to the interfaces is that our interface requires the data size of a \emph{job}'s return 
+value to be defined.  This is limited only to the case where the return value is dynamically sized object
+or a pointer. 
 The major difference between the two interfaces is that only functor objects can be 
 issued by the \emph{async} function and that the programmer has to explicitely indentify the functors
 as \emph{job}s, in order to expose their type and arguments to our runtime system.  This has minimal impact on
@@ -42,11 +45,11 @@ note-worthy.  On the other hand,  the functor object, its return value and its a
 This limitation manifests itself in our interface, both as an adittional burden to the programmer and as a potential
 limitation, when porting codes with lots of pointers and maybe non-serializable objects to work with our library.
 To better undersand the implications here, we share our experience when we tried to port Ferret, a benchmark from
-the PARSEC suite \cite{FIXME}, using our library.
+the PARSEC~\cite{bienia11benchmarking} suite, using our library.
 
 \paragraph{}
 Ferret is a content-based similarity search engine toolkit for feature rich
-data types (video, audio, images, 3D shapes, etc).  It is included in the PARSEC benchmark suite.
+data types (video, audio, images, 3D shapes, etc).
 Ferret uses a pipeline model for parallelization, 
 with a thread pool at each stage.  A queue exist for each stage and whenever
 there is an entry on that queue, a thread from the thread pool will pop it, and start execution.  When it's
@@ -74,7 +77,7 @@ manipulating the data of the void pointers would still be required.
 \paragraph{}
 	We evaluated our runtime's implementation performance by running some microbenchmark applications and
 three small applications (fibonacci, quicksort, LU).  We run all benchmarks on two Intel(R) Xeon(R) 
-CPU E5645@2.40GHz with with 6 available cores on each machine, totaling to 12 cores connected through 
+CPU E5645@2.40 GHz with with 6 available cores on each machine, totaling to 12 cores connected through 
 a network socket. We have compiled the runtime and application code using g++ version 4.6.3 with 
 level 3 optimizations enabled.  For the MPI library we used OpenMPI version 1.4.3.
 
@@ -169,7 +172,9 @@ array of 100,000 doubles.
 \begin{figure}[!ht]
 \center
 \includegraphics[width=0.8\columnwidth]{figures/3x3example}
-\caption{3x3 example execution of our parallel tiled LU algorithm.}
+\caption{	3x3 example execution of our parallel tiled LU algorithm.  The dark blue color
+					denotes the dgetrf kernel.  Red and green denote dtstrf and dgessssm kernels respectively.
+					Light blue denotes dgssssm and grey denotes tiles that have completed.}
 \label{fig:3x3lu_example}
 \end{figure}
 
@@ -419,6 +424,6 @@ mutexes, but none of the MPI synchronization primitives can be used to define a 
 considerable.  One can also see that the fibonacci had a lot more useful work to complete compared to tiled LU and 
 quicksort.  We believe that the runtime can be only usefull for coarser grain work, with the current implementation.
 
-\paragraph{\todo{graphs about job issuing over number of workers/jobs issued}}
+%\paragraph{\todo{graphs about job issuing over number of workers/jobs issued}}
 %\dc{FIXME:say smth about how little the cost for scheduler decision is}
 

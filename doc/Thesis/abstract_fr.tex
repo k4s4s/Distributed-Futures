@@ -1,0 +1,19 @@
+\thispagestyle{empty}
+\begin{titlepage}
+\begin{center}
+{\bf\Large Résumé}\\
+\end{center}
+
+\paragraph{}
+Nous présentons une implémentation C++ de la bibliothèque du le modèle de programmation de futures, pour mémoire distribuée.
+Notre implémentation utilise une interface similaire de la bibliothèque C++ standard. 
+L'utilisateur peut utiliser le futures interface pour exprimer le parallélisme et la synchronisation de son code, 
+tandis que le système d'exécution jacente exécute des "tasks" de façon asynchrone.
+Notre système est actuellement mis en œuvre sur le dessus
+du MPI interface de communication à sens unique, afin de réaliser une communication asynchrone. 
+Nous évaluons notre exécution de performances et de conclure que, dans son état actuel, il est seulement approprié pour le traitement des "coarse grain tasks".
+Nous partageons aussi notre expérience de l'utilisation du MPI interface de one-sided communication pour mettre en œuvre une haute performance runtime.
+\vfill
+\end{titlepage}
+
+
