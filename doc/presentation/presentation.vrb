@@ -1,10 +1,4 @@
-\frametitle {MPI Futures:Interface}\begin {itemize}
-\item If return value size can change dynamically (pointer, vectors, etc) the size must be provided to \texttt{async}
-\item User can call \texttt{async\_on} and provide the rank of the process he wants it scheduled on
-\note[item]{Skips scheduler.  Can take advantage of data locality}
+\frametitle {Performance Evaluation:Tiled LU}\lstTLU 
 \begin{itemize}
-\item Take advantage of how data locality
-\item More effective data and work distribution
-\note[item]{Remember, data is also distributed with an async call}
-\end{itemize}
+\item Originally implemented with PLASMA
 \end{itemize}
