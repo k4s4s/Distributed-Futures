@@ -1,15 +1,17 @@
-\section*{Introduction}
+\chapter*{Introduction}
+
+\paragraph{}
 We present an implementation of the future programming model for distributed memory,
 using MPI-2's one-sided communication.  The interface is implemented as a runtime 
-library that allows the user to  expose parallelism, by issuing callable functor object 
-asynchronously.  The future object is used a simple communication channel, where the worker process 
+library that allows the user to  expose parallelism, by issuing callable functor objects 
+asynchronously.  The future object is used like a simple communication channel, where the worker process 
 will send through it the return value of the functor object. 
-A future object is also used for synchronization. Such an object can be accessed at any time during execution,
-but the process accessing it will block until the worker process finishes the execution of functor object, and
+A future object is also used for synchronization. Such an object can be accessed at any time during execution.
+The process accessing it will block until the worker process finishes the execution of the functor object, and
 transmits the result to the future object.
 
 \paragraph{}
-Traditionally implemented using threads over shared memory environments.  
+Traditionally futures are implemented using threads in shared memory environments.  
 In this work we show that the C++11 standard future interface~\cite{CPP:Threads} can be implemented meaningfully 
 for distributed memory machines.  We have chosen to build our system using the MPI-2 one-sided
 communication library, so that we can explore and evaluate it's potential to provide a completely asynchronous
@@ -18,7 +20,7 @@ library available on distributed and shared memory machines alike.
 The contributions of this work can sum up to:
 \\
 \begin{itemize}
-	\item Implementation of the C++11 futures interface for distributed machines, as a runtime system.
+	\item Implementation of a unified C++ futures interface for both shared and distributed memory machines, as a runtime system.
 	\item Performance Evaluation of the our implementation. 
 	\item Evaluation of the MPI-2 one-sided communication interface, for implementing an advanced runtime system.
 	\item Exploration of the potential of implementing a runtime on distributed memory using shared memory scheduling techniques.
@@ -28,15 +30,15 @@ The contributions of this work can sum up to:
 Our evaluation shows that the interface implementation is possible, but, performance-wise,  our implementation 
 is only able to offer some speedup only when we use coarse grain tasks, due to the high cost of issuing functions 
 asynchronously and/or inefficient synchronization schemes. Moreover, MPI-2 one-sided communication interface is 
-not as versatile as we would like, and forces some limitations, especially on fine grain synchronization.  
+not as versatile as we would like, especially regarding fine grain synchronization.  
 
 \paragraph{}
-The rest of this report is organized as follows:  In the rest of the introduction, we present the current state
+The rest of this report is organized as follows:  In chapter \ref{chap:background}, we present the current state
 and trends in parallel computing.  We briefly introduce the concept of asynchronous execution models and present
 the futures programming model.  At the end of the introduction, we describe MPI's one-sided communication interface.
 In chapter \ref{chap:related} we discuss other projects related with our work, and present their approach to
 asynchronous communication.  In chapter \ref{chap:implementation} we present in details our system's design and 
-implementation.  In chapter \ref{chap:evaluation} we assess our efforts to build the C++11 interface using 
+implementation.  In chapter \ref{chap:evaluation} we assess our efforts in building the C++11 interface using 
 MPI's one-sided communication and use some microbenchmarks and real applications to evaluate the performance
 of our runtime system.  Finally, in chapter \ref{chap:conclusion} we give our concluding remarks regarding our
 library along with our suggestions for its improvement.    

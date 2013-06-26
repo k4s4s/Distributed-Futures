@@ -5,11 +5,11 @@
 \end{center}
 
 \paragraph{}
-In this work we present a C++ library implementation of the futures programming model for distributed memory.
-Our implementation uses an interface similar to the the C++ standard library's one.  The user can use the 
+In this work we present a C++11 library implementation of the futures programming model for distributed memory.
+Our implementation uses an interface similar to the C++11 standard library's one.  The user can use the 
 futures interface to express parallelism and synchronize his code, while the underlying runtime system
-schedules the functions the user issues to be run in parallel.  Our runtime is currently implemented on top
-of the MPI one-sided communication interface, to achieve asynchronous communication.  We evaluate our runtime's
+schedules the functions the user issues to be run in parallel.  Our runtime currently uses
+ the MPI one-sided communication interface, to achieve asynchronous communication.  We evaluate our runtime's
 performance and conclude that, in it's current state, it is only suitable for handling coarse grain tasks.
 We also share our experience using the MPI one-sided communication interface for implementing a high-performance
 runtime. 
