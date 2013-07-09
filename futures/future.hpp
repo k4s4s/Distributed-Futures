@@ -271,6 +271,7 @@ void async_function<F, Args...>::run() {
 		functor_utils::apply(f, &retVal, args);
 		STOP_TIMER("job_execution_time");
 		DPRINT_VAR("JOB:Completed execution, setting future data ",id);
+		START_TIMER("value_return_time");
     //return value to future
 		//TODO: here we need to handle containers differently 
 		env->set_data(retVal, data_ptr.node_id, data_ptr, data_size, 0);
@@ -278,6 +279,7 @@ void async_function<F, Args...>::run() {
     int ready_status = 1;
     env->set_data(ready_status, status_ptr.node_id, status_ptr, 1, 0);
 		DPRINT_VAR("JOB:Set status, job completed ",id);
+		STOP_TIMER("value_return_time");
 };
 
 }//end of futures namespace

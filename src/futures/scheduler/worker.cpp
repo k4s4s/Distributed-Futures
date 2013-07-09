@@ -26,12 +26,36 @@ Worker::~Worker() {
 		delete task_stack;
 };
 
+#if 0
 bool Worker::terminate() {
+		START_TIMER("terminate_time");
     ProcStatus master_status;
 		master_status = status_mem->get<ProcStatus>(MASTER, 1, 0);
+		STOP_TIMER("terminate_time");
     if(master_status != TERMINATED) return false;
     return true;
 };
+
+#elif 1
+
+bool Worker::terminate() {
+		START_TIMER("terminate_time");
+    ProcStatus status;
+		status = status_mem->get<ProcStatus>(id, 1, 0);
+		STOP_TIMER("terminate_time");
+    if(status != TERMINATED) return false;
+    return true;
+};
+
+#else 
+
+bool Worker::terminate() {
+	START_TIMER("terminate_time");
+	return true;
+	STOP_TIMER("terminate_time");
+};
+
+#endif
 
 int Worker::getId() {
 	return id;

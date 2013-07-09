@@ -89,7 +89,7 @@ void Futures_Environment::Finalize() {
 		delete memManager;
 		STOP_TIMER("finalization_time");
 		STOP_TIMER("total_execution_time");
-		PRINT_STATS();	
+		PRINT_STATS(commInterface);	
     delete commInterface;
     //delete pinstance;
 };
@@ -112,7 +112,6 @@ void Futures_Environment::free(int id, mem::Shared_pointer ptr) {
 	memManager->free(id, ptr);
 };
 
-
 bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
 	return sched->schedule_job(dst_id, job);
 };
@@ -120,7 +119,7 @@ bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
 void Futures_Environment::wait_for_job() {
 		START_TIMER("idle_time");
 		while(!sched->terminate()) {
-			sched->schedule_proc();
+			sched->run_proc();
 		}
 		STOP_TIMER("idle_time");
     DPRINT_MESSAGE("ENVIRONMENT: worker exiting program");
@@ -128,6 +127,6 @@ void Futures_Environment::wait_for_job() {
 };
 
 void Futures_Environment::execute_pending_jobs() {
-	sched->schedule_proc();
+	sched->run_proc();
 }
 

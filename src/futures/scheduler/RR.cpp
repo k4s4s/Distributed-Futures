@@ -45,6 +45,7 @@ Scheduler* RRScheduler:: create(CommInterface *commInterface) {
 };
 
 int RRScheduler::nextAvaibleWorkerId() {
+		START_TIMER("find_available_worker_time");
     assert(total_workers != 0);
 		if(total_workers == 1) return 0;
 		int curr_worker_id;
@@ -59,12 +60,14 @@ int RRScheduler::nextAvaibleWorkerId() {
 			if(proc->available(i)) {
 				sched_lock->unlock(MASTER_ID);
 				//DPRINT_VAR("\tRRSched:worker is available, ", curr_worker_id);
+				STOP_TIMER("find_available_worker_time");
 				return i;	
 			}
 		}
 		//if we get here we didn't find any avaible procs, so run RR fashion
 		//DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
 		sched_lock->unlock(MASTER_ID);
+		STOP_TIMER("find_available_worker_time");
     return curr_worker_id;
 };
 
@@ -76,11 +79,12 @@ bool RRScheduler::terminate() {
     return proc->terminate();
 };
 
-void RRScheduler::schedule_proc() {
+void RRScheduler::run_proc() {
 	int id;
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 	while(proc->has_job()) {
 		STOP_TIMER("idle_time");
+		START_TIMER("run_proc_time");
 		DPRINT_VAR("RRScheduler:worker has job! ", id);
 		DPRINT_VAR("\tRRScheduler:setting status to running ", id);
 		proc->set_status(scheduler::ProcStatus::RUNNING);
@@ -89,6 +93,7 @@ void RRScheduler::schedule_proc() {
 		DPRINT_VAR("\tRRScheduler:running job! ", id);
 		job->run();
 		proc->set_status(scheduler::ProcStatus::IDLE);
+		STOP_TIMER("run_proc_time");
 		START_TIMER("idle_time");
 	}
 };

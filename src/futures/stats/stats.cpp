@@ -1,6 +1,10 @@
 
 #include "stats.hpp"
 #include <mpi.h>
+#include <cstring>
+#include <iomanip>
+
+#define l_margin 30
 
 using namespace futures::stats;
 using namespace std;
@@ -10,45 +14,58 @@ _timer::_timer() {
 	_timer_h_G_totaltime = 0;
 	_timer_h_G_starttime = 0;
 	_timer_h_G_endtime = 0;
+	active = false;
 };
 
 _timer::~_timer() {};
 
 void _timer::start_timer() {
+	if(active) return;
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	_timer_h_G_starttime = time.tv_usec + time.tv_sec * 1000000;
+	active = true;
 };
 
 void _timer::stop_timer() {
+	if(!active) return; 
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	_timer_h_G_endtime = time.tv_usec + time.tv_sec * 1000000;
 	_timer_h_G_totaltime += _timer_h_G_endtime - _timer_h_G_starttime;
+	active = false;
 };
 
 unsigned long _timer::get_time() {
 	return _timer_h_G_totaltime;
 };
 
+
 /*** StatManager class implementation ***/
 StatManager* StatManager::pinstance;
 
 StatManager::StatManager() {
-	timerMap["initialization_time"] = _timer();
-	timerMap["job_issue_time"] = _timer();
-	timerMap["job_execution_time"] = _timer();
-	timerMap["idle_time"] = _timer();
-	timerMap["finalization_time"] = _timer();
-	timerMap["total_execution_time"] = _timer();
-	timerMap["user_code_execution_time"] = _timer();
-	counterMap["total_jobs"] = 0;
-	counterMap["total_memory_needed"] = 0;
+	sys_timerMap["initialization_time"] = _timer();
+	sys_timerMap["finalization_time"] = _timer();
+	sys_timerMap["job_issue_time"] = _timer();
+	sys_timerMap["job_execution_time"] = _timer();
+	sys_timerMap["idle_time"] = _timer();
+	sys_timerMap["total_execution_time"] = _timer();
+	sys_timerMap["user_code_execution_time"] = _timer();
+	sys_timerMap["value_return_time"] = _timer();
+	sys_timerMap["wait_on_lock_time"] = _timer();
+	sys_timerMap["find_available_worker_time"] = _timer();
+	sys_timerMap["run_proc_time"] = _timer();
+	sys_timerMap["terminate_time"] = _timer();
+
+	sys_counterMap["total_jobs"] = 0;
+	sys_counterMap["total_memory_needed"] = 0;
 };
 
 StatManager::~StatManager() {
-	timerMap.clear();
-	counterMap.clear();
+	sys_timerMap.clear();
+	sys_counterMap.clear();
+	usr_timerMap.clear();
 };
 
 StatManager* StatManager::Instance() {
@@ -60,169 +77,158 @@ StatManager* StatManager::Instance() {
  
 void StatManager::start_timer(std::string const& timer_n) {
 	map<string, _timer>::iterator it;
-	it = timerMap.find(timer_n);
+	it = sys_timerMap.find(timer_n);
 	it->second.start_timer();
 };
 
 void StatManager::stop_timer(std::string const& timer_n) {
 	map<string, _timer>::iterator it;
-	it = timerMap.find(timer_n);
+	it = sys_timerMap.find(timer_n);
+	it->second.stop_timer();
+};
+
+void StatManager::start_usr_timer(std::string const& timer_n) {
+	map<string, _timer>::iterator it;
+	it = usr_timerMap.find(timer_n);
+	it->second.start_timer();
+};
+
+void StatManager::stop_usr_timer(std::string const& timer_n) {
+	map<string, _timer>::iterator it;
+	it = usr_timerMap.find(timer_n);
 	it->second.stop_timer();
 };
 
 void StatManager::increase_counter(std::string const& counter_n, std::size_t value) {
 	map<string, std::size_t>::iterator it;
-	it = counterMap.find(counter_n);
+	it = sys_counterMap.find(counter_n);
 	it->second += value;
 };
 
 void StatManager::decrease_counter(std::string const& counter_n, std::size_t value) {
 	map<string, std::size_t>::iterator it;
-	it = counterMap.find(counter_n);
+	it = sys_counterMap.find(counter_n);
 	it->second -= value;
 };
 
 void StatManager::register_timer(std::string const& timer_n) {
-	timerMap[timer_n] = _timer();
-}
+	sys_timerMap[timer_n] = _timer();
+};
+
+void StatManager::register_usr_timer(std::string const& timer_n) {
+	usr_timerMap[timer_n] = _timer();
+};
 
 void StatManager::register_counter(std::string const& counter_n) {
-	counterMap[counter_n] = 0;
-}
+	sys_counterMap[counter_n] = 0;
+};
 
 unsigned long StatManager::get_time(std::string const& timer_n) {
-	map<string, _timer>::iterator it;
-	it = timerMap.find(timer_n);
+	map<string, _timer>::iterator it; 
+	it = sys_timerMap.find(timer_n);
+	if(it == sys_timerMap.end()) return 0; //not found
 	return it->second.get_time();
 };
 
 std::size_t StatManager::get_count(std::string const& counter_n) {
 	map<string, std::size_t>::iterator it;
-	it = counterMap.find(counter_n);
-	return it->second;
+	it = sys_counterMap.find(counter_n);
+	if(it == sys_counterMap.end()) return 0; //not found
+ 	return it->second;
 };
 
 void StatManager::print_timer(std::string const& timer_n) {
-	cout << timer_n<<":"<< ((double)this->get_time(timer_n)/1000.0) << "ms" << endl;	
+	cout << timer_n << ":" << ((double)this->get_time(timer_n)/1000.0) << "ms" << endl;	
+};
+
+void StatManager::print_usr_timer(std::string const& timer_n) {
+	map<string, _timer>::iterator it; 
+	it = usr_timerMap.find(timer_n);
+	if(it == usr_timerMap.end()) return; //not found
+	cout << timer_n << ":" << ((double)(it->second.get_time())/1000.0) << "ms" << endl;	
 };
 
 void StatManager::print_counter(std::string const& counter_n) {
-	cout << counter_n<<":"<< this->get_count(counter_n) << endl;	
+	cout << counter_n<< ":" << this->get_count(counter_n) << endl;	
 };
 
-void StatManager::print_stats() {
+void StatManager::print_stats(futures::communication::CommInterface *comm) {
 	int nprocs, id;
-	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-	MPI_Comm_rank(MPI_COMM_WORLD, &id);
-	//FIXME: master should collect statistics over all workers
-	unsigned long total_job_issue_time = this->get_time("job_issue_time") ;
-	long total_total_jobs = this->get_count("total_jobs"); //terrible name for a variable :P
-	unsigned long total_idle_time = this->get_time("idle_time");
+	nprocs = comm->size();
+	id = comm->get_procId();
+
 	if(id == 0) {
 
+		cout << "==== FUTURE'S RUNTIME STATS ====" << endl;
+		cout << setw(l_margin) << "total_mpi_processes:" << nprocs << endl;  	
 			
-		long jobs_num = 0;
+		//collect and sum counters
+		map<string, std::size_t>::iterator it_c;
+		char buff[100];
+		for(it_c = sys_counterMap.begin(); it_c != sys_counterMap.end(); ++it_c) {
+			//cout << it->first << ":" << ((double)it->second/1000.0) << "ms";
+			std::size_t counter_sum = it_c->second;
+			for(int i = 1; i < nprocs; i++) {
+				string req = it_c->first;
+				strcpy(buff, req.c_str());
+				comm->send(i, 0, 100, MPI_CHAR, buff);
+				std::size_t counter;
+				comm->recv(i, 0, 1, MPI_LONG, &counter);
+				counter_sum += counter;		
+			}
+			cout << setw(l_margin) << it_c->first << ":" << counter_sum << endl;			
+		}
+		//ok, send done to all workers
 		for(int i = 1; i < nprocs; i++) {
-				MPI_Status status;
-				int go;
-				MPI_Send(&go, 1, MPI_BYTE, i, 0, MPI_COMM_WORLD);
-				MPI_Recv(&jobs_num, 1, MPI_LONG, i, 0, MPI_COMM_WORLD, &status);
-				total_total_jobs += jobs_num;
+			string req = "done";
+			strcpy(buff, req.c_str());
+			comm->send(i, 0, 100, MPI_CHAR, buff);
+		}
+		
+		cout << "==== MASTER TIMING STATS ====" << endl;	
+
+		map<string, _timer>::iterator it_t;
+		for(it_t = sys_timerMap.begin(); it_t != sys_timerMap.end(); ++it_t) {
+			cout << setw(l_margin) << it_t->first << ":" << ((double)it_t->second.get_time()/1000.0) << "ms" << endl;
 		}
 
-		long rest_time = this->get_time("total_execution_time") - 
-										(this->get_time("initialization_time") +
-										this->get_time("job_issue_time") + 
-										this->get_time("user_code_execution_time") +
-										this->get_time("idle_time") +
-										this->get_time("finalization_time"));
-
-		cout << "==== FUTURE'S RUNTIME STATS ===" << endl;
-		cout << "        total mpi processes:" << nprocs << endl;  	
-		cout << "total number of jobs issued:" << total_total_jobs << endl;
-	
-		cout << "==== MASTER TIMING STATS ===" << endl;	
-		cout << "     initialization time:" << ((double)this->get_time("initialization_time")/1000.0) << "ms" << endl; 
-		cout << "    total job issue time:" << ((double)this->get_time("job_issue_time")/1000.0) << "ms" << endl;
-		cout << "  job issue time per job:" 
-			<< ((double)this->get_time("job_issue_time")/1000.0)/((double)this->get_count("total_jobs")) 
-			<< "ms" << endl;
-		cout << "total job execution time:" << ((double)this->get_time("job_execution_time")/1000.0) << "ms" << endl;
-		cout << "         total idle time:" << ((double)this->get_time("idle_time")/1000.0) << "ms" << endl;
-		cout << "       finalization time:" << ((double)this->get_time("finalization_time")/1000.0) << "ms" << endl;
-		cout << "user code execution time:" << ((double)this->get_time("user_code_execution_time")/1000.0) << "ms" << endl;
-		cout << "            rest of time:" << ((double)rest_time/1000.0) << "ms" << endl;
-		cout << "    total execution time:" << ((double)this->get_time("total_execution_time")/1000.0) << "ms" << endl;
-
-		//here get worker stats
 		for(int i = 1; i < nprocs; i++) {
-				MPI_Status status;
-				MPI_Recv(&jobs_num, 1, MPI_LONG, i, 0, MPI_COMM_WORLD, &status);
-				unsigned long _job_issue_time = 0;	
-				MPI_Recv(&_job_issue_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				total_job_issue_time += _job_issue_time;
-				unsigned long _idle_time;
-				MPI_Recv(&_idle_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				total_idle_time += _idle_time;
-				unsigned long _job_execution_time;
-				MPI_Recv(&_job_execution_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				unsigned long _initialization_time;
-				MPI_Recv(&_initialization_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				unsigned long _finalization_time;
-				MPI_Recv(&_finalization_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				unsigned long _total_execution_time;
-				MPI_Recv(&_total_execution_time, 1, MPI_UNSIGNED_LONG, i, 0, MPI_COMM_WORLD, &status);
-				long _rest_time = _total_execution_time - 
-												(_initialization_time +
-												_job_issue_time + 
-												_job_execution_time +
-												_idle_time +
-												_finalization_time);
-
-				cout << "==== Worker#"<<i<<" TIMING STATS ===" << endl;	 
-				cout << "     initialization time:" << ((double)_initialization_time/1000.0) << "ms" << endl; 
-				cout << "    total job issue time:" << ((double)_job_issue_time/1000.0) << "ms" << endl;
-				cout << "  job issue time per job:" << ((double)_job_issue_time/1000.0)/((double)jobs_num)<< "ms" << endl;
-				cout << "total job execution time:" << ((double)_job_execution_time/1000.0) << "ms" << endl;
-				cout << "         total idle time:" << ((double)_idle_time/1000.0) << "ms" << endl;
-				cout << "       finalization time:" << ((double)_finalization_time/1000.0) << "ms" << endl;
-				cout << "            rest of time:" << ((double)_rest_time/1000.0) << "ms" << endl;
-				cout << "    total execution time:" << ((double)_total_execution_time/1000.0) << "ms" << endl;
+			cout << "==== Worker#"<<i<<" TIMING STATS ====" << endl;	
+		
+			for(it_t = sys_timerMap.begin(); it_t != sys_timerMap.end(); ++it_t) {
+					string req = it_t->first;
+					strcpy(buff, req.c_str());
+					comm->send(i, 0, 100, MPI_CHAR, buff);
+					unsigned long time_value;
+					comm->recv(i, 0, 1, MPI_UNSIGNED_LONG, &time_value);
+					cout << setw(l_margin) << it_t->first << ":" << ((double)time_value/1000.0) << endl;			
+			}
+			//ok, send done to worker
+			string req = "done";
+			strcpy(buff, req.c_str());
+			comm->send(i, 0, 100, MPI_CHAR, buff);
 		}
-		double total_actual_execution_time = this->get_time("total_execution_time")
-			-this->get_time("initialization_time")-this->get_time("finalization_time");
-		cout << "==== TOTAL TIMING STATS ===" << endl;	 
-		cout << "     initialization time:" << ((double)this->get_time("initialization_time")/1000.0) << "ms" << endl;
-		cout << "    total job issue time:" << ((double)total_job_issue_time/1000.0) << "ms" << endl;
-		cout << "  job issue time per job:" << ((double)total_job_issue_time/1000.0)/
-																					((double)total_total_jobs) << "ms" << endl;
-		cout << "total job execution time:" << ((double)this->get_time("job_execution_time")/1000.0) << "ms" << endl;
-		cout << "         total idle time:" << ((double)total_idle_time/1000.0) << "ms" << endl;
-		cout << "       finalization time:" << ((double)this->get_time("finalization_time")/1000.0) << "ms" << endl;
-		cout << "            rest of time:" << ((double)rest_time/1000.0) << "ms" << endl;
-		cout << "    total execution time:" << ((double)this->get_time("total_execution_time")/1000.0) << "ms" << endl;
-		cout << "   actual execution time:" << ((double)total_actual_execution_time/1000.0) << "ms" << endl;
 	}
 	else {
-		MPI_Status status;
-		int go;
-		MPI_Recv(&go, 1, MPI_BYTE, 0, 0, MPI_COMM_WORLD, &status);
-		long total_jobs = this->get_count("total_jobs");
-		MPI_Send(&total_jobs, 1, MPI_LONG, 0, 0, MPI_COMM_WORLD);
-		total_jobs = this->get_count("total_jobs");
-		MPI_Send(&total_jobs, 1, MPI_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long job_issue_time = this->get_time("job_issue_time");
-		MPI_Send(&job_issue_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long idle_time = this->get_time("idle_time");
-		MPI_Send(&idle_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long job_execution_time = this->get_time("job_execution_time");
-		MPI_Send(&job_execution_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long initialization_time = this->get_time("initialization_time");
-		MPI_Send(&initialization_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long finalization_time = this->get_time("finalization_time");
-		MPI_Send(&finalization_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);
-		unsigned long total_execution_time = this->get_time("total_execution_time");
-		MPI_Send(&total_execution_time, 1, MPI_UNSIGNED_LONG, 0, 0, MPI_COMM_WORLD);						
+		//send counters to master
+		while(1) {
+			char buff[100];
+			comm->recv(0, 0, 100, MPI_CHAR, &buff);
+			string req = string(buff);
+			if(req.compare("done") == 0) break;
+			long counter = get_count(req);
+			comm->send(0, 0, 1, MPI_LONG, &counter);
+		}
+
+		while(1) {
+			char buff[100];
+			comm->recv(0, 0, 100, MPI_CHAR, &buff);
+			string req = string(buff);
+			if(req.compare("done") == 0) break;
+			unsigned long timer_value = get_time(req); 
+			comm->send(0, 0, 1, MPI_UNSIGNED_LONG, &timer_value);
+		}
 	}
 };
+
 

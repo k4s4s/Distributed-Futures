@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
 	int jobs = 1;
 	char c;
 
-	while ((c = getopt(argc, argv, "a:n:")) != -1)
+	while ((c = getopt(argc, argv, "a:n:w:")) != -1)
 	switch (c)	{
 		case 'a':
 			arg_number = atoi(optarg);	 
@@ -201,6 +201,25 @@ int main(int argc, char* argv[]) {
 		switch (arg_number)	{
 			case	1:
 				res = async(f_1arg);
+<<<<<<< HEAD
+				//res.get();	 
+			 	break;
+			case	2:
+				res = async(f_2args);
+				//res.get();	 
+			 	break;		
+			case	4:
+				res = async(f_4args);
+				//res.get();	 
+			 	break;	
+			case	6:
+				res = async(f_6args);
+				//res.get();	 
+			 	break;	
+			case	8:
+				res = async(f_8args);
+				//res.get(); 
+=======
 				res.get();	 
 			 	break;
 			case	2:
@@ -218,11 +237,18 @@ int main(int argc, char* argv[]) {
 			case	8:
 				res = async(f_8args);
 				res.get(); 
+>>>>>>> 1f9702e56e0ae50c073adbc37857aeb9bcff5c69
 			 	break;	
 		 	default:
 				cout << "ERROR: argument number must be 1,2,4,6 or 8!" << endl;
 				break;		
 		}
+<<<<<<< HEAD
+	}
+	for(int i=0; i < jobs; i++) {
+		//res.get();
+=======
+>>>>>>> 1f9702e56e0ae50c073adbc37857aeb9bcff5c69
 	}
 	STOP_TIMER("total time");	
 	PRINT_TIMER("total time");

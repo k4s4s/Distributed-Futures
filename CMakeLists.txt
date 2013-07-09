@@ -32,7 +32,7 @@ if(debug MATCHES 2)
 endif(debug MATCHES 2)
 
 if(stats MATCHES ON)
-add_definitions(-DSTATS)
+	add_definitions(-DSTATS)
 endif(stats MATCHES ON)
 
 include_directories(mutex)
@@ -42,7 +42,7 @@ include_directories(futures/mem)
 include_directories(futures/scheduler)
 include_directories(futures/stats)
 
-add_definitions(-I/users/parall/falcou/dimitrios/libs/plasma/include -I/opt/intel/mkl/include -O3 -std=c++0x)
+add_definitions(-I/users/parall/falcou/dimitrios/libs/plasma/include -I/opt/intel/mkl/include -O3 -std=c++0x -lpthread)
 add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)

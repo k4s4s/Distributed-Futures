@@ -5,6 +5,11 @@
 #include <sys/time.h>
 #include <iostream>
 
+#define REGISTER_TIMER(X)
+#define START_TIMER(x) start_timer()
+#define STOP_TIMER(x) stop_timer()
+#define PRINT_TIMER(x) print_timer()
+
 unsigned long _timer_h_G_totaltime = 0;
 unsigned long _timer_h_G_starttime = 0;
 unsigned long _timer_h_G_endtime = 0;

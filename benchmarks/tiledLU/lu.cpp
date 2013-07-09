@@ -2,14 +2,13 @@
 
 #include <iostream>
 #include <iomanip>
-
-#include "timer.hpp"
+//#include "../timer.hpp"
 #include "matrix.hpp"
 #include "kernels.hpp"
 #include <mkl_lapacke.h>
 #include <mkl_lapack.h>
 
-#include <futures.hpp>
+#include "futures.hpp"
 
 #define DEFAULT_NB 4
 #define DEFAULT_IB 1

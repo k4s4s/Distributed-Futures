@@ -24,7 +24,7 @@ public:
     int nextAvaibleWorkerId();
     void set_status(ProcStatus status);
     bool terminate();
-		void schedule_proc();
+		void run_proc();
 		bool schedule_job(int dst_id, _stub *job);
 };
 

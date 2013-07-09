@@ -20,7 +20,7 @@ seq_times = {	'fibonacci':2.3,
 ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 #ncores = ['1']
 #iterations = 20;
-iterations = 20;
+iterations = 1;
 
 #for app in apps:
 	#create lu threads dump directory
@@ -38,10 +38,10 @@ iterations = 20;
 
 
 
-#plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
-#											apps, ncores, workloads, iterations, 	
-#											'total time', 'perfs/apps_scalability',
-#											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'raw')
+plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
+											apps, ncores, workloads, iterations, 	
+											'total time', 'perfs/apps_scalability',
+											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'raw')
 
 #plot.plot_line_graph(	'application speedup', 'ncores', 'speedup', 'load',
 #											apps, ncores, workloads, iterations, 
@@ -128,12 +128,21 @@ if not os.path.exists(dumpdir):
 	print "creating "+dumpdir+" directory" 
 	os.makedirs(dumpdir);
 #run app
+<<<<<<< HEAD
+#for n in ncores:
+#	for it in range(iterations):
+#			for jobs in num_of_jobs:
+#				dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
+#				print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
+#				os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
+=======
 for n in ncores:
 	for it in range(iterations):
 		for jobs in num_of_jobs
 		dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
 		print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
 		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
+>>>>>>> 1f9702e56e0ae50c073adbc37857aeb9bcff5c69
 
 #plot.plot_bar_graph('scalar and container task issue time comparison', 
 #										args_num, ['bench_issue_container', 'bench_issue_scalar'], ['total job issue time'],
@@ -158,6 +167,12 @@ for n in ncores:
 #										'argument sizes', 'job issue time (ms)', iterations,
 #										'perfs/job_issue_time_different_argsizes',
 #										'perfs/#stack#/#stack#_argn=1_size=#cluster#_#iter#.dump', 'simple')
+
+#plot.plot_line_graph(	'task issue time depending on number of workers', 
+#											'number of arguments', 'execution time (ms)', 'total argument size',
+#											['bench_issue_container'], args_num, ['1200000'], iterations,
+#											'total job issue time', 'perfs/job_issue_time_different_argnums_same_size', 
+#											'perfs/#app#/#app#_argn=#xlabel#_size=large_#iter#', 'raw')
 
 print 'DONE!'
 
