@@ -10,6 +10,7 @@ add_executable(bench_issue_container bench_issue_container.cpp)
 add_executable(bench_issue_scalar bench_issue_scalar.cpp)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
+  -L$ENV{BOOST_ROOT}/lib
 	-lboost_serialization 
 	-lboost_mpi
 	-L../src/futures	

@@ -20,12 +20,12 @@ endif(debug MATCHES ON)
 
 include_directories(../futures)
 include_directories(../mutex)
-include_directories(/opt/intel/mkl/include)
 
-add_definitions(-O3 -std=c++0x)
+add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)
 
 set(EXTRA_LIBS ${EXTRA_LIBS} 
 	${MPI_LIBRARIES}
+	-L$ENV{BOOST_ROOT}/lib
 	-lboost_serialization 
 	-lboost_mpi
 	-L../../src/futures	

@@ -9,6 +9,9 @@ set(LIB_INSTALL_DIR, CMAKE_INSTALL_PREFIX)
 # Require MPI for this project:
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+
+#set(ENV{BOOST_ROOT} /home/antoinet/boost-1.53.0)
+
 find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Boost REQUIRED COMPONENTS mpi)
 
@@ -42,7 +45,7 @@ include_directories(futures/mem)
 include_directories(futures/scheduler)
 include_directories(futures/stats)
 
-add_definitions(-I/users/parall/falcou/dimitrios/libs/plasma/include -I/opt/intel/mkl/include -O3 -std=c++0x -lpthread)
+add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)
 add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)
