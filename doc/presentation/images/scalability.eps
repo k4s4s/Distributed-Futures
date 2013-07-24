@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0 EPSF-2.0
-%%Title: perfs/apps_speedup.eps
+%%Title: scalability.eps
 %%Creator: gnuplot 4.6 patchlevel 0
-%%CreationDate: Mon May 13 01:00:31 2013
+%%CreationDate: Wed Jun 26 22:20:35 2013
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 410 302
 %%EndComments
@@ -426,13 +426,13 @@ systemdict /pdfmark known not {
   userdict /pdfmark systemdict /cleartomark get put
 } if
 SDict begin [
-  /Title (perfs/apps_speedup.eps)
+  /Title (scalability.eps)
   /Subject (gnuplot plot)
   /Creator (gnuplot 4.6 patchlevel 0)
   /Author (kasas)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Mon May 13 01:00:31 2013)
+  /CreationDate (Wed Jun 26 22:20:35 2013)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -450,79 +450,71 @@ newpath
 BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {BackgroundColor C 1.000 0 0 7200.00 5040.00 BoxColFill} if
 1.000 UL
 LTb
-588 384 M
+732 384 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
-516 384 M
+660 384 M
 ( 0) Rshow
 1.000 UL
 LTb
-588 998 M
+732 1100 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
-516 998 M
-( 0.5) Rshow
+-6260 0 R
+( 5000) Rshow
 1.000 UL
 LTb
-588 1611 M
+732 1816 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
--6404 0 R
-( 1) Rshow
+-6260 0 R
+( 10000) Rshow
 1.000 UL
 LTb
-588 2225 M
+732 2531 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
--6404 0 R
-( 1.5) Rshow
+-6260 0 R
+( 15000) Rshow
 1.000 UL
 LTb
-588 2838 M
+732 3247 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
--6404 0 R
-( 2) Rshow
+-6260 0 R
+( 20000) Rshow
 1.000 UL
 LTb
-588 3452 M
+732 3963 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
--6404 0 R
-( 2.5) Rshow
+-6260 0 R
+( 25000) Rshow
 1.000 UL
 LTb
-588 4065 M
+732 4679 M
 63 0 V
-6332 0 R
+6188 0 R
 -63 0 V
--6404 0 R
-( 3) Rshow
+-6260 0 R
+( 30000) Rshow
 1.000 UL
 LTb
-588 4679 M
-63 0 V
-6332 0 R
--63 0 V
--6404 0 R
-( 3.5) Rshow
-1.000 UL
-LTb
-588 384 M
+732 384 M
 0 63 V
 0 4232 R
 0 -63 V
-588 264 M
+732 264 M
 ( 0) Cshow
 1.000 UL
 LTb
-1654 384 M
+1774 384 M
 0 63 V
 0 4232 R
 0 -63 V
@@ -530,7 +522,7 @@ LTb
 ( 2) Cshow
 1.000 UL
 LTb
-2720 384 M
+2816 384 M
 0 63 V
 0 4232 R
 0 -63 V
@@ -538,7 +530,7 @@ LTb
 ( 4) Cshow
 1.000 UL
 LTb
-3785 384 M
+3857 384 M
 0 63 V
 0 4232 R
 0 -63 V
@@ -546,7 +538,7 @@ LTb
 ( 6) Cshow
 1.000 UL
 LTb
-4851 384 M
+4899 384 M
 0 63 V
 0 4232 R
 0 -63 V
@@ -554,7 +546,7 @@ LTb
 ( 8) Cshow
 1.000 UL
 LTb
-5917 384 M
+5941 384 M
 0 63 V
 0 4232 R
 0 -63 V
@@ -572,11 +564,11 @@ LTb
 LTb
 1.000 UL
 LTb
-588 4679 N
-588 384 L
-6395 0 V
+732 4679 N
+732 384 L
+6251 0 V
 0 4295 V
--6395 0 V
+-6251 0 V
 Z stroke
 LCb setrgbcolor
 96 2531 M
@@ -585,11 +577,11 @@ currentpoint gsave translate -270 rotate 0 0 M
 grestore
 LTb
 LCb setrgbcolor
-3785 84 M
+3857 84 M
 (ncores) Cshow
 LTb
-3785 4859 M
-(application speedup) Cshow
+3857 4859 M
+(scalability over number of cores) Cshow
 1.000 UP
 1.000 UL
 LTb
@@ -599,34 +591,34 @@ LTb
 LT0
 LCb setrgbcolor
 6416 4556 M
-(lu, load=large) Rshow
+(lu, mpi-futures) Rshow
 LT0
 6488 4556 M
 351 0 V
-1121 1611 M
-1654 808 L
-533 180 V
-533 -4 V
-533 -10 V
-532 -4 V
-533 -3 V
-533 -5 V
-533 -8 V
-533 -4 V
-533 -6 V
-533 -3 V
-1121 1611 Pls
-1654 808 Pls
-2187 988 Pls
-2720 984 Pls
-3253 974 Pls
-3785 970 Pls
-4318 967 Pls
-4851 962 Pls
-5384 954 Pls
-5917 950 Pls
-6450 944 Pls
-6983 941 Pls
+1253 570 M
+521 320 V
+2295 715 L
+521 3 V
+521 -5 V
+520 7 V
+521 3 V
+521 6 V
+521 2 V
+521 1 V
+521 4 V
+521 5 V
+1253 570 Pls
+1774 890 Pls
+2295 715 Pls
+2816 718 Pls
+3337 713 Pls
+3857 720 Pls
+4378 723 Pls
+4899 729 Pls
+5420 731 Pls
+5941 732 Pls
+6462 736 Pls
+6983 741 Pls
 6663 4556 Pls
 % End plot #1
 % Begin plot #2
@@ -635,34 +627,34 @@ LT0
 LT1
 LCb setrgbcolor
 6416 4436 M
-(quicksort, load=large) Rshow
+(quicksort, mpi-futures) Rshow
 LT1
 6488 4436 M
 351 0 V
-1121 1611 M
-1654 938 L
-533 175 V
-533 138 V
-533 97 V
-532 71 V
-533 70 V
-533 27 V
-533 51 V
-533 -26 V
-533 0 V
-533 32 V
-1121 1611 Crs
-1654 938 Crs
-2187 1113 Crs
-2720 1251 Crs
-3253 1348 Crs
-3785 1419 Crs
-4318 1489 Crs
-4851 1516 Crs
-5384 1567 Crs
-5917 1541 Crs
-6450 1541 Crs
-6983 1573 Crs
+1253 1033 M
+521 711 V
+521 -393 V
+521 -161 V
+521 -83 V
+520 -60 V
+521 -58 V
+521 53 V
+521 18 V
+521 -60 V
+521 -12 V
+521 7 V
+1253 1033 Crs
+1774 1744 Crs
+2295 1351 Crs
+2816 1190 Crs
+3337 1107 Crs
+3857 1047 Crs
+4378 989 Crs
+4899 1042 Crs
+5420 1060 Crs
+5941 1000 Crs
+6462 988 Crs
+6983 995 Crs
 6663 4436 Crs
 % End plot #2
 % Begin plot #3
@@ -671,43 +663,151 @@ LT1
 LT2
 LCb setrgbcolor
 6416 4316 M
-(fibonacci, load=large) Rshow
+(fibonacci, mpi-futures) Rshow
 LT2
 6488 4316 M
 351 0 V
-1121 1611 M
-533 -60 V
-533 503 V
-533 -734 V
-533 623 V
-532 564 V
-533 502 V
-533 402 V
-533 279 V
-533 186 V
-533 241 V
-533 173 V
-1121 1611 Star
-1654 1551 Star
-2187 2054 Star
-2720 1320 Star
-3253 1943 Star
-3785 2507 Star
-4318 3009 Star
-4851 3411 Star
-5384 3690 Star
-5917 3876 Star
-6450 4117 Star
-6983 4290 Star
+1253 3599 M
+521 194 V
+2295 2755 L
+521 1578 V
+3337 2905 L
+520 -609 V
+521 -440 V
+521 -168 V
+521 -94 V
+521 -56 V
+521 -78 V
+521 -75 V
+1253 3599 Star
+1774 3793 Star
+2295 2755 Star
+2816 4333 Star
+3337 2905 Star
+3857 2296 Star
+4378 1856 Star
+4899 1688 Star
+5420 1594 Star
+5941 1538 Star
+6462 1460 Star
+6983 1385 Star
 6663 4316 Star
 % End plot #3
+% Begin plot #4
+1.000 UP
+1.000 UL
+LT3
+1.00 0.00 0.00 C LCb setrgbcolor
+6416 4196 M
+(lu, std::futures) Rshow
+LT3
+1.00 0.00 0.00 C 6488 4196 M
+351 0 V
+1253 615 M
+521 -94 V
+521 -25 V
+521 -18 V
+521 0 V
+520 -3 V
+521 4 V
+521 -6 V
+521 0 V
+521 1 V
+521 0 V
+521 -3 V
+1253 615 Box
+1774 521 Box
+2295 496 Box
+2816 478 Box
+3337 478 Box
+3857 475 Box
+4378 479 Box
+4899 473 Box
+5420 473 Box
+5941 474 Box
+6462 474 Box
+6983 471 Box
+6663 4196 Box
+% End plot #4
+% Begin plot #5
+1.000 UP
+1.000 UL
+LT4
+0.00 1.00 0.00 C LCb setrgbcolor
+6416 4076 M
+(quicksort, std::futures) Rshow
+LT4
+0.00 1.00 0.00 C 6488 4076 M
+351 0 V
+1253 878 M
+1774 701 L
+521 -56 V
+521 -31 V
+521 -19 V
+520 -8 V
+521 -18 V
+521 -10 V
+521 -9 V
+521 -2 V
+521 -9 V
+521 -1 V
+1253 878 BoxF
+1774 701 BoxF
+2295 645 BoxF
+2816 614 BoxF
+3337 595 BoxF
+3857 587 BoxF
+4378 569 BoxF
+4899 559 BoxF
+5420 550 BoxF
+5941 548 BoxF
+6462 539 BoxF
+6983 538 BoxF
+6663 4076 BoxF
+% End plot #5
+% Begin plot #6
+1.000 UP
+1.000 UL
+LT5
+0.00 0.00 1.00 C LCb setrgbcolor
+6416 3956 M
+(fibonacci, std::futures) Rshow
+LT5
+0.00 0.00 1.00 C 6488 3956 M
+351 0 V
+1253 3731 M
+1774 2074 L
+521 -504 V
+521 -283 V
+521 -153 V
+520 -117 V
+521 -67 V
+521 -69 V
+521 -32 V
+521 -46 V
+521 -22 V
+521 -23 V
+1253 3731 Circle
+1774 2074 Circle
+2295 1570 Circle
+2816 1287 Circle
+3337 1134 Circle
+3857 1017 Circle
+4378 950 Circle
+4899 881 Circle
+5420 849 Circle
+5941 803 Circle
+6462 781 Circle
+6983 758 Circle
+6663 3956 Circle
+% End plot #6
 1.000 UL
 LTb
-588 4679 N
-588 384 L
-6395 0 V
+732 4679 N
+732 384 L
+6251 0 V
 0 4295 V
--6395 0 V
+-6251 0 V
 Z stroke
 1.000 UP
 1.000 UL

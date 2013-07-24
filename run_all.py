@@ -2,12 +2,18 @@
 
 import os
 import plot
+import mean
 
 #apps = {'power':{'small':'-a2 -n10', 'medium':'-a2 -n1000'}}
 
-apps = {'fibonacci', 'quicksort', 'lu'}
+apps = {'fib'}
 
 workloads = {'large'}
+
+#args = {'fibonacci':{'large':'-a45 -w30'}, 
+#				'quicksort':{'large':'-n10000000 -w100000'}, 
+#				'lu':{'large':'-n2000 -b200'}}
+
 
 args = {'fibonacci':{'large':'-a45 -w30'}, 
 				'quicksort':{'large':'-n10000000 -w100000'}, 
@@ -17,10 +23,15 @@ seq_times = {	'fibonacci':2.3,
 							'quicksort':2.9,
 							'lu':1228}
 
-ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
 #ncores = ['1']
 #iterations = 20;
-iterations = 1;
+iterations = 3;
+
+#generate file with median values
+for app in apps:
+	for n in ncores:
+		mean.write_median_file("stats/dumps/{0}_p{1}_#iter#.txt".format(app, n), iterations)
 
 #for app in apps:
 	#create lu threads dump directory
@@ -39,9 +50,31 @@ iterations = 1;
 
 
 plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
-											apps, ncores, workloads, iterations, 	
+											apps, ncores, workloads, 	
 											'total time', 'perfs/apps_scalability',
-											'perfs/#app#/#app#_load=#llabel#_ncores=#xlabel#_#iter#', 'raw')
+											'stats/dumps/#app#_p#xlabel#_median', 'raw')
+
+breakdowns = {'init time':{'initialization_time'}, 
+							'job issue time':{'job_issue_time'},
+							'user code time':{'user_code_execution_time', 'job_execution_time'},
+							'idle time':{'idle_time'},
+							'rest time':{	'total_execution_time', '-job_issue_time', 
+														'-initialization_time', '-finalization_time',
+														'-idle_time', '-user_code_execution_time', 
+														'-job_execution_time'},
+							'finalization time':{'finalization_time'}}
+
+stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5']
+
+plot.plot_bar_graph('application breakdowns for 6 cores', apps, stacks, breakdowns,
+										'benchmarks', 'execution time (ms)',
+										'stats/app_breakdowns',
+										'stats/dumps/#cluster#_p6_1.txt', 'stackcluster')
+
+#plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
+#											apps, ncores, workloads, iterations, 	
+#											'total time', 'stats/apps_scalability',
+#											'stats/dump/#app#_n=#xlabel#_#iter#', 'raw')
 
 #plot.plot_line_graph(	'application speedup', 'ncores', 'speedup', 'load',
 #											apps, ncores, workloads, iterations, 
@@ -128,21 +161,20 @@ if not os.path.exists(dumpdir):
 	print "creating "+dumpdir+" directory" 
 	os.makedirs(dumpdir);
 #run app
-<<<<<<< HEAD
 #for n in ncores:
 #	for it in range(iterations):
 #			for jobs in num_of_jobs:
 #				dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
 #				print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
 #				os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
-=======
-for n in ncores:
-	for it in range(iterations):
-		for jobs in num_of_jobs
-		dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
-		print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
-		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
->>>>>>> 1f9702e56e0ae50c073adbc37857aeb9bcff5c69
+
+#for n in ncores:
+#	for it in range(iterations):
+#		for jobs in num_of_jobs
+#		dumpfile = dumpdir+"/bench_issue_mul_cores={1}_jobs={2}_{0}.dump".format(it, n, jobs)
+#		print "running ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs)
+#		os.system("mpirun -np 2 ./tests/bench_issue_container -a1 -n1200000 -w{1}  > {0}".format(dumpfile, jobs))
+
 
 #plot.plot_bar_graph('scalar and container task issue time comparison', 
 #										args_num, ['bench_issue_container', 'bench_issue_scalar'], ['total job issue time'],

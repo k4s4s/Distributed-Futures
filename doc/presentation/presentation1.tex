@@ -85,7 +85,8 @@
 
 
 \title{\Large \bf
-A Unified Futures Interface in C++ for Shared and Distributed Memory}
+A Unified Futures Interface in C++ for Shared and Distributed Memory\\
+part 1}
 
 \author[\tiny \thepage /28]{Dimitrios Chasapis}
 
@@ -102,16 +103,17 @@ A Unified Futures Interface in C++ for Shared and Distributed Memory}
 %-------------------------------- Frame
 
 \frame[plain]{\titlepage}
+\setcounter{framenumber}{0}
 
 %-------------------------------- Frame
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Outline}
-      \tableofcontents[
-      sections={1-2},
-      sectionstyle= show/show,
-      subsectionstyle=show/show/show
-      ]
-\end{frame} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Outline}
+%      \tableofcontents[
+%      sections={1-2},
+%      sectionstyle= show/show,
+%      subsectionstyle=show/show/show
+%      ]
+%\end{frame} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction \& Background}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,11 +137,11 @@ A Unified Futures Interface in C++ for Shared and Distributed Memory}
 	\note[item]{Different processes exchange messages with data or just to synchronize execution}
 	\begin{itemize}
 		\item Distributed Memory (also available for Shared Memory)
-		\note[item]{Available on both, mainly used for Distributed memory applicattions.}
+		\note[item]{Available on both, mainly used for Distributed memory applications.}
 		\item Writing code with messages can be difficult
-		\note[item]{Available on both, mainly used for Distributed memory applicattions.  
+		\note[item]{Available on both, mainly used for Distributed memory applications.  
 								Code is a lot more different than its sequential counterpart, difficult}
-		\item Can exploit data localization more naturaly and effectively
+		\item Can exploit data localization more naturally and effectively
 	\end{itemize}
 
 \vfill
@@ -151,56 +153,76 @@ A Unified Futures Interface in C++ for Shared and Distributed Memory}
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Prallel Programming}
+\begin{frame}{NT2: The Numerical Template Toolbox}
 \begin{itemize}
-	\item PGAS (Partitioned Global Address Space)
-	\note[item]{Brings the ease of programming with shared memory, in a distributed environment}
+	\item NT2
+	\note[item]{What does that mean?}
 	\begin{itemize}
-		\item All processes share the same variable address and name space
-		\note[item]{Remote and local data can be accessed the same way, through a variable}
-		\item Easy to use, very close to the sequential code
-		\item Requires explicit synchronization 
-		\note[item]{Synchronization as difficult as in the thread model}
-		\item Requires asynchronous communication between remote processes.
-		
+		\item A Matlab like interface in C++
+		\item	High-performance parallel implementation
+		\item Easier to use than Threads and Message Passing
+		\note[item]{User need not explicitly parallelize code or know about underlying system architecture}
+		\item Currently available for Shared Memory (under active development by Pierre Esterie)
+		\item Distributed Memory version under development (Antoine Tran Tan)
 	\end{itemize}
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Prallel Programming}
+\begin{frame}{Inter-statement optimization}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{images/inter-exp}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Inter-statement optimization}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{images/inter-exp-barrier}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Inter-statement optimization}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{images/inter-exp-fut}
+\end{figure}
 \begin{itemize}
-	\item RPC (Remote Procedure Call)
-	\note[item]{Brings the ease of programming with shared memory, in a distributed environment}
-	\begin{itemize}
-		\item Data is coupled with an action and send to be executed remotely
-		\item Higher Level Abstraction than message passing
-		\item Easier to program and reason than message passing
-		\item The underlying's runtime complexity can limit performance
-		\note[item]{In many cases, a runtime can fail to scale on larger scale machines.  
-								A runtime implementation can be less versatile than a finely tuned message passing or thread
-								implementation.}
-		\item Requires asynchronous communication between remote processes.
-	\end{itemize}
+	\item PGAS (Partitioned Global Address Space) issues with this problem
+	\item C++ is not a PGAS language...
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Asynchronous Programming}
-\begin{frame}{Asynchronous Programming}
-\begin{itemize}
-	\item Difficult to reason about the time an operation is completed in Traditonal models
-	\item Bad timing among threads/processes will result in blocking\\
-				\textcolor{red}{Bad for performance!}
-	\item To avoid blocking, carefull synchronization schemes are required \\
-				\textcolor{red}{Very difficult} 
-	\item Solution:Asynchronous Programming Models
-	\begin{itemize}
-		\item Never block! (Unless there nothing else to do)
-		\item Provide high level interface to express parallel/asynchronous operations
-		\item Provide a mechanism for asynchronous operations to inform the caller thread/process 
-					for its completion, failure or progress.
-	\end{itemize}
-\end{itemize}
-\end{frame}
+%\begin{frame}{Prallel Programming}
+%\begin{itemize}
+%	\item PGAS (Partitioned Global Address Space)
+%	\note[item]{Brings the ease of programming with shared memory, in a distributed environment}
+%	\begin{itemize}
+%		\item All processes share the same variable address and name space
+%		\note[item]{Remote and local data can be accessed the same way, through a variable}
+%		\item Easy to use, very close to the sequential code
+%		\item Requires explicit synchronization 
+%		\note[item]{Synchronization as difficult as in the thread model}
+%		\item Requires asynchronous communication between remote processes.
+%		
+%	\end{itemize}
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{Asynchronous Programming}
+%\begin{frame}{Asynchronous Programming}
+%\begin{itemize}
+%	\item Difficult to reason about the time an operation is completed in Traditonal models
+%	\item Bad timing among threads/processes will result in blocking\\
+%				\textcolor{red}{Bad for performance!}
+%	\item To avoid blocking, carefull synchronization schemes are required \\
+%				\textcolor{red}{Very difficult} 
+%	\item Solution:Asynchronous Programming Models
+%	\begin{itemize}
+%		\item Never block! (Unless there nothing else to do)
+%		\item Provide high level interface to express parallel/asynchronous operations
+%		\item Provide a mechanism for asynchronous operations to inform the caller thread/process 
+%					for its completion, failure or progress.
+%	\end{itemize}
+%\end{itemize}
+%\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Futures and Promises}
 \begin{frame}{Futures and Promises}
@@ -217,7 +239,7 @@ A Unified Futures Interface in C++ for Shared and Distributed Memory}
 		\item It is used only to write the encapsulated data 
 	\end{itemize}
 \vfill
-	\item Avaible in many languages (Java, C\#, C++, Scala, etc)
+	\item Available in many languages (Java, C\#, C++, Scala, etc)
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,37 +250,41 @@ A Unified Futures Interface in C++ for Shared and Distributed Memory}
 \end{figure}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\defverbatim[colored]\lstFuturesBlocking{
-\begin{lstlisting}
-int	fibonacci(int n) {
-	if(n == 0) return 0;
-	if(n == 1) return 1;
-	future<int> fib1 = async(fibonacci, n-1);
-	future<int> fib2 = async(fibonacci, n-2);
-	return fib1.get() + fib2.get();
-}
-\end{lstlisting}
-}
-\begin{frame}[fragile]{C++ Futures Interface:Fibonacci}
-\note[item]{In the scope of this work, we care about the C++ futures interface}
-\note[item]{Well integrated in generic programming.}
-\note[item]{Describe flow of example}
-\note[item]{Very easy to use.  Very close to sequential code}
-\lstFuturesBlocking
+\begin{frame}{Futures and Promises}
+\note[item]{We talked about asynchronous execution, but what about communication}
+We want a futures interface for Shared and Distributed Memory
+\begin{itemize}
+	\item HPX
+	\begin{itemize}
+		\item Good performance on shared memory
+		\item Distributed memory version is still problematic and under development
+		\item Will take time to support all architectures 
+	\end{itemize}
+	\item Charm++
+	\begin{itemize}
+		\item Good performance for medium grained processes
+		\item Object oriented model
+		\item Complicated interface
+		\note[item]{makes distinction between master, worker etc}
+	\end{itemize}
+\end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Asynchronous Communication}
-\begin{frame}{Asynchronous Communication}
-\note[item]{We talked about asynchronous execution, but what about communication}
+\begin{frame}{Futures and Promises}
+Goal: DIY Futures
 \begin{itemize}
-	\item PGAS and RPC both require asynchronous communication
-	\item Futures is an asynchronous execution model
-	\begin{itemize}
-		\item In Shared Memory easy to implement
-		\note[item]{Data is shared, future reads data, promise sets it}
-		\item<2-> \textcolor{red}{What about Distributed Memory?}
-		\item<3-> Answer:Asynchronous communication
-	\end{itemize}
+	\item Simple usable interface
+	\note[item]{Chose c++ standard, works well with generic programming}
+	\item Portable
+	\note[item]{MPI! Out of the box}
+	\item Efficient
+\end{itemize}
+ 
+\begin{itemize}
+	\item In Shared Memory easy to implement
+	\note[item]{Data is shared, future reads data, promise sets it}
+	\item<2-> \textcolor{red}{What about Distributed Memory?}
+	\item<3-> Answer:Asynchronous communication
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -276,7 +302,7 @@ int	fibonacci(int n) {
 		\item Hardware Interrupts
 		\begin{itemize}
 			\item High cost
-			\note[item]{usually interupts need to go through the OS, very expensive}
+			\note[item]{usually interrupts need to go through the OS, very expensive}
 			\item Not always available
 		\end{itemize}
 		\item Dedicating a thread for communication
@@ -286,7 +312,7 @@ int	fibonacci(int n) {
 		\end{itemize}
 	\end{itemize}
 	\item<2-> One-sided communication (MPI-2, ARMCI)
-	\note[item]{we are insterested in MPI-2, highly available, de-facto in distributed machines.  Infamous one-sided interface}
+	\note[item]{we are interested in MPI-2, highly available, de-facto in distributed machines.  Infamous one-sided interface}
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,7 +371,7 @@ shared_mem/.style={draw, rectangle, fill=cyan}]
 	\note[item]{Windows can be of different size, on each process, even null}
 	\note[item]{Referencing data on a window is done by providing the process id and displacement from starting pointer address}
 	\item \texttt{MPI\_Win\_create} is a collective operation
-	\item All dymacially allocated data shared by a window must be allocated with \texttt{MPI\_Alloc\_mem}
+%	\item All dymacially allocated data shared by a window must be allocated with \texttt{MPI\_Alloc\_mem}
 \end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -462,7 +488,7 @@ shared_mem/.style={draw, rectangle, fill=cyan}]
 		\note[item]{As in shared memory, put and get have to be synchronized}
 		\item Why?
 		\begin{itemize}
-			\item Concurrent accesses to the same window and overlapping data are erroneus
+			\item Concurrent accesses to the same window and overlapping data are erroneous
 			\item End of "epoch" marks that message was send or received
 			\note[item]{Necessary for synchronization of messages - still a message passing library} 
 		\end{itemize}
@@ -602,25 +628,25 @@ FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
 }
 \begin{frame}[fragile]{MPI Futures:Interface}
 \lstFibMPI
-\note[item]{Very important EXPORT_FUNCTOR. Exposes function to MPI and serialization}
-\begin{itemize}
-	\item Only functor objects can be issued with an \texttt{async}
-	\item Functor and its arguments must be serializable
-\end{itemize}	 
+%\note[item]{Very important EXPORT_FUNCTOR. Exposes function to MPI and serialization}
+%\begin{itemize}
+%	\item Only functor objects can be issued with an \texttt{async}
+%	\item Functor and its arguments must be serializable
+%\end{itemize}	 
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}[fragile]{MPI Futures:Interface}
-\begin{itemize}
-	\item If return value size can change dynamically (pointer, vectors, etc) the size must be provided to \texttt{async}
-	\item User can call \texttt{async\_on} and provide the rank of the process he wants it scheduled on
-	\note[item]{Skips scheduler.  Can take advantage of data locality} 
-	\begin{itemize}
-		\item Take advantage of how data locality
-		\item More effective data and work distribution
-		\note[item]{Remember, data is also distributed with an async call} 
-	\end{itemize}
-\end{itemize}	 
-\end{frame}
+%\begin{frame}[fragile]{MPI Futures:Interface}
+%\begin{itemize}
+%	\item If return value size can change dynamically (pointer, vectors, etc) the size must be provided to \texttt{async}
+%	\item User can call \texttt{async\_on} and provide the rank of the process he wants it scheduled on
+%	\note[item]{Skips scheduler.  Can take advantage of data locality} 
+%	\begin{itemize}
+%		\item Take advantage of how data locality
+%		\item More effective data and work distribution
+%		\note[item]{Remember, data is also distributed with an async call} 
+%	\end{itemize}
+%\end{itemize}	 
+%\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Implementation}
 \begin{frame}{MPI Futures:Implementation}
@@ -705,199 +731,270 @@ mem_node/.style={draw, rectangle, minimum height=3cm, minimum width=0.8cm}]
 \end{adjustbox}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Evaluation}
-\subsection{Interface Assesment}
+\begin{frame}[fragile]{Recap}
+\begin{itemize}
+	\item Inter-statement optimizations
+	\item Futures
+	\item One-sided Communication
+	\item Implementation of Futures over MPI
+\end{itemize}	 
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Evaluation}
+%\subsection{Interface Assesment}
 
-\defverbatim[colored]\lstFutCompare{
-\begin{adjustbox}{max totalsize={.8\textwidth}}
-\begin{minipage}{.48\textwidth}
-\begin{lstlisting}
-class fib {
-public:
-	fib() {};
-	~fib() {};
-	int	operator()(int n) {
-		if(n == 0) return 0;
-		if(n == 1) return 1;
-		fib f;
-		future<int> fib1 = async(f, n-1);
-		future<int> fib2 = async(f, n-2);
-		return fib1.get() + fib2.get();;
-	};
-};
+%\defverbatim[colored]\lstFutCompare{
+%\begin{adjustbox}{max totalsize={.8\textwidth}}
+%\begin{minipage}{.48\textwidth}
+%\begin{lstlisting}
+%class fib {
+%public:
+%	fib() {};
+%	~fib() {};
+%	int	operator()(int n) {
+%		if(n == 0) return 0;
+%		if(n == 1) return 1;
+%		fib f;
+%		future<int> fib1 = async(f, n-1);
+%		future<int> fib2 = async(f, n-2);
+%		return fib1.get() + fib2.get();;
+%	};
+%};
 
-FUTURES_SERIALIZE_CLASS(fib);
-FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
-\end{lstlisting}
-\end{minipage}
-\hspace{4cm}
-\begin{minipage}{.48\textwidth}
-\begin{lstlisting}
-int	fibonacci(int n) {
-	if(n == 0) return 0;
-	if(n == 1) return 1;
-	future<int> fib1 = async(fibonacci, n-1);
-	future<int> fib2 = async(fibonacci, n-2);
-	return fib1.get() + fib2.get();
-}
-\end{lstlisting}
-\end{minipage}
-\end{adjustbox}
-}
-\begin{frame}[fragile]{Interface Assesment}
-\lstFutCompare
-\begin{itemize}
-	\item Very close to the C++11 standard!
-	\item Easy to use compared to original message passing code
-	\item Easy to expose functor objects to worker processes
-\end{itemize}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Evaluation}
-\subsection{Interface Assesment}
-\begin{frame}{Interface Assesment}
-Limitations
-\begin{itemize}
-		\item Only serializable functor objects can be issued by
-		\item Arguments must also be serializable
-		\note[item]{also additional overhead}
-		\item Size of dynamically sized objects as return values must be declared at \emph{async} callsite 
-\end{itemize}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Performance}
-\begin{frame}{Performance Evaluation:Setup}
-Evaluation setup:
-\begin{itemize}
-	\item 2 Intel(R) Xeon(R) CPU E5645@2.40 GHz with 6 available cores on each machine
-	\item Connected through a network socket, but provide shared space interface
-	\item Compiled using g++ version 4.6.3 with level 3 optimization enabled
-	\item OpenMPI version 1.4.3
-	\item Boost serialization version ??
-\end{itemize}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Performance Evaluation:Benchmarks}
-Three benchmarks:
-\vfill
-\begin{itemize}
-	\item Fibonacci:
-	\begin{itemize}
-		\item We run it for a == 45
-		\item For a $<$ 30, we run the sequential code
-		\note[item]{Need to have some work done, 30 is pretty fast}
-	\end{itemize} 
-\vfill
-	\item Quicksort:
-	\begin{itemize}
-		\item We run it for sorting 100,000 elements
-		\item For n $<$ ??, we run the sequential code
-		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
-	\end{itemize}
-\vfill
-	\item Tiled LU
-	\begin{itemize}
-		\item<2-> \textcolor{red}{A little more complicated...}
-	\end{itemize} 
-\end{itemize}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\defverbatim[colored]\lstTLU{
-\begin{adjustbox}{max totalsize={0.8\textwidth}}
-\begin{minipage}{.45\textwidth}
-\begin{lstlisting}
-for(int k = 0; k < TOTAL_TILES; k++) {
-	dgetrf(A[k][k], P[k][k]);
-	for(int n = k+1; n < TOTAL_TILES; n++) {
-		dgessm(A[k][n], A[k][k], P[k][k])
-	}
-  for(int m = k+1; m < TOTAL_TILES; m++) {
-		dtstrf(A[k][k], A[m][k] , P[m][k]);
-  	for(int n=k+1; n < TOTAL_TILES; n++) {
-			dssssm(U[k][n], A[m][n], L[m][k], 
-											A[m][k], P[m][k]);
-		}
-	}
-}
-\end{lstlisting}
-\end{minipage}
-\hspace{4cm}
-\begin{minipage}{.45\textwidth}
-\includegraphics[width=1.5\textwidth]{images/3x3example}
-\end{minipage}
-\end{adjustbox}
-}
-\begin{frame}[fragile]{Performance Evaluation:Tiled LU}
-\lstTLU
-\begin{itemize}
-	\item Originally implemented with PLASMA
-\end{itemize}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\defverbatim[colored]\lstPTLU{
-\begin{adjustbox}{max totalsize={0.8\textwidth}}
-\begin{minipage}{.3\textwidth}
-\begin{lstlisting}
-for(int k = 0; k < TOTAL_TILES; k++) {
-	A[k][k] = cpldAU[k][k].get().A;
-	dgetrf(A[k][k], P[k][k]);
-	for(int n = k+1; n < TOTAL_TILES; n++) {
-		A[k][n] = cpldAU[k][n].get().A;
-		fA[k][n] = async(dgessm, A[k][n], 
-										 A[k][k], P[k][k]);
-	}
-  for(int m = k+1; m < TOTAL_TILES; m++) {
-		A[m][k] = cpldAU.get().A;
-		dtstrf(A[k][k], A[m][k].get() , P[m][k]);
-  	for(int n=k+1; n < TOTAL_TILES; n++) {
-			if(m == k+1)
-				A[k][n] = fA[k][n].get();
-			else
-				A[k][n] = cpldAU.get().U;
-			A[m][n] = cpldAU.get().A;
-			cpldAU[m][n] = async(dssssm, A[k][n], A[m][n], 
-													 L[m][k], A[m][k], P[m][k]);
-		}
-	}
-}
-\end{lstlisting}
-\end{minipage}
-\hspace{6cm}
-\begin{minipage}{.7\textwidth}
-\includegraphics[width=1.5\textwidth]{images/lu_task_graph_3x3}
-\end{minipage}
-\end{adjustbox}
-}
-\begin{frame}{Performance Evaluation:Tiled LU}
-\lstPTLU
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Performance Evaluation}
-\begin{figure}
-\center
-\includegraphics[width=.7\textwidth]{images/apps_scalability}
-\end{figure}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Performance Evaluation}
-\begin{figure}
-\center
-\includegraphics[width=\textwidth]{images/app_breakdowns_w_init}
-\end{figure}
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Conclusions}
-In terms of interface we rock! Very easy to use, sensible limitations compared to shared memory
-In terms of performance we suck...but we blame serialization and mpi lack of synchronization primitives
-We would like these in MPI...
-Maybe not completely useless?
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Future Work}
-Fix performance
-Complete secondary feature (timeouts, exceptions, etc)
-Hybrid approach, for high performance
-\end{frame}
+%FUTURES_SERIALIZE_CLASS(fib);
+%FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
+%\end{lstlisting}
+%\end{minipage}
+%\hspace{4cm}
+%\begin{minipage}{.48\textwidth}
+%\begin{lstlisting}
+%int	fibonacci(int n) {
+%	if(n == 0) return 0;
+%	if(n == 1) return 1;
+%	future<int> fib1 = async(fibonacci, n-1);
+%	future<int> fib2 = async(fibonacci, n-2);
+%	return fib1.get() + fib2.get();
+%}
+%\end{lstlisting}
+%\end{minipage}
+%\end{adjustbox}
+%}
+%\begin{frame}[fragile]{Interface Assesment}
+%\lstFutCompare
+%\begin{itemize}
+%	\item Very close to the C++11 standard!
+%	\item Easy to use compared to original message passing code
+%	\item Easy to expose functor objects to worker processes
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Evaluation}
+%\subsection{Interface Assesment}
+%\begin{frame}{Interface Assesment}
+%Limitations
+%\begin{itemize}
+%		\item Only serializable functor objects can be issued by
+%		\item Arguments must also be serializable
+%		\note[item]{also additional overhead}
+%		\item Size of dynamically sized objects as return values must be declared at \emph{async} callsite 
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{Performance}
+%\begin{frame}{Performance Evaluation:Setup}
+%Evaluation setup:
+%\begin{itemize}
+%	\item 2 Intel(R) Xeon(R) CPU E5645@2.40 GHz with 6 available cores on each machine
+%	\item Connected through a network socket, but provide shared space interface
+%	\item Compiled using g++ version 4.6.3 with level 3 optimization enabled
+%	\item OpenMPI version 1.4.3
+%	\item Boost serialization version 1.53
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Performance Evaluation:Benchmarks}
+%Three benchmarks:
+%\vfill
+%\begin{itemize}
+%	\item Fibonacci:
+%	\begin{itemize}
+%		\item We run it for a == 45
+%		\item For a $<$ 30, we run the sequential code
+%		\note[item]{Need to have some work done, 30 is pretty fast}
+%	\end{itemize} 
+%\vfill
+%	\item Quicksort:
+%	\begin{itemize}
+%		\item We run it for sorting 10,000,000 elements
+%		\item For n $<$ 100,000 we run the sequential code
+%		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
+%	\end{itemize}
+%\vfill
+%	\item Tiled LU
+%	\begin{itemize}
+%		\item<2-> \textcolor{red}{A little more complicated...}
+%	\end{itemize} 
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\defverbatim[colored]\lstTLU{
+%\begin{adjustbox}{max totalsize={0.8\textwidth}}
+%\begin{minipage}{.45\textwidth}
+%\begin{lstlisting}
+%for(int k = 0; k < TOTAL_TILES; k++) {
+%	dgetrf(A[k][k], P[k][k]);
+%	for(int n = k+1; n < TOTAL_TILES; n++) {
+%		dgessm(A[k][n], A[k][k], P[k][k])
+%	}
+%  for(int m = k+1; m < TOTAL_TILES; m++) {
+%		dtstrf(A[k][k], A[m][k] , P[m][k]);
+%  	for(int n=k+1; n < TOTAL_TILES; n++) {
+%			dssssm(U[k][n], A[m][n], L[m][k], 
+%											A[m][k], P[m][k]);
+%		}
+%	}
+%}
+%\end{lstlisting}
+%\end{minipage}
+%\hspace{4cm}
+%\begin{minipage}{.45\textwidth}
+%\includegraphics[width=1.5\textwidth]{images/3x3example}
+%\end{minipage}
+%\end{adjustbox}
+%}
+%\begin{frame}[fragile]{Performance Evaluation:Tiled LU}
+%\lstTLU
+%\begin{itemize}
+%	\item Originally implemented with PLASMA
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\defverbatim[colored]\lstPTLU{
+%\begin{adjustbox}{max totalsize={0.8\textwidth}}
+%\begin{minipage}{.3\textwidth}
+%\begin{lstlisting}
+%for(int k = 0; k < TOTAL_TILES; k++) {
+%	A[k][k] = cpldAU[k][k].get().A;
+%	dgetrf(A[k][k], P[k][k]);
+%	for(int n = k+1; n < TOTAL_TILES; n++) {
+%		A[k][n] = cpldAU[k][n].get().A;
+%		fA[k][n] = async(dgessm, A[k][n], 
+%										 A[k][k], P[k][k]);
+%	}
+%  for(int m = k+1; m < TOTAL_TILES; m++) {
+%		A[m][k] = cpldAU.get().A;
+%		dtstrf(A[k][k], A[m][k].get() , P[m][k]);
+%  	for(int n=k+1; n < TOTAL_TILES; n++) {
+%			if(m == k+1)
+%				A[k][n] = fA[k][n].get();
+%			else
+%				A[k][n] = cpldAU.get().U;
+%			A[m][n] = cpldAU.get().A;
+%			cpldAU[m][n] = async(dssssm, A[k][n], A[m][n], 
+%													 L[m][k], A[m][k], P[m][k]);
+%		}
+%	}
+%}
+%\end{lstlisting}
+%\end{minipage}
+%\hspace{6cm}
+%\begin{minipage}{.7\textwidth}
+%\includegraphics[width=1.5\textwidth]{images/lu_task_graph_3x3}
+%\end{minipage}
+%\end{adjustbox}
+%}
+%\begin{frame}{Performance Evaluation:Tiled LU}
+%\lstPTLU
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Performance Evaluation:Benchmarks}
+%Three benchmarks:
+%\vfill
+%\begin{itemize}
+%	\item Fibonacci:
+%	\begin{itemize}
+%		\item We run it for a == 45
+%		\item For a $<$ 30, we run the sequential code
+%		\note[item]{Need to have some work done, 30 is pretty fast}
+%	\end{itemize} 
+%\vfill
+%	\item Quicksort:
+%	\begin{itemize}
+%		\item We run it for sorting 10,000,000 elements
+%		\item For n $<$ 100000, we run the sequential code
+%		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
+%	\end{itemize}
+%\vfill
+%	\item Tiled LU
+%	\begin{itemize}
+%		\item We apply LU factorization on an 2,000x2,000 matrix
+%		\item Block size is 200x200 elements
+%	\end{itemize} 
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Performance Evaluation}
+%\begin{figure}
+%\center
+%\includegraphics[width=.7\textwidth]{images/scalability}
+%\end{figure}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Performance Evaluation}
+%\begin{figure}
+%\center
+%\includegraphics[width=.8\textwidth]{images/app_breakdowns_w_init}
+%\end{figure}
+%\begin{itemize}
+%	\item Fibonacci spends 30\% trying to acquire lock in scheduler 
+%	\item Quicksort spends 25\% trying to acquire lock and 15\% on vector copying and 16\% on serialization
+%	\item In LU master spends 70\% on serialization routines
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Conclusions}
+%\begin{itemize}
+%	\item Implementing the C++11 standard future's interface over MPI is possible!
+%	\begin{itemize}
+%		\item Very usable
+%		\item Sensible limitations
+%	\end{itemize}
+%\vfill
+%	\item Two major "Deal breakers" regarding performance
+%	\begin{itemize}
+%		\item Locks over MPI
+%		\item Boost Serialization
+%	\end{itemize}
+%\end{itemize}
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Conclusions}
+%\begin{itemize}
+%	\item MPI-2 one-sided communication not as versatile but usable
+%	\begin{itemize}
+%		\item \texttt{MPI\_Win\_create} can only be created collective\\
+%					\textcolor{red}{Not possible to share data dynamically in an asynchronous manner}
+%		\item Active mode synchronization cannot be initiated asynchronously
+%		\item Passive mode cannot handle static data
+%		\note[item]{Everything needs to be allocated using the mpi alloc mem}
+%		\item Lacks synchronization primitives (Active and Passive mode synchronize message completion, they do not define
+%					critical regions)
+%	\end{itemize}
+%\end{itemize}
+%\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Future Work}
+%\begin{itemize}
+%	\item Fix performance
+%	\note[item]{Top priority! We have detected where the problem is, try to deal with it}
+%	\note[item]{Try other serialization method/library}
+%	\note[item]{No workaround the locks - maybe try armci?}		
+%	\item Use coarser grain applications for benchmarking
+%	\item Try a hybrid approach.
+%	\item Implement secondary C++11 library features (exceptions, timeouts, etc)
+%\end{itemize}
+%\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
 

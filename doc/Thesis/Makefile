@@ -12,14 +12,8 @@ report:
 	latex report
 	dvipdfm report
 
-report_extra:	
-	latex report_extra
-	--bibtex report_extra
-	latex report_extra
-	dvipdfm report_extra
-
 clean:
 	rm -rf *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot *.dvi *.pdf
 
 clear:
-	rm -rf *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot
+	rm -rf *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot *.dvi

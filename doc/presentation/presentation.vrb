@@ -1,4 +1,0 @@
-\frametitle {Performance Evaluation:Tiled LU}\lstTLU 
-\begin{itemize}
-\item Originally implemented with PLASMA
-\end{itemize}

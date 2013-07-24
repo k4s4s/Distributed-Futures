@@ -1,48 +1,21 @@
 
 import os
 import re
+import mean
 
 CSI="\x1B["
 reset=CSI+"m"
 bold='\033[1m'
 
-#finds the median value given a list of values
-def median(mylist):
-	sorts = sorted(mylist)
-	length = len(sorts)
-	if length == 1:
-		return sorts[0]
-	elif not length % 2:
-		return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
-	return sorts[length / 2]
-
-def parse_file(f, value_name, index):
-	entry_found = False
-	value_s = '0'
-	for line in f:
-#		print line
-#		print value_name
-		#find beginnig of index entry
-		if not entry_found and index in line: 
-#			print 'entry found'
-			entry_found = True
-			continue
-		if entry_found and value_name in line:
-#			print 'value found'
-			value_s = line.partition(':')[2]
-			value_s = value_s.partition('ms')[0]
-			break
-		#if we reached start of next entry, exit	
-		if entry_found and "====" in line: break
-#	print value_s
-	return float(value_s)
 
 def valid_line(f, col):
 	content = f.read()
+	#print(content)
 	elems = content.split(' ')
+	#print(elems)
 	if(elems[col].split('\n')[0] == '0'):
 		return False;
-	return True;	
+	return True;
 
 def calc_speedup(T_s, T_p):
 	return T_s/T_p
@@ -52,7 +25,7 @@ def calc_relative_slowdown(T_s, T_p, p):
 
 #function to plot scalability graphs
 def plot_line_graph(title, xlabel, ylabel, llabel,
-										apps, xlabel_range, llabel_range, iterations,
+										apps, xlabel_range, llabel_range,
 										value_n, outfile_n, dump_file_format,
 										graph_type):
 	print "plotting {0}".format(title)
@@ -65,21 +38,15 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 		datafile.write("{0}".format(x))
 		for app in apps:
 			for l in llabel_range:
-				value_v = [];
 				total_time = 0;
 			try:
-				for it in range(iterations):
-					dumpfile_n = dump_file_format.replace("#app#", app)
-					dumpfile_n = dumpfile_n.replace("#xlabel#", x)
-					dumpfile_n = dumpfile_n.replace("#llabel#", l)
-					dumpfile_n = dumpfile_n.replace("#iter#", str(it))
-					dumpfile_n = "{0}.dump".format(dumpfile_n)
-					#get value
-					#print dumpfile_n
-					dumpfile = open(dumpfile_n)
-					value_v.append(parse_file(dumpfile, value_n, ''))
+				dumpfile_n = dump_file_format.replace("#app#", app)
+				dumpfile_n = dumpfile_n.replace("#xlabel#", x)
+				dumpfile_n = dumpfile_n.replace("#llabel#", l)
+				dumpfile_n = "{0}.txt".format(dumpfile_n)
+				dumpfile = open(dumpfile_n)
+				total_time = mean.parse_file(dumpfile, value_n, '')
 				#write value to cvs file
-				total_time = median(value_v)
 				if(x == '1'):
 					seq_time[app] = total_time
 			except IOError:
@@ -118,7 +85,7 @@ def plot_line_graph(title, xlabel, ylabel, llabel,
 
 
 def plot_bar_graph(	title, clusters, stacks, breakdowns,
-										xlabel, ylabel, iterations, 
+										xlabel, ylabel, 
 										outfile_n, dump_file_format, graph_type):
 	print "plotting {0}".format(title)
 	perf_n = '{}.perf'.format(outfile_n)
@@ -151,22 +118,36 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 			perf.write('multimulti={0}\n'.format(cluster))
 			stack_i = 0;
 			for stack in stacks:
+				print stack
 				perf.write('{0}'.format(stack))
-				for value_n in breakdowns:
+				for bar_name in breakdowns: 
 					value_v = [];
 					total_time = 0;
-					try:
-						for it in range(iterations):
+					print '==='	
+					print bar_name
+					for value_n in breakdowns[bar_name]:
+						try:
 							dumpfile_n = dump_file_format.replace("#cluster#", cluster)
 							dumpfile_n = dumpfile_n.replace("#stack#", stack)
-							dumpfile_n = dumpfile_n.replace("#iter#", str(it))
 							#get value
+							#print dumpfile_n
 							dumpfile = open(dumpfile_n)
-							value_v.append(parse_file(dumpfile, value_n, stack))
-						#write value to cvs file
-						total_time = median(value_v)
-					except IOError:
-						total_time = 0
+							#write value to cvs file
+							print '+++'							
+							prefix = value_n.partition('-')[1]
+							if(prefix == '-'):
+								value_n = value_n.partition('-')[2]
+								print "-"+value_n
+								tmp = mean.parse_file(dumpfile, value_n, stack)
+								total_time -= tmp
+								print tmp
+								print total_time
+							else:
+								print "+"+value_n
+								total_time += mean.parse_file(dumpfile, value_n, stack)
+								print total_time
+						except IOError:
+							total_time += 0
 					perf.write('\t{0}'.format(total_time))
 				perf.write('\n')
 				if(stacks[0] == 'master'): #cheat
@@ -180,15 +161,12 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 				value_v = [];
 				total_time = 0;
 				try:
-					for it in range(iterations):
-						dumpfile_n = dump_file_format.replace("#cluster#", cluster)
-						dumpfile_n = dumpfile_n.replace("#stack#", stack)
-						dumpfile_n = dumpfile_n.replace("#iter#", str(it))
-						#get value
-						dumpfile = open(dumpfile_n)
-						value_v.append(parse_file(dumpfile, value_n, 'MASTER'))
+					dumpfile_n = dump_file_format.replace("#cluster#", cluster)
+					dumpfile_n = dumpfile_n.replace("#stack#", stack)
+					#get value
+					dumpfile = open(dumpfile_n)
 					#write value to cvs file
-					total_time = median(value_v)
+					total_time = mean.parse_file(dumpfile, value_n, 'MASTER')
 				except IOError:
 					total_time = 0
 				perf.write('\t{0}'.format(total_time))
@@ -204,15 +182,12 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 				value_v = [];
 				total_time = 0;
 				try:
-					for it in range(iterations):
-						dumpfile_n = dump_file_format.replace("#cluster#", cluster)
-						dumpfile_n = dumpfile_n.replace("#stack#", stack)
-						dumpfile_n = dumpfile_n.replace("#iter#", str(it))
-						#get value
-						dumpfile = open(dumpfile_n)
-						value_v.append(parse_file(dumpfile, value_n, 'MASTER'))
+					dumpfile_n = dump_file_format.replace("#cluster#", cluster)
+					dumpfile_n = dumpfile_n.replace("#stack#", stack)
+					#get value
+					dumpfile = open(dumpfile_n)
 					#write value to cvs file
-					total_time = median(value_v)
+					total_time = mean.parse_file(dumpfile, value_n, 'MASTER')
 				except IOError:
 					total_time = 0
 				perf.write('\t{0}'.format(total_time))
