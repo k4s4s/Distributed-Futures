@@ -84,7 +84,7 @@ void RRScheduler::run_proc() {
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 	while(proc->has_job()) {
 		STOP_TIMER("idle_time");
-		START_TIMER("run_proc_time");
+//		START_TIMER("run_proc_time");
 		DPRINT_VAR("RRScheduler:worker has job! ", id);
 		DPRINT_VAR("\tRRScheduler:setting status to running ", id);
 		proc->set_status(scheduler::ProcStatus::RUNNING);
@@ -93,7 +93,7 @@ void RRScheduler::run_proc() {
 		DPRINT_VAR("\tRRScheduler:running job! ", id);
 		job->run();
 		proc->set_status(scheduler::ProcStatus::IDLE);
-		STOP_TIMER("run_proc_time");
+//		STOP_TIMER("run_proc_time");
 		START_TIMER("idle_time");
 	}
 };

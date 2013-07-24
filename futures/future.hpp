@@ -102,6 +102,7 @@ future<T> make_future(T val) {
 template<typename F, typename... Args>
 future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_size, F& f, Args... args) {
 		STOP_TIMER("user_code_execution_time");
+		STOP_TIMER("job_execution_time");
 		INCREASE_COUNTER("total_jobs", 1); //FIXME: check if that's ok here
 		START_TIMER("job_issue_time");
     Futures_Environment *env = Futures_Environment::Instance();
@@ -113,7 +114,6 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 
 		if(worker_id == id && id ==  0) { //FIXME: checking if things can work without this code, just for master
 			STOP_TIMER("job_issue_time");
-			STOP_TIMER("job_execution_time");
 		  DPRINT_VAR("\tASYNC:running on self", id);
 			START_TIMER("user_code_execution_time");
 			typename std::result_of<F(Args...)>::type retVal = f(args...); //run locally

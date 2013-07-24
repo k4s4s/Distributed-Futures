@@ -53,9 +53,7 @@ StatManager::StatManager() {
 	sys_timerMap["total_execution_time"] = _timer();
 	sys_timerMap["user_code_execution_time"] = _timer();
 	sys_timerMap["value_return_time"] = _timer();
-	sys_timerMap["wait_on_lock_time"] = _timer();
 	sys_timerMap["find_available_worker_time"] = _timer();
-	sys_timerMap["run_proc_time"] = _timer();
 	sys_timerMap["terminate_time"] = _timer();
 
 	sys_counterMap["total_jobs"] = 0;
