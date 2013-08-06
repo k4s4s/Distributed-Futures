@@ -59,10 +59,10 @@ Futures_Environment* Futures_Environment::Instance () {
 Futures_Environment::Futures_Environment(int &argc, char**& argv,
                                        const std::string& commInterfaceName,
                                        const std::string& schedulerName) {
-		START_TIMER("total_execution_time");
-		START_TIMER("initialization_time");
     //Initilize communication Interface
     commInterface = new communication::CommInterface(argc, argv);
+		START_TIMER("total_execution_time");
+		START_TIMER("initialization_time");
 		//Create shared address space
 		memManager = new mem::Shared_Memory_manager(commInterface);
     schedManager = scheduler::SchedManager::Instance();

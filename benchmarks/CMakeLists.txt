@@ -13,10 +13,15 @@ find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Boost REQUIRED COMPONENTS mpi)
 
 option(debug "debug" ON)
+option(stats "stats" OFF)
 
 if(debug MATCHES ON)
 	add_definitions(-g)
 endif(debug MATCHES ON)
+
+if(stats MATCHES ON)
+	add_definitions(-DSTATS)
+endif(stats MATCHES ON)
 
 include_directories(../futures)
 include_directories(../mutex)

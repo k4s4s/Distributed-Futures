@@ -4,16 +4,21 @@ import os
 import plot
 import mean
 
-#apps = {'power':{'small':'-a2 -n10', 'medium':'-a2 -n1000'}}
+def range2string(start, end, step):
+	str_range = []
+	for i in xrange(start, end, step):
+		str_range.append(str(i));
+	return str_range;
 
-apps = {'fib'}
+def gen_stack(num_of_workers):
+	stacks = ["MASTER"]
+	for i in xrange(1, num_of_workers):
+		stacks.append("Worker#"+str(i))
+	return stacks
+
+apps = {'fib', 'quicksort', 'lu'}
 
 workloads = {'large'}
-
-#args = {'fibonacci':{'large':'-a45 -w30'}, 
-#				'quicksort':{'large':'-n10000000 -w100000'}, 
-#				'lu':{'large':'-n2000 -b200'}}
-
 
 args = {'fibonacci':{'large':'-a45 -w30'}, 
 				'quicksort':{'large':'-n10000000 -w100000'}, 
@@ -23,15 +28,14 @@ seq_times = {	'fibonacci':2.3,
 							'quicksort':2.9,
 							'lu':1228}
 
-ncores = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
-#ncores = ['1']
-#iterations = 20;
-iterations = 3;
+ncores = ['1']
+ncores.extend(range2string(4, 65, 4));
+iterations = 1;
 
 #generate file with median values
 for app in apps:
 	for n in ncores:
-		mean.write_median_file("stats/dumps/{0}_p{1}_#iter#.txt".format(app, n), iterations)
+		mean.write_median_file("stats/dumps_beowulf/{0}_p{1}_#iter#.txt".format(app, n), iterations)
 
 #for app in apps:
 	#create lu threads dump directory
@@ -51,25 +55,29 @@ for app in apps:
 
 plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
 											apps, ncores, workloads, 	
-											'total time', 'perfs/apps_scalability',
-											'stats/dumps/#app#_p#xlabel#_median', 'raw')
+											'total time', 'stats/apps_scalability',
+											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'raw')
+
+plot.plot_line_graph(	'speedup over number of cores', 'ncores', 'execution time (ms)', 'load',
+											apps, ncores, workloads, 	
+											'total time', 'stats/apps_speedup',
+											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'speedup')
 
 breakdowns = {'init time':{'initialization_time'}, 
 							'job issue time':{'job_issue_time'},
-							'user code time':{'user_code_execution_time', 'job_execution_time'},
+							'user code time':{'user_code_execution_time'},
 							'idle time':{'idle_time'},
 							'rest time':{	'total_execution_time', '-job_issue_time', 
 														'-initialization_time', '-finalization_time',
-														'-idle_time', '-user_code_execution_time', 
-														'-job_execution_time'},
+														'-idle_time', '-user_code_execution_time'},
 							'finalization time':{'finalization_time'}}
 
-stacks = ['MASTER', 'Worker#1', 'Worker#2', 'Worker#3', 'Worker#4', 'Worker#5']
+stacks = gen_stack(8)
 
-plot.plot_bar_graph('application breakdowns for 6 cores', apps, stacks, breakdowns,
+plot.plot_bar_graph('application breakdowns for 8 cores', apps, stacks, breakdowns,
 										'benchmarks', 'execution time (ms)',
 										'stats/app_breakdowns',
-										'stats/dumps/#cluster#_p6_1.txt', 'stackcluster')
+										'stats/dumps_beowulf/#cluster#_p8_1.txt', 'stackcluster')
 
 #plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
 #											apps, ncores, workloads, iterations, 	

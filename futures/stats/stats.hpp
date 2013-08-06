@@ -7,6 +7,7 @@
 #include <string>
 #include <communication/communication.hpp>
 #include <communication/MPIComm.hpp>
+#include <list>
 
 #ifndef STATS
 
@@ -47,14 +48,15 @@ private:
 	unsigned long _timer_h_G_starttime;
 	unsigned long _timer_h_G_endtime;
 	unsigned long _timer_h_G_totaltime;
-	bool active;
+	bool running;
+	std::list<unsigned long> previous_starttime;
 public:
 		_timer();
 		~_timer();
 		void start_timer();
 		void stop_timer();
 		unsigned long get_time();
-		bool is_active();
+		bool is_running();
 };
 
 class StatManager {

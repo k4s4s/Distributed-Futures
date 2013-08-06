@@ -118,13 +118,10 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 			perf.write('multimulti={0}\n'.format(cluster))
 			stack_i = 0;
 			for stack in stacks:
-				print stack
 				perf.write('{0}'.format(stack))
 				for bar_name in breakdowns: 
 					value_v = [];
 					total_time = 0;
-					print '==='	
-					print bar_name
 					for value_n in breakdowns[bar_name]:
 						try:
 							dumpfile_n = dump_file_format.replace("#cluster#", cluster)
@@ -132,20 +129,14 @@ def plot_bar_graph(	title, clusters, stacks, breakdowns,
 							#get value
 							#print dumpfile_n
 							dumpfile = open(dumpfile_n)
-							#write value to cvs file
-							print '+++'							
+							#write value to cvs file						
 							prefix = value_n.partition('-')[1]
 							if(prefix == '-'):
 								value_n = value_n.partition('-')[2]
-								print "-"+value_n
 								tmp = mean.parse_file(dumpfile, value_n, stack)
 								total_time -= tmp
-								print tmp
-								print total_time
 							else:
-								print "+"+value_n
 								total_time += mean.parse_file(dumpfile, value_n, stack)
-								print total_time
 						except IOError:
 							total_time += 0
 					perf.write('\t{0}'.format(total_time))

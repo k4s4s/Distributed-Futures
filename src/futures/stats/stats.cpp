@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <cstring>
 #include <iomanip>
+#include <cassert>
 
 #define l_margin 30
 
@@ -14,30 +15,40 @@ _timer::_timer() {
 	_timer_h_G_totaltime = 0;
 	_timer_h_G_starttime = 0;
 	_timer_h_G_endtime = 0;
-	active = false;
+	running = false;
 };
 
 _timer::~_timer() {};
 
 void _timer::start_timer() {
-	if(active) return;
+/*
+	if(running) {
+		std::cout << "timer was alread running" << std::endl; //FIXME:this should never happen, assert it maybe
+		return;
+	}
+*/
+	assert(!running);
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	_timer_h_G_starttime = time.tv_usec + time.tv_sec * 1000000;
-	active = true;
+	running = true;
 };
 
 void _timer::stop_timer() {
-	if(!active) return; 
+	if(!running) return; 
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	_timer_h_G_endtime = time.tv_usec + time.tv_sec * 1000000;
 	_timer_h_G_totaltime += _timer_h_G_endtime - _timer_h_G_starttime;
-	active = false;
+	running = false;
 };
 
 unsigned long _timer::get_time() {
 	return _timer_h_G_totaltime;
+};
+
+bool _timer::is_running() {
+	return running;
 };
 
 
@@ -48,7 +59,6 @@ StatManager::StatManager() {
 	sys_timerMap["initialization_time"] = _timer();
 	sys_timerMap["finalization_time"] = _timer();
 	sys_timerMap["job_issue_time"] = _timer();
-	sys_timerMap["job_execution_time"] = _timer();
 	sys_timerMap["idle_time"] = _timer();
 	sys_timerMap["total_execution_time"] = _timer();
 	sys_timerMap["user_code_execution_time"] = _timer();
@@ -76,6 +86,7 @@ StatManager* StatManager::Instance() {
 void StatManager::start_timer(std::string const& timer_n) {
 	map<string, _timer>::iterator it;
 	it = sys_timerMap.find(timer_n);
+	if(it->second.is_running()) std::cout << "timer " << timer_n << "is still running" << endl;
 	it->second.start_timer();
 };
 
