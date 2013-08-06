@@ -47,7 +47,10 @@ Scheduler* RRScheduler:: create(CommInterface *commInterface) {
 int RRScheduler::nextAvaibleWorkerId() {
 		START_TIMER("find_available_worker_time");
     assert(total_workers != 0);
-		if(total_workers == 1) return 0;
+		if(total_workers == 1) {
+			STOP_TIMER("find_available_worker_time");
+			return 0;
+		}
 		int curr_worker_id;
 		sched_lock->lock(MASTER_ID);
 		curr_worker_id = sched_mem->get<int>(MASTER_ID, 1, 0);
@@ -67,6 +70,7 @@ int RRScheduler::nextAvaibleWorkerId() {
 		//if we get here we didn't find any avaible procs, so run RR fashion
 		//DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
 		sched_lock->unlock(MASTER_ID);
+std::cout << "stop" << std::endl;
 		STOP_TIMER("find_available_worker_time");
     return curr_worker_id;
 };
