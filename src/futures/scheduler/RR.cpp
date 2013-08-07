@@ -70,7 +70,6 @@ int RRScheduler::nextAvaibleWorkerId() {
 		//if we get here we didn't find any avaible procs, so run RR fashion
 		//DPRINT_VAR("\tRRSched:No idle proc found, returning ", curr_worker_id);
 		sched_lock->unlock(MASTER_ID);
-std::cout << "stop" << std::endl;
 		STOP_TIMER("find_available_worker_time");
     return curr_worker_id;
 };
