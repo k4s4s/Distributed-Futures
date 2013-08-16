@@ -56,6 +56,7 @@ def write_median_file(filename, iters):
 			for i in range(2, iters):
 				nextfile = filename.replace("#iter#", str(i))
 				nxt_f = open(nextfile, 'r')
+				#print "parsing file" + nextfile
 				values.append(parse_file(nxt_f, name, node))
 			outfile.write("{0}:{1}\n".format(name, median(values)))
 		elif "Worker" in name or "MASTER" in name:

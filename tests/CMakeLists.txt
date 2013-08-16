@@ -31,47 +31,47 @@ target_link_libraries (ping_pong ${EXTRA_LIBS})
 target_link_libraries (bench_issue_container ${EXTRA_LIBS})
 target_link_libraries (bench_issue_scalar ${EXTRA_LIBS})
 
-if(MPI_COMPILE_FLAGS)
-  set_target_properties(hello_world PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(power PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(factorial PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(fibonacci PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(quicksort PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#if(MPI_COMPILE_FLAGS)
+#  set_target_properties(hello_world PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(power PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(factorial PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(fibonacci PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(quicksort PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 
-  set_target_properties(ping_pong PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(bench_issue_container PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(bench_issue_scalar PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-  set_target_properties(test PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-endif()
+#  set_target_properties(ping_pong PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(bench_issue_container PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(bench_issue_scalar PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#  set_target_properties(test PROPERTIES
+#    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#endif()
 
-if(MPI_LINK_FLAGS)
-  set_target_properties(hello_world PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(power PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(factorial PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(fibonacci PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(quicksort PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#if(MPI_LINK_FLAGS)
+#  set_target_properties(hello_world PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(power PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(factorial PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(fibonacci PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(quicksort PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
 
-  set_target_properties(ping_pong PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(bench_issue_container PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(bench_issue_scalar PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-  set_target_properties(test PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-endif()
+#  set_target_properties(ping_pong PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(bench_issue_container PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(bench_issue_scalar PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#  set_target_properties(test PROPERTIES
+#    LINK_FLAGS "${MPI_LINK_FLAGS}")
+#endif()
 

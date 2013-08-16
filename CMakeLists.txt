@@ -7,6 +7,7 @@ project(mpi-f)
 set(LIB_INSTALL_DIR, CMAKE_INSTALL_PREFIX)
 
 # Require MPI for this project:
+#SET (MPI_COMPILER "/home/kasas/libs/openmpi-1.6.5/bin/mpicxx" CACHE STRING "")
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
@@ -14,6 +15,10 @@ include_directories(${MPI_INCLUDE_PATH})
 
 find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Boost REQUIRED COMPONENTS mpi)
+message(${MPI_INCLUDE_PATH})
+message(${MPI_LIBRARIES})
+message(${MPI_COMPILER})
+#message(${MPI_COMPILE_FLAGS})
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -44,6 +49,7 @@ include_directories(futures/communication)
 include_directories(futures/mem)
 include_directories(futures/scheduler)
 include_directories(futures/stats)
+include_directories(futures/serialization)
 
 add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)
 add_definitions(-DV_MPI)

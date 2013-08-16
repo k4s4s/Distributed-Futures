@@ -24,18 +24,18 @@ args = {'fibonacci':{'large':'-a45 -w30'},
 				'quicksort':{'large':'-n10000000 -w100000'}, 
 				'lu':{'large':'-n2000 -b200'}}
 
-seq_times = {	'fibonacci':2.3,
+seq_times = {	'fib':2.3,
 							'quicksort':2.9,
 							'lu':1228}
 
 ncores = ['1']
-ncores.extend(range2string(4, 65, 4));
-iterations = 1;
+ncores.extend(range2string(2, 13, 1));
+iterations = 9;
 
 #generate file with median values
 for app in apps:
 	for n in ncores:
-		mean.write_median_file("stats/dumps_beowulf/{0}_p{1}_#iter#.txt".format(app, n), iterations)
+		mean.write_median_file("stats/dumps_minititan/{0}_p{1}_#iter#.txt".format(app, n), iterations)
 
 #for app in apps:
 	#create lu threads dump directory
@@ -51,32 +51,64 @@ for app in apps:
 #				print "running ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile)
 #				os.system("mpirun -np {3} ./tests/{0} {1} > {2}".format(app, args[app][workload], dumpfile, n))
 
-
+#====MINI TITAN GRAPHS====
 
 plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
 											apps, ncores, workloads, 	
-											'total time', 'stats/apps_scalability',
-											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'raw')
+											'total time', 'stats/apps_scalability_minititan',
+											'stats/dumps_minititan/#app#_p#xlabel#_median', 'raw')
 
 plot.plot_line_graph(	'speedup over number of cores', 'ncores', 'execution time (ms)', 'load',
 											apps, ncores, workloads, 	
-											'total time', 'stats/apps_speedup',
-											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'speedup')
+											'total time', 'stats/apps_speedup_minititan',
+											'stats/dumps_minititan/#app#_p#xlabel#_median', 'speedup')
 
-breakdowns = {'init time':{'initialization_time'}, 
-							'job issue time':{'job_issue_time'},
+breakdowns = {'job issue time':{'job_issue_time'},
 							'user code time':{'user_code_execution_time'},
 							'idle time':{'idle_time'},
 							'rest time':{	'total_execution_time', '-job_issue_time', 
 														'-initialization_time', '-finalization_time',
-														'-idle_time', '-user_code_execution_time'},
-							'finalization time':{'finalization_time'}}
+														'-idle_time', '-user_code_execution_time'}}
 
 stacks = gen_stack(8)
 
 plot.plot_bar_graph('application breakdowns for 8 cores', apps, stacks, breakdowns,
 										'benchmarks', 'execution time (ms)',
-										'stats/app_breakdowns',
+										'stats/app_breakdowns_minititan',
+										'stats/dumps_minititan/#cluster#_p8_1.txt', 'stackcluster')
+
+#====BEOWULF GRAPHS====
+
+ncores = ['1']
+ncores.extend(range2string(4, 65, 4));
+iterations = 9;
+#generate file with median values
+for app in apps:
+	for n in ncores:
+		mean.write_median_file("stats/dumps_beowulf/{0}_p{1}_#iter#.txt".format(app, n), iterations)
+
+plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
+											apps, ncores, workloads, 	
+											'total time', 'stats/apps_scalability_beowulf',
+											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'raw')
+
+plot.plot_line_graph(	'speedup over number of cores', 'ncores', 'execution time (ms)', 'load',
+											apps, ncores, workloads, 	
+											'total time', 'stats/apps_speedup_beowulf',
+											'stats/dumps_beowulf/#app#_p#xlabel#_median', 'speedup')
+
+breakdowns = {'job issue time':{'job_issue_time'},
+							'user code time':{'user_code_execution_time'},
+							'idle time':{'idle_time'},
+							'rest time':{	'total_execution_time', '-job_issue_time', 
+														'-initialization_time', '-finalization_time',
+														'-idle_time', '-user_code_execution_time'}}
+
+stacks = gen_stack(8)
+
+plot.plot_bar_graph('application breakdowns for 8 cores', apps, stacks, breakdowns,
+										'benchmarks', 'execution time (ms)',
+										'stats/app_breakdowns_beowulf',
 										'stats/dumps_beowulf/#cluster#_p8_1.txt', 'stackcluster')
 
 #plot.plot_line_graph(	'scalability over number of cores', 'ncores', 'execution time (ms)', 'load',
