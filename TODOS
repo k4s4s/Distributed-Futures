@@ -1,14 +1,16 @@
 * TODO:allow futures to return exceptions
-* TODO:add doxygen
+* TODO:complete doxygen
 * TODO:add jacobi futures implementation
 * TODO:make commInterface a singleton class
-* TODO:find an alternative for async2(...) - allocation on worker instead of master
+* TODO:find an alternative for async2(...) - allocation on worker instead of master - need a 
+				serialization archine that only counts bytes
 * TODO:add debug levels
  
 * FIXME:handle void return type
 * FIXME:if functor takes more than 2 or 3 arguments like vector (probably for all dynamic containers),
 				poping the task on worker causes a stack smash! 
 				-workaround, create a struct/class to pack arguments (!remember to serialize it!)
+* FIXME:Need to find a way to express argument types with CEREAL 
 
 *	NOTE: when calling async, user must be sure that arguments will be deducted correctly.
 	Example: consider the functor is double->double, async(f, 1) will result in unregistered

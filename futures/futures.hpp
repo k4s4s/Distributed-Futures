@@ -7,13 +7,15 @@
  *				 by any program useing the futures librarys.
 */
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/serialization/export.hpp>
+#include <memory>
+#include "cereal/cereal.hpp"
+#include "cereal/types/base_class.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 #include "future_fwd.hpp"
 #include "futures_environment.hpp"
 #include "future.hpp"
-//#include "promise.hpp"
 #include <boost/type_traits/function_traits.hpp>
 #include "stats/stats.hpp"
 
@@ -29,7 +31,16 @@
  *  			 If a functor call needs arguments, then f should be 
  *				 async_function<foo, arg1::type, arg2::type, ..., argN::type>.  
 */
-#define FUTURES_EXPORT_FUNCTOR(F) BOOST_CLASS_EXPORT(IDENTITY_TYPE(F))
+#define FUTURES_EXPORT_FUNCTOR(F) \
+  namespace cereal {                                     \
+  namespace detail {                                     \
+  template <>                                            \
+  struct binding_name<IDENTITY_TYPE(F)>                                 \
+  {                                                      \
+    static constexpr char const * name() { return #F; }; \
+  };                                                     \
+  } } /* end namespaces */                               \
+  CEREAL_BIND_TO_ARCHIVES(IDENTITY_TYPE(F));
 
 /**
  *	MACRO used to implement the non-intrusive serialization routine
@@ -39,27 +50,8 @@
  *	@param C the functor object to be serialized
 */
 #define FUTURES_SERIALIZE_CLASS(C) \
-	namespace boost { \
-	namespace serialization { \
 	template<class Archive> \
-	void serialize(Archive & ar, C c, const unsigned int version) {}; \
-	} \
-	}
-
-//stupid fix...
-//if serialization is not used by user program, compiler
-//does not link some boost::serialization and mpl routines needed
-class fix {
-private:
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */) {};
-public:
-    fix() {};
-    ~fix() {};
-};
-
-BOOST_CLASS_EXPORT(fix);
+	void serialize(Archive & ar, C c) {};
 
 #endif
 

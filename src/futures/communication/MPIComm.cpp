@@ -52,8 +52,9 @@ void CommInterface::send(int dst_id, int tag, int count, MPI_Datatype datatype, 
     MPI_Send(data, count, datatype, dst_id, tag, MPI_COMM_WORLD);
 };
 
-void CommInterface::send(int dst_id, int tag, boost::mpi::packed_oarchive& ar) {
-    MPI_Send((void*)(&ar.size()), 1, MPI_INT, dst_id, tag, MPI_COMM_WORLD);
+void CommInterface::send(int dst_id, int tag, cereal::RawOutputArchive& ar) {
+		int size = ar.size();
+    MPI_Send((void*)(&size), 1, MPI_INT, dst_id, tag, MPI_COMM_WORLD);
     MPI_Send(const_cast<void*>(ar.address()), ar.size(), MPI_PACKED, dst_id, tag+1, MPI_COMM_WORLD);
 };
 
@@ -62,7 +63,7 @@ void CommInterface::recv(int src_id, int tag, int count, MPI_Datatype datatype, 
     MPI_Recv(data, count, datatype, src_id, tag, MPI_COMM_WORLD, &status);
 };
 
-void CommInterface::recv(int src_id, int tag, boost::mpi::packed_iarchive& ar) {
+void CommInterface::recv(int src_id, int tag,	cereal::RawInputArchive& ar) {
     MPI_Status status;
     int count;
     MPI_Recv((void*)&count, 1, MPI_INT, src_id, tag, MPI_COMM_WORLD, &status);

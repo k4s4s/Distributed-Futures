@@ -6,7 +6,8 @@
 #include <boost/cstdint.hpp>
 #include <boost/move/move.hpp>
 #include <boost/format.hpp>
-#include <boost/serialization/shared_ptr.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/vector.hpp>
 
 template <class T>
 class Matrix
@@ -14,17 +15,7 @@ class Matrix
   public:
   
 BOOST_COPYABLE_AND_MOVABLE(Matrix)    
-    
-friend class boost::serialization::access;
 
-template <typename Archive>
-void serialize(Archive & ar, unsigned)
-  { 
-    ar & height;
-    ar & width;
-    ar & data;
-  }
-  
   std::size_t height;
   std::size_t width;
   std::vector<T> data;  
@@ -81,6 +72,12 @@ void serialize(Archive & ar, unsigned)
       }
       return *this;
    }
+
+	template <typename Archive>
+	void serialize(Archive & ar)
+		{ 
+		  ar(height, width, data);
+		}
   
 };
 

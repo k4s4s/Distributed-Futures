@@ -2,6 +2,7 @@
 #ifndef _TASKSTACK_H
 #define _TASKSTACK_H
 
+#include <memory>
 #include <mutex.hpp>
 #include "../future_fwd.hpp"
 #include "../communication/communication.hpp"
@@ -25,8 +26,8 @@ private:
 public:
 	taskStack(communication::CommInterface *_comm);
 	~taskStack();
-	bool push(int dst_id, _stub *job);
-	_stub *pop(int dst_id);
+	bool push(int dst_id, std::shared_ptr<_stub>& job);
+	std::shared_ptr<_stub> pop(int dst_id);
 	bool is_empty(int dst_id);
 	bool is_full(int dst_id);
 };

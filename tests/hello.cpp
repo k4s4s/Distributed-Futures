@@ -1,8 +1,6 @@
 
 #include "futures.hpp"
 #include <iostream>
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 
 #define MASTER 0
 
@@ -22,6 +20,7 @@ public:
 
 FUTURES_SERIALIZE_CLASS(helloWorld);
 FUTURES_EXPORT_FUNCTOR((async_function<helloWorld>));
+//CEREAL_REGISTER_TYPE(async_function<helloWorld>);
 
 int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);

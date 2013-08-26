@@ -3,7 +3,9 @@ Distributed-Futures
 
 Implementation of the future shared memory synchronization model for distributed memory 
 
-Requirements an MPI implementation, boost::serialization and boost::mpi libraries
+Requirements:
+-An MPI library (note: openmpi-1.6.5 seems not to be working, use version openmpi-1.4.5)
+-boost::mpi (headers only)
 
 ===================
 Installation instructions:
@@ -23,11 +25,11 @@ NOTE:Our library does not work with openmpi-1.6.5, you may need to use an older 
 with openmpi-1.4.5) 
 
 If you have not installed boost in the default location, you need to define BOOST_ROOT to the root 
-directory of your boost installation and add BOOST_ROOT/lib to LD_LIBRARY_PATH variable
+directory of your boost installation.
 
 Other cmake flags:
 -Dstats=ON/OFF		Enables/Disables runtime statistic information report
 -Ddebug=ON/OFF		Enables/Disables runtime debug prints
 
-NOTE:Benchmark applications maybe need extra dependencies met.  See their readme before compiling
+NOTE:Benchmark applications may need extra dependencies met.  See their readme before compiling
 

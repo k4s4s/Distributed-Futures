@@ -98,12 +98,12 @@ bool Master::available(int dst_id) {
 	return !task_stack->is_full(dst_id);
 };
 
-bool Master::send_job(int dst_id, _stub *job) { 
+bool Master::send_job(int dst_id, std::shared_ptr<_stub>& job) { 
 	//return task_queue->enqueue(dst_id, job);
 	return task_stack->push(dst_id, job);
 };
 
-_stub *Master::get_job() { 
+std::shared_ptr<_stub> Master::get_job() { 
 	//return task_queue->dequeue(id);
 	return task_stack->pop(id);
 };

@@ -1,10 +1,11 @@
 #ifndef _RR_H
 #define _RR_H
 
+#include <map>
+#include <mutex.hpp>
+
 #include "../communication/communication.hpp"
 #include "scheduler.hpp"
-#include <mutex.hpp>
-#include <map>
 
 namespace futures {
 namespace scheduler {
@@ -25,7 +26,7 @@ public:
     void set_status(ProcStatus status);
     bool terminate();
 		void run_proc();
-		bool schedule_job(int dst_id, _stub *job);
+		bool schedule_job(int dst_id, std::shared_ptr<_stub>& job);
 };
 
 }

@@ -24,6 +24,7 @@ if(stats MATCHES ON)
 endif(stats MATCHES ON)
 
 include_directories(../futures)
+include_directories(../futures/serialization)
 include_directories(../mutex)
 
 add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)

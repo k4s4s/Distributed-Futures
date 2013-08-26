@@ -2,10 +2,8 @@
 #include "futures_environment.hpp"
 #include "scheduler/RR.hpp"
 #include "communication/MPIComm.hpp"
-#include "details.hpp"
-#include <boost/mpi.hpp>
+//#include <boost/mpi.hpp>
 #include <iostream>
-#include "common.hpp"
 
 #define NEW_TASK 2001
 #define EXIT -1
@@ -112,7 +110,7 @@ void Futures_Environment::free(int id, mem::Shared_pointer ptr) {
 	memManager->free(id, ptr);
 };
 
-bool Futures_Environment::schedule_job(int dst_id, _stub *job) {
+bool Futures_Environment::schedule_job(int dst_id, std::shared_ptr<_stub>& job) {
 	return sched->schedule_job(dst_id, job);
 };
 
@@ -128,5 +126,5 @@ void Futures_Environment::wait_for_job() {
 
 void Futures_Environment::execute_pending_jobs() {
 	sched->run_proc();
-}
+};
 

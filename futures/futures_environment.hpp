@@ -5,13 +5,15 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <memory>
+
+#include "common.hpp"
+#include "details.hpp"
+#include "future_fwd.hpp"
 #include "communication/communication.hpp"
 #include "mem/SharedMemoryManager.hpp"
 #include "scheduler/scheduler.hpp"
 #include "scheduler/schedManager.hpp"
-#include "future_fwd.hpp"
-#include "details.hpp"
-#include "common.hpp"
 
 namespace futures {
 
@@ -46,7 +48,7 @@ public:
 		void set_data(T data, int dst_id, mem::Shared_pointer ptr, int size, int offset);
 		template<typename T>
 		T get_data(int dst_id, mem::Shared_pointer ptr, int size, int offset);	
-		bool schedule_job(int dst_id, _stub *job);
+		bool schedule_job(int dst_id, std::shared_ptr<_stub>& job);
     void wait_for_job();
 		void execute_pending_jobs();
 };

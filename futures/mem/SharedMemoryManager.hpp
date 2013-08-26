@@ -36,17 +36,6 @@ namespace futures {
 namespace mem {
 
 struct Shared_pointer {
-private:
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /* file_version */) {
-      ar	& BOOST_SERIALIZATION_NVP(node_id) 
-					& BOOST_SERIALIZATION_NVP(base_address) 					
-					& BOOST_SERIALIZATION_NVP(size)
-					& BOOST_SERIALIZATION_NVP(num_of_pages)
-					& BOOST_SERIALIZATION_NVP(actual_size)
-					& BOOST_SERIALIZATION_NVP(page_size);
-  };
 public:
 	int node_id;
 	int base_address;
@@ -54,6 +43,11 @@ public:
 	int num_of_pages;
 	std::size_t actual_size; //size*num_of_pages
 	int page_size;
+  template<class Archive>
+  void serialize(Archive & ar) {
+      ar(	node_id, base_address, size, 
+					num_of_pages, actual_size, page_size);
+  };
 };
 
 struct compare : public std::binary_function<Shared_pointer, Shared_pointer, bool>

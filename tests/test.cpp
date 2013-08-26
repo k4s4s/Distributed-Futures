@@ -23,6 +23,7 @@ public:
 FUTURES_SERIALIZE_CLASS(foo);
 FUTURES_EXPORT_FUNCTOR((async_function<foo>));
 
+
 class goo {
 public:
 	goo() {};
@@ -37,14 +38,15 @@ public:
 FUTURES_SERIALIZE_CLASS(goo);
 FUTURES_EXPORT_FUNCTOR((async_function<goo, future<int>>));
 
+
 int main(int argc, char* argv[]) {
 	Futures_Initialize(argc, argv);
 	foo f;
-	goo g;
+	//goo g;
 	future<int> fut = async(f);
-	future<int> message = async(g, fut);
+	//future<int> message = async(g, fut);
 
-	cout << "- Master : " << message.get() << endl;
+	//cout << "- Master : " << message.get() << endl;
 
 	Futures_Finalize();
 };

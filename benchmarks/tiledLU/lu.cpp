@@ -5,6 +5,7 @@
 //#include "../timer.hpp"
 #include "matrix.hpp"
 #include "kernels.hpp"
+
 #include <mkl_lapacke.h>
 #include <mkl_lapack.h>
 
@@ -22,6 +23,7 @@ int NB;
 int IB;
 
 using namespace std;
+using namespace futures;
 
 template<typename T>
 void print_array(int M, int N, Matrix<T>& A) {
@@ -104,33 +106,17 @@ void print_matrix(int M, int N, Matrix<double>& A) {
 }
 
 struct dgessm_RV {
-private:
-  friend class boost::serialization::access;
-	template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & Akn;
-  }
 public:
 	Matrix<double> Akn;
+	template<class Archive>
+  void serialize(Archive & ar)
+  {
+      ar(Akn);
+  }
 };
 
 class dgessm_action {
 private:
-  friend class boost::serialization::access;
-	template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & M;
-			ar & N;
-			ar & K;
-			ar & IB;
-      ar & IPIV;
-      ar & L;
-			ar & LDL;
-			ar & A;
-			ar & LDA;
-  }
 	int M;
 	int  	N;
 	int  	K;
@@ -170,6 +156,13 @@ public:
 		retVal.Akn = A;
 		return retVal;	
 	}
+
+	template<class Archive>
+  void serialize(Archive & ar)
+  {
+      ar(M, N, K, IB, IPIV, L, LDL, A, LDA);
+  }
+
 };
 
 FUTURES_EXPORT_FUNCTOR((futures::async_function<dgessm_action>));
@@ -211,41 +204,18 @@ public:
 };
 
 struct dssssm_RV {
-private:
-  friend class boost::serialization::access;
-	template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & Akn;
-			ar & Amn;
-  }
 public:
 	Matrix<double> Akn;
 	Matrix<double> Amn;
+	template<class Archive>
+  void serialize(Archive & ar)
+  {
+      ar(Akn, Amn);
+  }
 };
 
 class dssssm_action {
 private:
-  friend class boost::serialization::access;
-	template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & M1;
-			ar & N1;
-			ar & M2;
-			ar & N2;
-			ar & K;
-			ar & IB;
-			ar & A1;
-			ar & LDA1;
-			ar & A2;
-			ar & LDA2;
-      ar & L1;
-			ar & LDL1;
-      ar & L2;
-			ar & LDL2;
-      ar & IPIV;
-  }
 	int  M1;
 	int  N1;
 	int  M2;
@@ -319,6 +289,13 @@ public:
 		retVal.Amn = A2;
 		return retVal;
 	}
+
+	template<class Archive>
+  void serialize(Archive & ar)
+  {
+      ar(	M1, N1, M2, N2, K, IB, A1, LDA1, 
+					A2, LDA2, L1, LDL1, L2, LDL2, IPIV);
+  }
 };
 
 FUTURES_EXPORT_FUNCTOR((futures::async_function<dssssm_action>));

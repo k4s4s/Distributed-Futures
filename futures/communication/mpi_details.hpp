@@ -3,16 +3,11 @@
 #define _MPI_DETAILS_H
 
 #include <mpi.h>
-#include <boost/mpi.hpp>
+//#include <boost/mpi.hpp>
 #include <boost/mpi/datatype.hpp>
-#include <boost/mpi/packed_oarchive.hpp>
-#include <boost/mpi/packed_iarchive.hpp>
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/serialization/export.hpp>
+
+#include "cereal/cereal.hpp"
+#include "cereal/archives/raw.hpp"
 
 #define AR_SIZE_OFFSET 0
 #define DATA_OFFSET sizeof(int)
@@ -70,16 +65,17 @@ struct _put {
 										int offset,
 										MPI_Win data_win, 
 										boost::mpl::false_) {
-        boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
-        oa << data;
-    		MPI_Exclusive_put((void*)(&oa.size()), 1, MPI_INT, dst_id, 
+        cereal::RawOutputArchive oa;
+        oa(data);
+				int size = oa.size();
+    		MPI_Exclusive_put((void*)(&size), 1, MPI_INT, dst_id, 
 													offset+AR_SIZE_OFFSET,
                           1, MPI_INT, data_win);
-    		MPI_Exclusive_put(const_cast<void*>(oa.address()), oa.size(), 
+    		MPI_Exclusive_put(const_cast<void*>(oa.address()), size, 
 																						MPI_PACKED, dst_id,
-																						offset+DATA_OFFSET, oa.size(), 
+																						offset+DATA_OFFSET, size, 
 																						MPI_PACKED, data_win);
-				return oa.size()+sizeof(oa.size());
+				return size+sizeof(size); //data and size variable sizes
     };
 };
 
@@ -102,16 +98,21 @@ struct _put<TX*> {
 										int offset,
 										MPI_Win data_win, 
 										boost::mpl::false_) {
-        boost::mpi::packed_oarchive oa(MPI_COMM_WORLD);
-        oa << count << boost::serialization::make_array(data, count);
-    		MPI_Exclusive_put((void*)(&oa.size()), 1, MPI_INT, dst_id, 
+				std::cout << "calling special put" << std::endl;
+/*
+        cereal::RawOutputArchive oa;
+        oa(count, boost::serialization::make_array(data, count));
+				int size = oa.size();
+    		MPI_Exclusive_put((void*)(&size), 1, MPI_INT, dst_id, 
 													offset+AR_SIZE_OFFSET,
                           1, MPI_INT, data_win);
-    		MPI_Exclusive_put(const_cast<void*>(oa.address()), oa.size(), 
+    		MPI_Exclusive_put(const_cast<void*>(oa.address()), size, 
 																						MPI_PACKED, dst_id,
-																						offset+DATA_OFFSET, oa.size(), 
+																						offset+DATA_OFFSET, size, 
 																						MPI_PACKED, data_win);
-				return oa.size()+sizeof(oa.size());
+				return size+sizeof(size);
+*/
+				return 0;
     };
 };
 
@@ -134,7 +135,7 @@ struct _get {
 									MPI_Win data_win, 
 									boost::mpl::false_) {
         TX data;
-        boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
+				cereal::RawInputArchive ia;
     		MPI_Exclusive_get((void*)&count, 1, MPI_INT, src_id, 
 													offset+AR_SIZE_OFFSET,
 		                      1, MPI_INT, data_win);
@@ -144,7 +145,7 @@ struct _get {
 																						MPI_PACKED, src_id,	offset+DATA_OFFSET,
 																						ia.size(), MPI_PACKED, data_win);
         // Deserialize the data in the message
-        ia >> data;
+        ia(data);
         return data;
     };
 };
@@ -169,8 +170,10 @@ struct _get<TX*> {
 									int offset,
 									MPI_Win data_win, 
 									boost::mpl::false_) {
+				std::cout << "calling special deserialize" << std::endl;
+/*
         TX* data = new TX[size];
-        boost::mpi::packed_iarchive ia(MPI_COMM_WORLD);
+				cereal::RawInputArchive ia;
     		MPI_Exclusive_get((void*)&count, 1, MPI_INT, src_id, 
 													offset+AR_SIZE_OFFSET,
 		                      1, MPI_INT, data_win);
@@ -179,12 +182,14 @@ struct _get<TX*> {
     		MPI_Exclusive_get(const_cast<void*>(ia.address()), ia.size(), 
 																						MPI_PACKED, src_id,	offset+DATA_OFFSET,
 																						ia.size(), MPI_PACKED, data_win);
-        ia >> count;
+        ia(count);
         // Deserialize the data in the message
         boost::serialization::array<TX> arr(data, count);
-        ia >> arr;
+        ia(arr);
         return data; //FIXME: need to destory array object at some point
 				//or not? it's not a pointer, it should be destroyed at return
+*/
+			return NULL;
     };
 };
 
@@ -326,4 +331,3 @@ static void futures::communication::mpi_details::MPI_Group_create_comm(MPI_Group
 };
 
 #endif
-

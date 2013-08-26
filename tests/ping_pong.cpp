@@ -2,7 +2,7 @@
 #include "futures.hpp"
 #include <iostream>
 #include <string>
-#include <boost/serialization/string.hpp>
+#include <cereal/types/string.hpp>
 
 #define MASTER 0
 

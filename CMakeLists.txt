@@ -5,6 +5,7 @@ project(mpi-f)
 
 
 set(LIB_INSTALL_DIR, CMAKE_INSTALL_PREFIX)
+#set(CMAKE_VERBOSE_MAKEFILE on)
 
 # Require MPI for this project:
 #SET (MPI_COMPILER "/home/kasas/libs/openmpi-1.6.5/bin/mpicxx" CACHE STRING "")
@@ -13,7 +14,7 @@ include_directories(${MPI_INCLUDE_PATH})
 
 #set(ENV{BOOST_ROOT} /home/antoinet/boost-1.53.0)
 
-find_package(Boost REQUIRED COMPONENTS serialization)
+#find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Boost REQUIRED COMPONENTS mpi)
 message(${MPI_INCLUDE_PATH})
 message(${MPI_LIBRARIES})
@@ -49,9 +50,9 @@ include_directories(futures/communication)
 include_directories(futures/mem)
 include_directories(futures/scheduler)
 include_directories(futures/stats)
-include_directories(futures/serialization)
+include_directories(./) #cereal
 
-add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)
+add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++11)
 add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)

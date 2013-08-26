@@ -4,9 +4,16 @@
 */
 
 #include "kernels.hpp"
-#include <mkl_cblas.h>
-#include <mkl_lapacke.h>
-#include <mkl_lapack.h>
+
+#if 0
+	#include <mkl_cblas.h>
+	#include <mkl_lapacke.h>
+	#include <mkl_lapack.h>
+#else
+	#include "lapacke.h"
+	#include <cblas.h>
+#endif
+
 #include <math.h>
 #include <cstring>
 #include <iostream>
@@ -71,7 +78,7 @@ int core_dgessm 	( 	int  	M,
         */
         tmp = i+1;
         tmp2 = i+sb;
-        //LAPACKE_dlaswp_work(LAPACK_COL_MAJOR, N, A, LDA, tmp, tmp2, IPIV, ione);
+        LAPACKE_dlaswp_work(LAPACK_COL_MAJOR, N, A, LDA, tmp, tmp2, IPIV, ione);
 				dlaswp(&N, A, &LDA, &tmp, &tmp2, IPIV, &ione);
         /*
         * Compute block row of U.

@@ -1,6 +1,8 @@
 
 #include "taskStack.hpp"
 #include "../common.hpp"
+#include "cereal/cereal.hpp"
+#include "cereal/types/memory.hpp"
 
 using namespace futures;
 using namespace scheduler;
@@ -22,10 +24,9 @@ taskStack::~taskStack() {
 	delete taskS_lock;
 };
 
-bool taskStack::push(int dst_id, _stub *job) {
+bool taskStack::push(int dst_id, std::shared_ptr<_stub>& job) {
 	//DPRINT_VAR("\t\ttaskstack:Pushing job to ", dst_id);
 	int curr_size, curr_head;
-  _stub_wrapper tw(job);
 	taskS_lock->lock(dst_id);
 	/*read list tail*/
 	curr_head = taskS->get<int>(dst_id, 1, HEAD_OFFSET);
@@ -35,7 +36,7 @@ bool taskStack::push(int dst_id, _stub *job) {
 	/* add new task to list */
 	DPRINT_VAR("\t\ttaskstack:Push:", curr_size);
 	DPRINT_VAR("\t\ttaskstack:Push:inserting at ", curr_head);
-	int task_size = taskS->put(tw, dst_id, 1, curr_head);
+	int task_size = taskS->put(job, dst_id, 1, curr_head);
 	DPRINT_VAR("\t\ttaskstack:Push:till ", curr_head+TASK_OFFSET+task_size);
 	DPRINT_VAR("\t\ttaskstack:Push:", task_size);
 	taskS->put(task_size, dst_id, 1, curr_head+task_size);
@@ -48,7 +49,7 @@ bool taskStack::push(int dst_id, _stub *job) {
 	return true;
 };
 
-_stub *taskStack::pop(int dst_id) {
+std::shared_ptr<_stub> taskStack::pop(int dst_id) {
 	//DPRINT_VAR("\t\ttaskstack:Pop job from ", dst_id);
 	int curr_head, curr_size;
 	taskS_lock->lock(dst_id);
@@ -65,8 +66,8 @@ _stub *taskStack::pop(int dst_id) {
 	DPRINT_VAR("\t\ttaskstack:Pop:poping from ", curr_head-task_size-TASK_OFFSET);
 	DPRINT_VAR("\t\ttaskstack:Pop:", task_size);
 	
-	_stub_wrapper tw = taskS->get<_stub_wrapper>(dst_id, task_size, 
-																							curr_head-task_size-TASK_OFFSET);
+	std::shared_ptr<_stub> job = taskS->get<std::shared_ptr<_stub>>(dst_id, task_size, 
+																																	curr_head-task_size-TASK_OFFSET);
 	DPRINT_MESSAGE("\t\ttaskstack:got data");
 	DPRINT_MESSAGE("\t\ttaskstack:created empty _stub_wrapper");
 	DPRINT_MESSAGE("\t\ttaskstack:streamed data");
@@ -78,7 +79,7 @@ _stub *taskStack::pop(int dst_id) {
 	taskS->put(curr_size, dst_id, 1, SIZE_OFFSET);
 	taskS_lock->unlock(dst_id);
 	DPRINT_MESSAGE("\t\ttaskstack:returning task");
-	return tw.get_task();
+	return job;
 };
 
 bool taskStack::is_empty(int dst_id) {

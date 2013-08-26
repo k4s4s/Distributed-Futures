@@ -4,6 +4,8 @@
 
 #include <mpi.h>
 #include <boost/mpi/datatype.hpp>
+
+#include "cereal/archives/raw.hpp"
 #include "mpi_details.hpp"
 
 namespace futures {
@@ -31,9 +33,9 @@ public:
 		mutex* new_lock();
 		Shared_Address_space* new_shared_space(std::size_t size);
     void send(int dst_id, int tag, int count, MPI_Datatype datatype, void* data);
-    void send(int dst_id, int tag, boost::mpi::packed_oarchive& ar);
+    void send(int dst_id, int tag, cereal::RawOutputArchive& ar);
     void recv(int src_id, int tag, int count, MPI_Datatype datatype, void* data);
-    void recv(int src_id, int tag, boost::mpi::packed_iarchive& ar);
+    void recv(int src_id, int tag, cereal::RawInputArchive& ar);
     int get_procId();
     int size();
 };

@@ -92,7 +92,7 @@ void RRScheduler::run_proc() {
 		DPRINT_VAR("\tRRScheduler:setting status to running ", id);
 		proc->set_status(scheduler::ProcStatus::RUNNING);
 		DPRINT_VAR("\tRRScheduler:receiving job ", id);
-		_stub *job = proc->get_job();
+		std::shared_ptr<_stub> job = proc->get_job();
 		DPRINT_VAR("\tRRScheduler:running job! ", id);
 		job->run();
 		proc->set_status(scheduler::ProcStatus::IDLE);
@@ -101,7 +101,7 @@ void RRScheduler::run_proc() {
 	}
 };
 
-bool RRScheduler::schedule_job(int dst_id, _stub *job) {
+bool RRScheduler::schedule_job(int dst_id, std::shared_ptr<_stub>& job) {
 	return proc->send_job(dst_id, job);
 };
 

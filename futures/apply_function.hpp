@@ -7,6 +7,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <cereal/cereal.hpp>
+
 namespace futures {
 namespace functor_utils {
 
@@ -42,17 +44,14 @@ inline void apply(F && f,  RT *retVal, T && t)
 }
 
 /*** serialization of tuples ***/
-namespace boost {
-namespace serialization {
-
 template<uint N>
 struct Serialize
 {
     template<class Archive, typename... Args>
-    static void serialize(Archive & ar, std::tuple<Args...> & t, const unsigned int version)
+    static void serialize(Archive & ar, std::tuple<Args...> & t)
     {
         ar & std::get<N-1>(t);
-        Serialize<N-1>::serialize(ar, t, version);
+        Serialize<N-1>::serialize(ar, t);
     }
 };
 
@@ -60,18 +59,15 @@ template<>
 struct Serialize<0>
 {
     template<class Archive, typename... Args>
-    static void serialize(Archive & ar, std::tuple<Args...> & t, const unsigned int version)
+    static void serialize(Archive & ar, std::tuple<Args...> & t)
     {
     }
 };
 
 template<class Archive, typename... Args>
-void serialize(Archive & ar, std::tuple<Args...> & t, const unsigned int version)
+void serialize(Archive & ar, std::tuple<Args...> & t)
 {
-    Serialize<sizeof...(Args)>::serialize(ar, t, version);
-}
-
-}
+    Serialize<sizeof...(Args)>::serialize(ar, t);
 }
 
 #endif

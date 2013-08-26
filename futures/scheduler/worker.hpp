@@ -25,8 +25,8 @@ public:
 		ProcStatus get_status(int _id);
     bool terminate();
 		bool available(int dst_id);
-		bool send_job(int dst_id, _stub *job);
-		_stub *get_job();
+		bool send_job(int dst_id, std::shared_ptr<_stub>& job);
+		std::shared_ptr<_stub> get_job();
 		bool has_job();
 };
 

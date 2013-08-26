@@ -28,44 +28,23 @@ private:
 		mem::Shared_pointer data_ptr;
 		int type_size;
 		int data_size;
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int) {
-			ar 	& BOOST_SERIALIZATION_NVP(ready_status) 
-					& BOOST_SERIALIZATION_NVP(data) 
-					& BOOST_SERIALIZATION_NVP(src_id) 
-					& BOOST_SERIALIZATION_NVP(dst_id)
-					& BOOST_SERIALIZATION_NVP(status_ptr)
-					&	BOOST_SERIALIZATION_NVP(data_ptr) 
-					& BOOST_SERIALIZATION_NVP(type_size)
-					& BOOST_SERIALIZATION_NVP(data_size);
-		}
 public:
 		future();
     future(int _src_id, int _dst_id, int _type_size, int _data_size,
-					mem::Shared_pointer _status_ptr, mem::Shared_pointer _data_ptr);
+					mem::Shared_pointer& _status_ptr, mem::Shared_pointer& _data_ptr);
 		future(int _src_id, int _dst_id, T _data);
     ~future();
     bool is_ready();
     T get();
+    template<class Archive>
+    void serialize(Archive & ar) {
+			ar(	ready_status, data, src_id, dst_id,
+					status_ptr, data_ptr, type_size, data_size);
+		}
 };
 
 template<typename F, typename... Args>
 class async_function : public _stub {
-private:
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int) {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(_stub);
-				ar & BOOST_SERIALIZATION_NVP(dst_id) 
-					& BOOST_SERIALIZATION_NVP(src_id) 
-					& BOOST_SERIALIZATION_NVP(status_ptr)
-					& BOOST_SERIALIZATION_NVP(data_ptr) 
-					& BOOST_SERIALIZATION_NVP(data_size)
-					& BOOST_SERIALIZATION_NVP(type_size)
-					&	BOOST_SERIALIZATION_NVP(f) 
-					& BOOST_SERIALIZATION_NVP(args);
-    };
 public:
 		int src_id;
 		int dst_id;
@@ -84,8 +63,13 @@ public:
 									F& _f, Args... _args);
     ~async_function();
     void run();
+	 	template<class Archive>
+		void serialize(Archive & ar) {
+			ar(	cereal::virtual_base_class<_stub>(this),
+					dst_id, src_id, status_ptr, 
+					data_ptr, data_size, type_size, f, args);
+		};
 };
-
 
 /** Implementation of make_future function **/
 template<typename T>
@@ -140,10 +124,10 @@ future<typename std::result_of<F(Args...)>::type> async_impl(unsigned int data_s
 				status_ptr = env->alloc(id, sizeof(int));
 				data_ptr = env->alloc(id, type_size*data_size);
 			}	
-		  _stub *job = new async_function<F, Args...>(worker_id, id, 
-																									status_ptr, data_ptr,
-																									data_size, type_size, 
-																									f, args...);		
+		  std::shared_ptr<_stub> job = std::make_shared<async_function<F, Args...>>(worker_id, id, 
+																																								status_ptr, data_ptr,
+																																								data_size, type_size, 
+																																								f, args...);		
 			DPRINT_VAR("\tASYNC:scheduling on ", worker_id);
 			fut = future<typename std::result_of<F(Args...)>::type>(worker_id, id, 
 																															type_size, data_size,
@@ -177,7 +161,7 @@ future<typename std::result_of<F(Args...)>::type> async2(unsigned int data_size,
 template <class T> future<T>::future() {};
 
 template <class T> future<T>::future(int _src_id, int _dst_id, int _type_size, int _data_size,
-												mem::Shared_pointer _status_ptr, mem::Shared_pointer _data_ptr) {
+												mem::Shared_pointer& _status_ptr, mem::Shared_pointer& _data_ptr) {
 	src_id = _src_id;
 	dst_id = _dst_id;
 	type_size = _type_size;
