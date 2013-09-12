@@ -52,7 +52,7 @@ include_directories(futures/scheduler)
 include_directories(futures/stats)
 include_directories(./) #cereal
 
-add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++11)
+add_definitions(-I$ENV{BOOST_ROOT}/include -O3 -std=c++0x)
 add_definitions(-DV_MPI)
 
 add_subdirectory(src/mutex)

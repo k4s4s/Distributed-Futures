@@ -1,0 +1,38 @@
+colors=red,dark_green,med_blue,yellow
+=stackcluster;rest time;job issue time;idle time;user code time;
+=noupperright
+legendx=right
+legendy=center
+title=application breakdowns for 8 cores
+yformat=%g
+xlabel=benchmarks
+ylabel=execution time (ms)
+rotateby=-45
+=table
+multimulti=fib
+MASTER	0.0580000000006	0.517	12031.4	0.122
+Worker#1	4013.321	6289.28	723.143	1008.1
+Worker#2	4014.427	6191.23	806.584	1021.6
+Worker#3	3507.244	5286.35	1459.75	1780.51
+Worker#4	3832.63	6264.3	810.828	1126.47
+Worker#5	4163.529	5937.59	882.386	1051.04
+Worker#6	3770.493	7224.16	269.406	770.853
+Worker#7	3824.097	6240.76	897.488	1072.95
+multimulti=lu
+MASTER	0.0119999999999	0.0	0.0	5018.82
+Worker#1	397.017	0.0	4623.52	0.0
+Worker#2	330.501	0.0	4690.07	0.0
+Worker#3	343.429	0.0	4677.16	0.0
+Worker#4	780.448	0.0	4240.41	0.0
+Worker#5	767.868	0.0	4253.35	0.0
+Worker#6	764.461	0.0	4257.12	0.0
+Worker#7	645.161	0.0	4376.78	0.0
+multimulti=quicksort
+MASTER	139.919	225.723	7896.65	459.184
+Worker#1	-58.048	3088.88	2664.78	3027.68
+Worker#2	-1541.337	2698.28	4238.89	3327.46
+Worker#3	-1874.292	1769.42	5025.72	3802.47
+Worker#4	-2209.67	2739.21	4234.56	3959.51
+Worker#5	-1462.101	2090.15	5102.0	2993.93
+Worker#6	-577.249	2719.56	3156.2	3425.83
+Worker#7	-2323.104	3011.97	4365.08	3670.76

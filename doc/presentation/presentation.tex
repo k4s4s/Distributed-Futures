@@ -85,8 +85,7 @@
 
 
 \title{\Large \bf
-A Unified Futures Interface in C++ for Shared and Distributed Memory\\
-part 1}
+A Unified Futures Interface in C++ for Shared and Distributed Memories}
 
 \author[\tiny \thepage /28]{Dimitrios Chasapis}
 
@@ -731,270 +730,282 @@ mem_node/.style={draw, rectangle, minimum height=3cm, minimum width=0.8cm}]
 \end{adjustbox}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}[fragile]{Recap}
+\section{Evaluation}
+\subsection{Interface Assesment}
+
+\defverbatim[colored]\lstFutCompare{
+\begin{adjustbox}{max totalsize={.8\textwidth}}
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}
+class fib {
+public:
+	fib() {};
+	~fib() {};
+	int	operator()(int n) {
+		if(n == 0) return 0;
+		if(n == 1) return 1;
+		fib f;
+		future<int> fib1 = async(f, n-1);
+		future<int> fib2 = async(f, n-2);
+		return fib1.get() + fib2.get();;
+	};
+};
+
+FUTURES_SERIALIZE_CLASS(fib);
+FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
+\end{lstlisting}
+\end{minipage}
+\hspace{4cm}
+\begin{minipage}{.48\textwidth}
+\begin{lstlisting}
+int	fibonacci(int n) {
+	if(n == 0) return 0;
+	if(n == 1) return 1;
+	future<int> fib1 = async(fibonacci, n-1);
+	future<int> fib2 = async(fibonacci, n-2);
+	return fib1.get() + fib2.get();
+}
+\end{lstlisting}
+\end{minipage}
+\end{adjustbox}
+}
+\begin{frame}[fragile]{Interface Assesment}
+\lstFutCompare
 \begin{itemize}
-	\item Inter-statement optimizations
-	\item Futures
-	\item One-sided Communication
-	\item Implementation of Futures over MPI
-\end{itemize}	 
+	\item Very close to the C++11 standard!
+	\item Easy to use compared to original message passing code
+	\item Easy to expose functor objects to worker processes
+\end{itemize}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{Evaluation}
-%\subsection{Interface Assesment}
+\section{Evaluation}
+\subsection{Interface Assesment}
+\begin{frame}{Interface Assesment}
+Limitations
+\begin{itemize}
+		\item Only serializable functor objects can be issued by \emph{async}
+		\item Arguments must also be serializable
+		\note[item]{also additional overhead}
+		\item Size of dynamically sized objects as return values must be declared at \emph{async} callsite 
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Performance}
+\begin{frame}{Performance Evaluation:Setup}
+Evaluation setup:
+\begin{itemize}
+	\item 2 Intel(R) Xeon(R) CPU E5645@2.40 GHz with 6 available cores on each machine
+	\item Connected through a network socket, but provide shared memory interface
+	\item Compiled using g++ version 4.6.3 with level 3 optimization enabled
+	\item OpenMPI version 1.4.3
+	\item Boost serialization version 1.53
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Performance Evaluation:Benchmarks}
+Three benchmarks:
+\vfill
+\begin{itemize}
+	\item Fibonacci:
+	\begin{itemize}
+		\item We run it for a == 45
+		\item For a $<$ 30, we run the sequential code
+		\note[item]{Need to have some work done, 30 is pretty fast}
+	\end{itemize} 
+\vfill
+	\item Quicksort:
+	\begin{itemize}
+		\item We run it for sorting 10,000,000 elements
+		\item For n $<$ 100,000 we run the sequential code
+		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
+	\end{itemize}
+\vfill
+	\item Tiled LU
+	\begin{itemize}
+		\item<2-> \textcolor{red}{A little more complicated...}
+	\end{itemize} 
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\defverbatim[colored]\lstTLU{
+\begin{adjustbox}{max totalsize={0.8\textwidth}}
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}
+for(int k = 0; k < TOTAL_TILES; k++) {
+	dgetrf(A[k][k], P[k][k]);
+	for(int n = k+1; n < TOTAL_TILES; n++) {
+		dgessm(A[k][n], A[k][k], P[k][k])
+	}
+  for(int m = k+1; m < TOTAL_TILES; m++) {
+		dtstrf(A[k][k], A[m][k] , P[m][k]);
+  	for(int n=k+1; n < TOTAL_TILES; n++) {
+			dssssm(U[k][n], A[m][n], L[m][k], 
+											A[m][k], P[m][k]);
+		}
+	}
+}
+\end{lstlisting}
+\end{minipage}
+\hspace{4cm}
+\begin{minipage}{.45\textwidth}
+\includegraphics[width=1.5\textwidth]{images/3x3example}
+\end{minipage}
+\end{adjustbox}
+}
+\begin{frame}[fragile]{Performance Evaluation:Tiled LU}
+\lstTLU
+\begin{itemize}
+	\item Originally implemented with PLASMA
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\defverbatim[colored]\lstPTLU{
+\begin{adjustbox}{max totalsize={0.8\textwidth}}
+\begin{minipage}{.3\textwidth}
+\begin{lstlisting}
+for(int k = 0; k < TOTAL_TILES; k++) {
+	A[k][k] = cpldAU[k][k].get().A;
+	dgetrf(A[k][k], P[k][k]);
+	for(int n = k+1; n < TOTAL_TILES; n++) {
+		A[k][n] = cpldAU[k][n].get().A;
+		fA[k][n] = async(dgessm, A[k][n], 
+										 A[k][k], P[k][k]);
+	}
+  for(int m = k+1; m < TOTAL_TILES; m++) {
+		A[m][k] = cpldAU.get().A;
+		dtstrf(A[k][k], A[m][k].get() , P[m][k]);
+  	for(int n=k+1; n < TOTAL_TILES; n++) {
+			if(m == k+1)
+				A[k][n] = fA[k][n].get();
+			else
+				A[k][n] = cpldAU.get().U;
+			A[m][n] = cpldAU.get().A;
+			cpldAU[m][n] = async(dssssm, A[k][n], A[m][n], 
+													 L[m][k], A[m][k], P[m][k]);
+		}
+	}
+}
+\end{lstlisting}
+\end{minipage}
+\hspace{6cm}
+\begin{minipage}{.7\textwidth}
+\includegraphics[width=1.5\textwidth]{images/lu_task_graph_3x3}
+\end{minipage}
+\end{adjustbox}
+}
+\begin{frame}{Performance Evaluation:Tiled LU}
+\lstPTLU
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Performance Evaluation:Benchmarks}
+Three benchmarks:
+\vfill
+\begin{itemize}
+	\item Fibonacci:
+	\begin{itemize}
+		\item We run it for a == 45
+		\item For a $<$ 30, we run the sequential code
+		\note[item]{Need to have some work done, 30 is pretty fast}
+	\end{itemize} 
+\vfill
+	\item Quicksort:
+	\begin{itemize}
+		\item We run it for sorting 10,000,000 elements
+		\item For n $<$ 100000, we run the sequential code
+		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
+	\end{itemize}
+\vfill
+	\item Tiled LU
+	\begin{itemize}
+		\item We apply LU factorization on an 2,000x2,000 matrix
+		\item Block size is 200x200 elements
+	\end{itemize} 
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Performance Evaluation}
+\begin{figure}
+\center
+\includegraphics[width=.7\textwidth]{images/scalability}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Performance Evaluation}
+\begin{figure}
+\center
+\includegraphics[width=.8\textwidth]{images/app_breakdowns_w_init}
+\end{figure}
+\begin{itemize}
+	\item Fibonacci spends 30\% trying to acquire lock in scheduler 
+	\item Quicksort spends 25\% trying to acquire lock and 15\% on vector copying and 16\% on serialization
+	\item In LU master spends 70\% on serialization routines
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Improving Performance}
+\begin{itemize}
+	\item Boost Serialization is a dominant source of overhead 
+	\item Use an alternative serialization library with better performace
+	\begin{itemize}
+		\item \textcolor{green}{CEREAL serialization library!}
+	\end{itemize}
+\end{itemize}
+\end{frame}
 
-%\defverbatim[colored]\lstFutCompare{
-%\begin{adjustbox}{max totalsize={.8\textwidth}}
-%\begin{minipage}{.48\textwidth}
-%\begin{lstlisting}
-%class fib {
-%public:
-%	fib() {};
-%	~fib() {};
-%	int	operator()(int n) {
-%		if(n == 0) return 0;
-%		if(n == 1) return 1;
-%		fib f;
-%		future<int> fib1 = async(f, n-1);
-%		future<int> fib2 = async(f, n-2);
-%		return fib1.get() + fib2.get();;
-%	};
-%};
+\begin{frame}{Improving Performance}
+\begin{figure}
+\center
+\includegraphics[width=.7\textwidth]{images/apps_scalability_minititan_cereal}
+\end{figure}
+\begin{itemize}
+	\item Performance still troublesome, but we get some speedup!
+\end{itemize}
+\end{frame}
 
-%FUTURES_SERIALIZE_CLASS(fib);
-%FUTURES_EXPORT_FUNCTOR((async_function<fib, int>));
-%\end{lstlisting}
-%\end{minipage}
-%\hspace{4cm}
-%\begin{minipage}{.48\textwidth}
-%\begin{lstlisting}
-%int	fibonacci(int n) {
-%	if(n == 0) return 0;
-%	if(n == 1) return 1;
-%	future<int> fib1 = async(fibonacci, n-1);
-%	future<int> fib2 = async(fibonacci, n-2);
-%	return fib1.get() + fib2.get();
-%}
-%\end{lstlisting}
-%\end{minipage}
-%\end{adjustbox}
-%}
-%\begin{frame}[fragile]{Interface Assesment}
-%\lstFutCompare
-%\begin{itemize}
-%	\item Very close to the C++11 standard!
-%	\item Easy to use compared to original message passing code
-%	\item Easy to expose functor objects to worker processes
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{Evaluation}
-%\subsection{Interface Assesment}
-%\begin{frame}{Interface Assesment}
-%Limitations
-%\begin{itemize}
-%		\item Only serializable functor objects can be issued by
-%		\item Arguments must also be serializable
-%		\note[item]{also additional overhead}
-%		\item Size of dynamically sized objects as return values must be declared at \emph{async} callsite 
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\subsection{Performance}
-%\begin{frame}{Performance Evaluation:Setup}
-%Evaluation setup:
-%\begin{itemize}
-%	\item 2 Intel(R) Xeon(R) CPU E5645@2.40 GHz with 6 available cores on each machine
-%	\item Connected through a network socket, but provide shared space interface
-%	\item Compiled using g++ version 4.6.3 with level 3 optimization enabled
-%	\item OpenMPI version 1.4.3
-%	\item Boost serialization version 1.53
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Performance Evaluation:Benchmarks}
-%Three benchmarks:
-%\vfill
-%\begin{itemize}
-%	\item Fibonacci:
-%	\begin{itemize}
-%		\item We run it for a == 45
-%		\item For a $<$ 30, we run the sequential code
-%		\note[item]{Need to have some work done, 30 is pretty fast}
-%	\end{itemize} 
-%\vfill
-%	\item Quicksort:
-%	\begin{itemize}
-%		\item We run it for sorting 10,000,000 elements
-%		\item For n $<$ 100,000 we run the sequential code
-%		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
-%	\end{itemize}
-%\vfill
-%	\item Tiled LU
-%	\begin{itemize}
-%		\item<2-> \textcolor{red}{A little more complicated...}
-%	\end{itemize} 
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\defverbatim[colored]\lstTLU{
-%\begin{adjustbox}{max totalsize={0.8\textwidth}}
-%\begin{minipage}{.45\textwidth}
-%\begin{lstlisting}
-%for(int k = 0; k < TOTAL_TILES; k++) {
-%	dgetrf(A[k][k], P[k][k]);
-%	for(int n = k+1; n < TOTAL_TILES; n++) {
-%		dgessm(A[k][n], A[k][k], P[k][k])
-%	}
-%  for(int m = k+1; m < TOTAL_TILES; m++) {
-%		dtstrf(A[k][k], A[m][k] , P[m][k]);
-%  	for(int n=k+1; n < TOTAL_TILES; n++) {
-%			dssssm(U[k][n], A[m][n], L[m][k], 
-%											A[m][k], P[m][k]);
-%		}
-%	}
-%}
-%\end{lstlisting}
-%\end{minipage}
-%\hspace{4cm}
-%\begin{minipage}{.45\textwidth}
-%\includegraphics[width=1.5\textwidth]{images/3x3example}
-%\end{minipage}
-%\end{adjustbox}
-%}
-%\begin{frame}[fragile]{Performance Evaluation:Tiled LU}
-%\lstTLU
-%\begin{itemize}
-%	\item Originally implemented with PLASMA
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\defverbatim[colored]\lstPTLU{
-%\begin{adjustbox}{max totalsize={0.8\textwidth}}
-%\begin{minipage}{.3\textwidth}
-%\begin{lstlisting}
-%for(int k = 0; k < TOTAL_TILES; k++) {
-%	A[k][k] = cpldAU[k][k].get().A;
-%	dgetrf(A[k][k], P[k][k]);
-%	for(int n = k+1; n < TOTAL_TILES; n++) {
-%		A[k][n] = cpldAU[k][n].get().A;
-%		fA[k][n] = async(dgessm, A[k][n], 
-%										 A[k][k], P[k][k]);
-%	}
-%  for(int m = k+1; m < TOTAL_TILES; m++) {
-%		A[m][k] = cpldAU.get().A;
-%		dtstrf(A[k][k], A[m][k].get() , P[m][k]);
-%  	for(int n=k+1; n < TOTAL_TILES; n++) {
-%			if(m == k+1)
-%				A[k][n] = fA[k][n].get();
-%			else
-%				A[k][n] = cpldAU.get().U;
-%			A[m][n] = cpldAU.get().A;
-%			cpldAU[m][n] = async(dssssm, A[k][n], A[m][n], 
-%													 L[m][k], A[m][k], P[m][k]);
-%		}
-%	}
-%}
-%\end{lstlisting}
-%\end{minipage}
-%\hspace{6cm}
-%\begin{minipage}{.7\textwidth}
-%\includegraphics[width=1.5\textwidth]{images/lu_task_graph_3x3}
-%\end{minipage}
-%\end{adjustbox}
-%}
-%\begin{frame}{Performance Evaluation:Tiled LU}
-%\lstPTLU
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Performance Evaluation:Benchmarks}
-%Three benchmarks:
-%\vfill
-%\begin{itemize}
-%	\item Fibonacci:
-%	\begin{itemize}
-%		\item We run it for a == 45
-%		\item For a $<$ 30, we run the sequential code
-%		\note[item]{Need to have some work done, 30 is pretty fast}
-%	\end{itemize} 
-%\vfill
-%	\item Quicksort:
-%	\begin{itemize}
-%		\item We run it for sorting 10,000,000 elements
-%		\item For n $<$ 100000, we run the sequential code
-%		\note[item]{after every return of async, we need to merge the two arrays, lots of copies}
-%	\end{itemize}
-%\vfill
-%	\item Tiled LU
-%	\begin{itemize}
-%		\item We apply LU factorization on an 2,000x2,000 matrix
-%		\item Block size is 200x200 elements
-%	\end{itemize} 
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Performance Evaluation}
-%\begin{figure}
-%\center
-%\includegraphics[width=.7\textwidth]{images/scalability}
-%\end{figure}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Performance Evaluation}
-%\begin{figure}
-%\center
-%\includegraphics[width=.8\textwidth]{images/app_breakdowns_w_init}
-%\end{figure}
-%\begin{itemize}
-%	\item Fibonacci spends 30\% trying to acquire lock in scheduler 
-%	\item Quicksort spends 25\% trying to acquire lock and 15\% on vector copying and 16\% on serialization
-%	\item In LU master spends 70\% on serialization routines
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Conclusions}
-%\begin{itemize}
-%	\item Implementing the C++11 standard future's interface over MPI is possible!
-%	\begin{itemize}
-%		\item Very usable
-%		\item Sensible limitations
-%	\end{itemize}
-%\vfill
-%	\item Two major "Deal breakers" regarding performance
-%	\begin{itemize}
-%		\item Locks over MPI
-%		\item Boost Serialization
-%	\end{itemize}
-%\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Conclusions}
-%\begin{itemize}
-%	\item MPI-2 one-sided communication not as versatile but usable
-%	\begin{itemize}
-%		\item \texttt{MPI\_Win\_create} can only be created collective\\
-%					\textcolor{red}{Not possible to share data dynamically in an asynchronous manner}
-%		\item Active mode synchronization cannot be initiated asynchronously
-%		\item Passive mode cannot handle static data
-%		\note[item]{Everything needs to be allocated using the mpi alloc mem}
-%		\item Lacks synchronization primitives (Active and Passive mode synchronize message completion, they do not define
-%					critical regions)
-%	\end{itemize}
-%\end{itemize}
-%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Conclusions}
+\begin{itemize}
+	\item Implementing the C++11 standard future's interface over MPI is possible!
+	\begin{itemize}
+		\item Very usable
+		\item Sensible limitations
+	\end{itemize}
+\vfill
+	\item Two major "Deal breakers" regarding performance
+	\begin{itemize}
+		\item Locks over MPI
+		\item Boost Serialization
+	\end{itemize}
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Conclusions}
+\begin{itemize}
+	\item MPI-2 one-sided communication not as versatile but usable
+	\begin{itemize}
+		\item \texttt{MPI\_Win\_create} can only be created collective\\
+					\textcolor{red}{Not possible to share data dynamically in an asynchronous manner}
+		\item Active mode synchronization cannot be initiated asynchronously
+		\item Passive mode cannot handle static data
+		\note[item]{Everything needs to be allocated using the mpi alloc mem}
+		\item Lacks synchronization primitives (Active and Passive mode synchronize message completion, they do not define
+					critical regions)
+	\end{itemize}
+\end{itemize}
+\end{frame}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}{Future Work}
-%\begin{itemize}
-%	\item Fix performance
-%	\note[item]{Top priority! We have detected where the problem is, try to deal with it}
-%	\note[item]{Try other serialization method/library}
-%	\note[item]{No workaround the locks - maybe try armci?}		
-%	\item Use coarser grain applications for benchmarking
-%	\item Try a hybrid approach.
-%	\item Implement secondary C++11 library features (exceptions, timeouts, etc)
-%\end{itemize}
-%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Future Work}
+\begin{itemize}
+	\item Fix performance
+	\note[item]{Top priority! We have detected where the problem is, try to deal with it}
+	\note[item]{Try other serialization method/library}
+	\note[item]{No workaround the locks - maybe try armci?}		
+	\item Use coarser grain applications for benchmarking
+	\item Try a hybrid approach.
+	\item Implement secondary C++11 library features (exceptions, timeouts, etc)
+\end{itemize}
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
 

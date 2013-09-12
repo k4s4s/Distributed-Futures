@@ -76,11 +76,10 @@ manipulating the data of the void pointers would still be required.
 \label{sect:eval_intro}
 \paragraph{}
 	We evaluated our runtime's implementation performance by running some microbenchmark applications and
-three small applications (fibonacci, quicksort, LU).  We use two different setups for the evaluation.
+three small applications (fibonacci, quicksort, LU).
 We run all benchmarks on a small scale setup, two Intel(R) Xeon(R) 
 CPU E5645@2.40 GHz with 6 available cores on each machine, totaling to 12 cores connected through 
-a network socket. We also run the 3 benchmark applications on a larger scale setup, totalling to 16 nodes
-each equiped with a an Intel Xeon 3430 (4 cores@2.4 GHz) and 12GB of RAM. 
+a network socket. 
 We have compiled the runtime and application code using g++ version 4.6.3 with 
 level 3 optimization enabled.  For the MPI library we used OpenMPI version 1.4.3.
 
@@ -345,29 +344,9 @@ for(int k = 0; k < TOTAL_TILES; k++) {
 \end{figure}
 
 \begin{figure}[!ht]
-\centering
-\includegraphics[width=0.7\columnwidth]{figures/apps_scalability_beowulf}
-\caption{Scalability graph for fibonacci, quicksort and LU on the large scale system}
-\label{fig:apps_scalability_beowulf}
-\end{figure}
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=0.7\columnwidth]{figures/apps_speedup_beowulf}
-\caption{Speedup graph for fibonacci, quicksort and LU on the large scale system}
-\label{fig:apps_speedup_beowulf}
-\end{figure}
-
-\begin{figure}[!ht]
 \includegraphics[width=\columnwidth]{figures/app_breakdowns_minititan}
 \caption{Breakdowns of master and worker execution time graph for fibonacci, quicksort and LU on the small scale system}
 \label{fig:app_breakdowns_minititan}
-\end{figure}
-
-\begin{figure}[!ht]
-\includegraphics[width=\columnwidth]{figures/app_breakdowns_beowulf}
-\caption{Breakdowns of master and worker execution time graph for fibonacci, quicksort and LU on the large scale system}
-\label{fig:app_breakdowns_beowulf}
 \end{figure}
 
 
@@ -385,17 +364,12 @@ and finalization times of the runtime system.
 We observe that we do not manage to get any speedup 
 on quicksort and Tiled LU, on the contrary we get a slowdown (figure~\ref{fig:apps_speedup}).
 We get a small speedup in Fibonacci when using more than 4 processes.  
-Figure~\ref{fig:apps_scalability_beowulf} and figure~\ref{fig:apps_speedup_beowulf} show the 
-scalability and speedup graphs respectively, for running the applicatons on our large scale setup.
-We can observe a similar behaviour as with the small scale system.
 %We also notice a strange
 %behaviour of the runtime when running our applications on very few cores. In these cases we have
 %noticed an increase in communication when the worker try to return the future value, but we have 
 %yet to identify the cause of that issue. \dc{FIXME:say why?}
 In figure~\ref{fig:app_breakdowns_minititan} 
 we show the breakdowns for the master application and the slaves, for running the applications on 8 cores.
-Figure~\ref{fig:app_breakdowns_beowulf} shows the same breakdowns for running the three applications
-on the large scale distributed setup.
 \emph{Job issue time} is the time needed to send a \emph{job} from one process to another. This time includes
 time spend in the scheduler, to find the next worker.  It also includes time spend on serializing and sending 
 the \emph{job} object and its arguments to a worker process.  \emph{User code time} is the time spent on 
@@ -410,7 +384,7 @@ of objects done after deserialization on the workers.
 %creation and finalization of the communication module (in our experiments that's MPI), creation and destruction
 %of the shared memory (MPI Windows) and scheduler.  The initialization time is constant on all applications, since
 %it mainly depends on the number of processes, while the finalization time is negligible.
-On both setups we observe that compared to the useful \emph{user code} time, the overhead is much greater.
+We observe that compared to the useful \emph{user code} time, the overhead is much greater.
 \emph{Job issue time} or \emph{rest of time} are the greatest sources of 
 overhead, while a fair amount of time is also spent on \emph{idle time}.  Runtime overheads can 
 implicitly be the cause for the \emph{idle time}.  Factors like how \emph{job}s
@@ -452,10 +426,37 @@ arguments) as MPI datatypes.  Serialization is required only for the \emph{job} 
 the overhead caused by the distributed mutex library.  The high cost of the distributed mutex library was expected, and we
 tried to use such locks only when completely necessary.  It would be preferable to have a native MPI implementation of 
 mutexes, but none of the MPI synchronization primitives can be used to define a critical region.  Moreover, figure 
-\ref{fig:app_breakdowns_minititan} and \ref{fig:app_breakdowns_beowulf} show that even in the case of fibonacci, 
+\ref{fig:app_breakdowns_minititan} shows that even in the case of fibonacci, 
 that there is some performance benefit, the overhead is
 considerable.  One can also see that the fibonacci had a lot more useful work to complete compared to tiled LU and 
 quicksort.  We believe that the runtime can be only useful for coarser grain work, with the current implementation.
+
+\subsection{Improving Performance}
+\paragraph{}
+	In section~\ref{sect:real_app} we concluded that the two main sources of overhead in our system are the Boost 
+serialization library and the MPI library itself.  In this section, we compare an alternative implementation of
+our system, using the CEREAL~\cite{Cereal:Serialization} serialization library, to the original Boost serialization.  
+Figures~\ref{fig:apps_scalability_minititan_cereal} and \ref{fig:apps_speedup_minititan_cereal} show the
+scalability and speedup comparisons between the two libraries.  We see that the CEREAL version outperforms Boost.
+Although, performance is still not good, we get a small speedup on all applications.  Furthermore, the profiler
+showed that the previous dominant source of overhead, the serialization routines, are now significantly reduced.
+However, the reduction of the serialization time is not analogous to the overall execution time.  
+We have observed that by reducing the serialization time, we have emphasized the overhead introduced by the distributed 
+mutex library and the primitive MPI\_Lock/Unlock used to synchronize message exchanges. 
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.7\columnwidth]{figures/apps_scalability_minititan_cereal}
+\caption{Scalability graph for fibonacci, quicksort and LU on the small scale system}
+\label{fig:apps_scalability_minititan_cereal}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.7\columnwidth]{figures/apps_speedup_minititan_cereal}
+\caption{Speedup graph for fibonacci, quicksort and LU on the small scale system}
+\label{fig:apps_speedup_minititan_cereal}
+\end{figure}
 
 %\paragraph{\todo{graphs about job issuing over number of workers/jobs issued}}
 %\dc{FIXME:say smth about how little the cost for scheduler decision is}

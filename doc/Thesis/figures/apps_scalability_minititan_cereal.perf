@@ -1,0 +1,12 @@
+set title "scalability over number of cores"
+set xlabel "ncores"
+set ylabel "execution time (ms)"
+set yrange[0:]
+set term postscript eps color font 20
+set output "apps_scalability_minititan_cereal.eps"
+plot "cereal_scalability_minititan.dat" using 1:2 w linespoints linecolor rgb "magenta" title "fib, cereal", \
+"cereal_scalability_minititan.dat" using 1:3 w linespoints linecolor rgb "cyan" title "lu, cereal", \
+"cereal_scalability_minititan.dat" using 1:4 w linespoints linecolor rgb "coral" title "quicksort, cereal", \
+"boost_scalability_minititan.dat" using 1:2 w linespoints linecolor rgb "red" title "fib, boost", \
+"boost_scalability_minititan.dat" using 1:3 w linespoints linecolor rgb "blue" title "lu, boost", \
+"boost_scalability_minititan.dat" using 1:4 w linespoints linecolor rgb "orange" title "quicksort, boost"

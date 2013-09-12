@@ -1,0 +1,9 @@
+set title "scalability over number of cores for small scale system"
+set xlabel "ncores"
+set ylabel "execution time (ms)"
+set yrange[0:]
+set term postscript eps color font 20
+set output "apps_scalability_minititan.eps"
+plot "apps_scalability_minititan.dat" using 1:2 w linespoints title "fib", \
+"apps_scalability_minititan.dat" using 1:3 w linespoints title "lu", \
+"apps_scalability_minititan.dat" using 1:4 w linespoints title "quicksort"
